@@ -7,7 +7,9 @@ import { useAuth } from '@/context/AuthContext'
 import { CATEGORIAS } from '@/types'
 import type { Socio } from '@/types'
 import toast from 'react-hot-toast'
-import { Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink } from 'lucide-react'
+import { Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2 } from 'lucide-react'
+import { doc, setDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 
 export default function SociosPage() {
   const { usuario } = useAuth()
@@ -42,6 +44,50 @@ export default function SociosPage() {
 
   const puedeEditar = usuario?.rol === 'el_faro' || usuario?.rol === 'bureau'
   const puedeEliminar = usuario?.rol === 'el_faro'
+  const [alimentando, setAlimentando] = useState(false)
+
+  const alimentarBestia = async () => {
+    if (socios.length === 0) { toast.error('No hay socios cargados'); return }
+    setAlimentando(true)
+    try {
+      const lineas = [
+        '=== SOCIOS MENDOZA BUREAU ===',
+        `Actualizado: ${new Date().toLocaleDateString('es-AR')}`,
+        '',
+        ...socios.filter(s => s.activo).map(s => [
+          `## ${s.razonSocial}`,
+          `Categoría: ${CATEGORIAS[s.categoria] ?? s.categoria}`,
+          s.etiqueta ? `Descripción: ${s.etiqueta}` : '',
+          s.infoGeneral ? `Info: ${s.infoGeneral}` : '',
+          s.direccion ? `Dirección: ${s.direccion}` : '',
+          s.urlInternaTour ? `Tour virtual: ${s.urlInternaTour}` : '',
+          s.contacto?.whatsapp ? `WhatsApp: ${s.contacto.whatsapp}` : '',
+          s.contacto?.web ? `Web: ${s.contacto.web}` : '',
+          s.contacto?.email ? `Email: ${s.contacto.email}` : '',
+          '',
+        ].filter(Boolean).join('\n')),
+      ].join('\n')
+
+      const base64 = btoa(unescape(encodeURIComponent(lineas)))
+      const snap = await import('firebase/firestore').then(m =>
+        m.getDoc(doc(db, 'configuracion', 'chatbot'))
+      )
+      const current = snap.exists() ? snap.data() : {}
+      const docs = ((current.documentos ?? []) as {nombre:string;contenido:string}[])
+        .filter((d: {nombre:string}) => d.nombre !== '__socios_auto__')
+      await setDoc(doc(db, 'configuracion', 'chatbot'), {
+        ...current,
+        documentos: [...docs, { nombre: '__socios_auto__', contenido: base64 }],
+        updatedAt: new Date().toISOString(),
+      })
+      toast.success(`¡La bestia fue alimentada con ${socios.filter(s=>s.activo).length} socios! 🤖`)
+    } catch (err) {
+      console.error(err)
+      toast.error('Error al alimentar la bestia')
+    } finally {
+      setAlimentando(false)
+    }
+  }
 
   return (
     <div className="p-8">
@@ -50,15 +96,27 @@ export default function SociosPage() {
           <h2 className="text-2xl font-bold text-gray-900">Socios</h2>
           <p className="text-gray-500 text-sm mt-1">{socios.length} socios registrados</p>
         </div>
-        {puedeEditar && (
-          <Link
-            href="/dashboard/socios/nuevo"
-            className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
-          >
-            <Plus size={16} />
-            Nuevo socio
-          </Link>
-        )}
+        <div className="flex items-center gap-2">
+          {usuario?.rol === 'el_faro' && (
+            <button
+              onClick={alimentarBestia}
+              disabled={alimentando}
+              className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition disabled:opacity-60"
+            >
+              {alimentando ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+              Alimentar a la bestia
+            </button>
+          )}
+          {puedeEditar && (
+            <Link
+              href="/dashboard/socios/nuevo"
+              className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+            >
+              <Plus size={16} />
+              Nuevo socio
+            </Link>
+          )}
+        </div>
       </div>
 
       <input

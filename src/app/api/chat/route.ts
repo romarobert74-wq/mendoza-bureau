@@ -10,16 +10,48 @@ const TONO_EXTRA: Record<string, string> = {
   formal: 'Usá un tono formal y respetuoso.',
 }
 
+interface SocioResumen {
+  nombre: string
+  categoria: string
+  descripcion?: string
+  direccion?: string
+  urlTour?: string
+  whatsapp?: string
+  web?: string
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { mensajes, config } = await req.json()
+    const { mensajes, config, socios } = await req.json()
 
     if (!mensajes || !Array.isArray(mensajes)) {
       return NextResponse.json({ error: 'mensajes inválidos' }, { status: 400 })
     }
 
     const tonoExtra = TONO_EXTRA[config?.tono] ?? ''
-    const systemPrompt = `${config?.promptSistema ?? ''}\n${tonoExtra}`.trim()
+
+    // Build socios context block
+    let sociosContext = ''
+    if (socios && Array.isArray(socios) && socios.length > 0) {
+      const lineas = (socios as SocioResumen[]).map(s => {
+        const parts = [`• ${s.nombre} (${s.categoria})`]
+        if (s.descripcion) parts.push(`  Descripción: ${s.descripcion}`)
+        if (s.direccion) parts.push(`  Dirección: ${s.direccion}`)
+        if (s.urlTour) parts.push(`  🎥 Tour virtual: ${s.urlTour}`)
+        if (s.whatsapp) parts.push(`  📱 WhatsApp: ${s.whatsapp}`)
+        if (s.web) parts.push(`  🌐 Web: ${s.web}`)
+        return parts.join('\n')
+      })
+      sociosContext = `\n\nSOCIOS ACTIVOS DE MENDOZA BUREAU:\n${lineas.join('\n\n')}`
+    }
+
+    const systemPrompt = [
+      config?.promptSistema ?? '',
+      tonoExtra,
+      sociosContext,
+      '\nCuando el usuario pregunta por un tour virtual, siempre incluí el link exacto del tour en tu respuesta.',
+      'Respondé siempre en español.',
+    ].filter(Boolean).join('\n')
 
     const messages = mensajes.map((m: { rol: string; contenido: string }) => ({
       role: m.rol as 'user' | 'assistant',
