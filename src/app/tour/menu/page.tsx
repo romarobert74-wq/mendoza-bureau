@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
+import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Search } from 'lucide-react'
+import { Search, Layers } from 'lucide-react'
 
 interface Socio {
   id: string
@@ -13,6 +13,7 @@ interface Socio {
   direccion: string
   infoGeneral: string
   fotoPortada: string
+  activo: boolean
   contacto: { whatsapp: string; email: string; web: string; redes: string }
   urlInternaTour: string
   urlInternaVuelta: string
@@ -29,7 +30,7 @@ const CATEGORIAS = [
 ]
 
 const CAT_COLORS: Record<string, string> = {
-  bodega: '#8B5CF6',
+  bodega: '#A855F7',
   restaurante: '#F59E0B',
   hotel: '#3B82F6',
   alojamiento: '#10B981',
@@ -37,12 +38,16 @@ const CAT_COLORS: Record<string, string> = {
   otro: '#6B7280',
 }
 
+const MIN_OPACITY = 0.45
+const MAX_OPACITY = 0.95
+
 export default function TourMenuPage() {
   const [socios, setSocios] = useState<Socio[]>([])
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('todos')
   const [busqueda, setBusqueda] = useState('')
   const [tab, setTab] = useState<'lugares' | 'informacion'>('lugares')
+  const [opacity, setOpacity] = useState(0.72)
 
   useEffect(() => {
     document.body.style.background = 'transparent'
@@ -52,13 +57,11 @@ export default function TourMenuPage() {
   useEffect(() => {
     const cargar = async () => {
       try {
-        const q = query(
-          collection(db, 'socios'),
-          where('activo', '==', true),
-          orderBy('razonSocial', 'asc')
-        )
+        const q = query(collection(db, 'socios'), orderBy('razonSocial', 'asc'))
         const snap = await getDocs(q)
-        const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as Socio))
+        const data = snap.docs
+          .map(d => ({ id: d.id, ...d.data() } as Socio))
+          .filter(s => s.activo !== false)
         setSocios(data)
       } catch (err) {
         console.error('Error cargando socios:', err)
@@ -88,48 +91,71 @@ export default function TourMenuPage() {
 
   const handleVerSocio = (socio: Socio) => {
     if (!socio.urlInternaTour) return
-    try {
-      window.top!.location.href = socio.urlInternaTour
-    } catch {
-      window.location.href = socio.urlInternaTour
-    }
+    try { window.top!.location.href = socio.urlInternaTour }
+    catch { window.location.href = socio.urlInternaTour }
   }
+
+  const bg = `rgba(15, 15, 25, ${opacity})`
+  const borderColor = `rgba(255,255,255,${Math.min(opacity + 0.15, 0.4)})`
 
   return (
     <div
-      className="min-h-screen w-full flex items-start justify-end p-4"
+      className="min-h-screen w-full flex items-start justify-end p-3"
       style={{ background: 'transparent' }}
     >
       <div
-        className="w-[340px] rounded-2xl overflow-hidden flex flex-col"
+        className="w-[320px] rounded-2xl flex flex-col"
         style={{
-          background: 'rgba(255,255,255,0.18)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.35)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-          maxHeight: '85vh',
+          background: bg,
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: `1px solid ${borderColor}`,
+          boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
+          maxHeight: '88vh',
+          transition: 'background 0.2s',
         }}
       >
         {/* Header */}
-        <div className="px-5 pt-5 pb-3">
-          <h2 className="text-white font-bold text-lg leading-tight drop-shadow">
-            Descubrí la zona
-          </h2>
-          <p className="text-white/70 text-xs mt-0.5">
-            Bodegas, restaurantes, hoteles y servicios
-          </p>
+        <div className="px-5 pt-4 pb-0">
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-white font-bold text-base leading-tight">
+                Descubrí la zona
+              </h2>
+              <p className="text-white/60 text-[11px] mt-0.5">
+                Bodegas, restaurantes, hoteles y servicios
+              </p>
+            </div>
+            {/* Opacity control */}
+            <div className="flex items-center gap-1.5 pt-1">
+              <Layers size={12} className="text-white/40 flex-shrink-0" />
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={Math.round(
+                  ((opacity - MIN_OPACITY) / (MAX_OPACITY - MIN_OPACITY)) * 100
+                )}
+                onChange={e => {
+                  const pct = Number(e.target.value) / 100
+                  setOpacity(MIN_OPACITY + pct * (MAX_OPACITY - MIN_OPACITY))
+                }}
+                className="w-16 h-1 accent-white cursor-pointer opacity-70 hover:opacity-100 transition"
+                title="Opacidad del panel"
+              />
+            </div>
+          </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 mt-3 border-b border-white/20">
+          <div className="flex gap-0 mt-3 border-b border-white/15">
             {(['lugares', 'informacion'] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className="px-3 py-1.5 text-xs font-medium transition"
+                className="px-4 py-2 text-[11px] font-semibold tracking-wide transition"
                 style={{
-                  color: tab === t ? 'white' : 'rgba(255,255,255,0.5)',
-                  borderBottom: tab === t ? '2px solid white' : '2px solid transparent',
+                  color: tab === t ? 'white' : 'rgba(255,255,255,0.45)',
+                  borderBottom: tab === t ? '2px solid rgba(255,255,255,0.9)' : '2px solid transparent',
                 }}
               >
                 {t === 'lugares' ? '📍 Lugares' : 'ℹ️ Información'}
@@ -141,49 +167,56 @@ export default function TourMenuPage() {
         {tab === 'lugares' ? (
           <>
             {/* Buscador */}
-            <div className="px-4 py-2">
+            <div className="px-4 pt-3 pb-2">
               <div
-                className="flex items-center gap-2 rounded-xl px-3 py-2"
-                style={{ background: 'rgba(255,255,255,0.15)' }}
+                className="flex items-center gap-2 rounded-lg px-3 py-2"
+                style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.15)' }}
               >
-                <Search size={14} className="text-white/60 flex-shrink-0" />
+                <Search size={13} className="text-white/50 flex-shrink-0" />
                 <input
                   type="text"
                   placeholder="Buscar un lugar..."
                   value={busqueda}
                   onChange={e => setBusqueda(e.target.value)}
-                  className="bg-transparent text-white placeholder-white/40 text-sm flex-1 outline-none"
+                  className="bg-transparent text-white placeholder-white/35 text-[13px] flex-1 outline-none"
                 />
               </div>
             </div>
 
             {/* Filtros */}
-            <div className="px-4 pb-3 flex gap-1.5 flex-wrap">
-              {categoriasConSocios.map(cat => (
-                <button
-                  key={cat.key}
-                  onClick={() => setFiltro(cat.key)}
-                  className="px-3 py-1 rounded-full text-xs font-medium transition"
-                  style={{
-                    background: filtro === cat.key ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.15)',
-                    color: filtro === cat.key ? '#1a1a1a' : 'rgba(255,255,255,0.85)',
-                    border: '1px solid rgba(255,255,255,0.3)',
-                  }}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
+            {categoriasConSocios.length > 1 && (
+              <div className="px-4 pb-3 flex gap-1.5 flex-wrap">
+                {categoriasConSocios.map(cat => {
+                  const active = filtro === cat.key
+                  return (
+                    <button
+                      key={cat.key}
+                      onClick={() => setFiltro(cat.key)}
+                      className="px-3 py-1 rounded-full text-[11px] font-semibold transition-all"
+                      style={{
+                        background: active ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.10)',
+                        color: active ? '#111' : 'rgba(255,255,255,0.80)',
+                        border: active ? '1px solid transparent' : '1px solid rgba(255,255,255,0.22)',
+                      }}
+                    >
+                      {cat.label}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
 
             {/* Lista */}
             <div className="overflow-y-auto flex-1 px-4 pb-4 space-y-2">
               {loading ? (
                 <div className="flex justify-center py-8">
-                  <div className="w-6 h-6 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 </div>
               ) : filtrados.length === 0 ? (
-                <p className="text-white/50 text-sm text-center py-8">
-                  No hay lugares en esta categoría
+                <p className="text-white/40 text-xs text-center py-8">
+                  {socios.length === 0
+                    ? 'No hay socios activos cargados'
+                    : 'No hay lugares en esta categoría'}
                 </p>
               ) : (
                 filtrados.map(socio => (
@@ -191,33 +224,36 @@ export default function TourMenuPage() {
                     key={socio.id}
                     className="rounded-xl p-3 flex items-center justify-between gap-3"
                     style={{
-                      background: 'rgba(255,255,255,0.12)',
-                      border: '1px solid rgba(255,255,255,0.2)',
+                      background: 'rgba(255,255,255,0.07)',
+                      border: '1px solid rgba(255,255,255,0.13)',
                     }}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        className="w-2 h-2 rounded-full flex-shrink-0"
                         style={{ background: CAT_COLORS[socio.categoria] ?? '#9CA3AF' }}
                       />
                       <div className="min-w-0">
-                        <p className="text-white text-sm font-semibold leading-tight truncate">
+                        <p className="text-white text-[13px] font-semibold leading-tight truncate">
                           {socio.razonSocial}
                         </p>
-                        <p className="text-white/55 text-xs truncate mt-0.5">
+                        <p className="text-white/50 text-[11px] truncate mt-0.5">
                           {socio.infoGeneral
-                            ? socio.infoGeneral.substring(0, 45) + (socio.infoGeneral.length > 45 ? '…' : '')
+                            ? socio.infoGeneral.substring(0, 42) + (socio.infoGeneral.length > 42 ? '…' : '')
                             : socio.direccion}
                         </p>
                       </div>
                     </div>
-                    {socio.urlInternaTour && (
+                    {socio.urlInternaTour ? (
                       <button
                         onClick={() => handleVerSocio(socio)}
-                        className="text-white/80 hover:text-white text-xs font-medium whitespace-nowrap transition flex-shrink-0"
+                        className="text-white text-[11px] font-bold whitespace-nowrap flex-shrink-0 px-2.5 py-1 rounded-lg transition"
+                        style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)' }}
                       >
                         Ver →
                       </button>
+                    ) : (
+                      <span className="text-white/25 text-[10px] flex-shrink-0">Sin tour</span>
                     )}
                   </div>
                 ))
@@ -227,13 +263,14 @@ export default function TourMenuPage() {
         ) : (
           <div className="px-5 py-4 overflow-y-auto flex-1 text-white space-y-4">
             <div>
-              <h3 className="font-bold text-base mb-1">Mendoza Bureau</h3>
-              <p className="text-white/70 text-xs leading-relaxed">
-                Somos una asociación que agrupa a los principales socios corporativos de Mendoza,
-                ofreciendo experiencias únicas en bodegas, gastronomía, hotelería y servicios.
+              <h3 className="font-bold text-sm mb-1.5">Mendoza Bureau</h3>
+              <p className="text-white/65 text-[12px] leading-relaxed">
+                Somos una asociación que agrupa a los principales socios corporativos
+                de Mendoza, ofreciendo experiencias únicas en bodegas, gastronomía,
+                hotelería y servicios.
               </p>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {[
                 { icon: '📍', text: 'Mendoza, Argentina' },
                 { icon: '🌐', text: 'mendozabureau.com' },
@@ -242,7 +279,7 @@ export default function TourMenuPage() {
               ].map(row => (
                 <div key={row.text} className="flex items-center gap-2.5">
                   <span className="text-sm">{row.icon}</span>
-                  <span className="text-white/75 text-xs">{row.text}</span>
+                  <span className="text-white/70 text-[12px]">{row.text}</span>
                 </div>
               ))}
             </div>
