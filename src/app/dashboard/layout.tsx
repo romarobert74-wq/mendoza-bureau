@@ -60,10 +60,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [user, loading, router])
 
-  if (loading || !usuario) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!usuario) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white rounded-xl p-8 shadow text-center max-w-sm">
+          <p className="text-gray-700 font-medium mb-2">Tu cuenta no tiene perfil asignado</p>
+          <p className="text-gray-400 text-sm mb-4">
+            El administrador debe crear tu documento en Firestore con el rol correspondiente.
+          </p>
+          <button
+            onClick={async () => { await signOut(auth); router.push('/login') }}
+            className="text-sm text-primary-600 hover:underline"
+          >
+            Volver al login
+          </button>
+        </div>
       </div>
     )
   }
