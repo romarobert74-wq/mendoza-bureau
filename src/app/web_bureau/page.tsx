@@ -18,11 +18,14 @@ interface Config {
   contactoWhatsapp: string
   contactoEmail: string
   directiva: DirectivaMember[]
+  colorPrimario: string
+  colorSecundario: string
+  logoUrl: string
 }
 
 interface Socio {
   id: string; razonSocial: string; etiqueta: string; categoria: string
-  infoGeneral: string; fotoPortada: string; direccion: string
+  infoGeneral: string; fotoPortada: string; logoUrl: string; direccion: string
   urlInternaTour: string; activo: boolean
   contacto?: { web?: string; whatsapp?: string }
 }
@@ -40,10 +43,10 @@ interface ObsItem {
   fecha: string; pdfBase64: string; grafico?: Grafico; activo: boolean
 }
 
-// ── Brand colors ───────────────────────────────────────────────────────────────
+// ── Brand colors (defaults, overridden by config) ─────────────────────────────
 
-const BRAND = '#E85D04'
-const BRAND2 = '#C0391B'
+const DEFAULT_BRAND = '#E85D04'
+const DEFAULT_BRAND2 = '#C0391B'
 const CAT_LABELS: Record<string, string> = {
   bodega: 'Bodegas', restaurante: 'Restaurantes', hotel: 'Hoteles',
   alojamiento: 'Alojamiento', servicio: 'Servicios', otro: 'Otros',
@@ -58,15 +61,62 @@ const CONFIG_DEFAULT: Config = {
   heroSubtitulo: 'Convention & Visitors Bureau — El destino corporativo líder de Argentina',
   heroImagen: '',
   sobreNosotros: 'Somos una asociación que agrupa a los principales actores del turismo corporativo y de reuniones de Mendoza, trabajando en sinergia para posicionar a la provincia como destino de primer nivel.',
+  colorPrimario: DEFAULT_BRAND,
+  colorSecundario: DEFAULT_BRAND2,
+  logoUrl: '',
   mision: '¿Por qué elegir Mendoza como destino corporativo? Mendoza combina infraestructura de clase mundial con la majestuosidad de los Andes, una gastronomía única y bodegas de renombre internacional. Ideal para eventos, incentivos y reuniones de negocios.',
   contactoWhatsapp: '',
   contactoEmail: 'info@mendozabureau.com',
   directiva: [],
 }
 
+// ── Logos Marquee ─────────────────────────────────────────────────────────────
+
+function LogosMarquee({ socios }: { socios: Socio[] }) {
+  const withLogo = socios.filter(s => s.logoUrl)
+  if (withLogo.length === 0) return null
+
+  // Split into two rows with offset
+  const mid = Math.ceil(withLogo.length / 2)
+  const row1 = withLogo.slice(0, mid)
+  const row2 = withLogo.slice(mid)
+
+  // Duplicate for seamless loop
+  const dup = (arr: Socio[]) => [...arr, ...arr, ...arr]
+
+  return (
+    <div className="py-16 bg-gray-50 overflow-hidden">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 mb-10 text-center">
+        <span className="text-sm font-bold tracking-widest uppercase" style={{ color: DEFAULT_BRAND }}>Nuestros socios</span>
+        <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mt-2">Ya son parte de Mendoza Bureau</h2>
+        <div className="w-16 h-1 rounded-full mx-auto mt-4" style={{ background: DEFAULT_BRAND }} />
+      </div>
+      <style>{`
+        @keyframes marquee-left { 0% { transform: translateX(0) } 100% { transform: translateX(-33.333%) } }
+        @keyframes marquee-right { 0% { transform: translateX(-33.333%) } 100% { transform: translateX(0) } }
+        .marquee-left { animation: marquee-left 30s linear infinite; }
+        .marquee-right { animation: marquee-right 36s linear infinite; }
+        .marquee-left:hover, .marquee-right:hover { animation-play-state: paused; }
+      `}</style>
+      <div className="space-y-4">
+        {[{ items: dup(row1), cls: 'marquee-left' }, { items: dup(row2.length > 0 ? row2 : row1), cls: 'marquee-right' }].map((row, ri) => (
+          <div key={ri} className="flex gap-4 w-max" style={{ animation: ri === 0 ? 'marquee-left 30s linear infinite' : 'marquee-right 36s linear infinite' }}>
+            {row.items.map((s, i) => (
+              <div key={`${s.id}-${i}`}
+                className="flex-shrink-0 h-16 w-36 bg-white rounded-xl border border-gray-100 shadow-sm flex items-center justify-center px-4 hover:shadow-md transition-shadow">
+                <img src={s.logoUrl} alt={s.razonSocial} className="max-h-10 max-w-full object-contain" />
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Chart SVG ─────────────────────────────────────────────────────────────────
 
-function BarChart({ grafico }: { grafico: Grafico }) {
+function BarChart({ grafico, brand = DEFAULT_BRAND }: { grafico: Grafico; brand?: string }) {
   const { datos, titulo, unidad } = grafico
   if (!datos?.length) return null
   const max = Math.max(...datos.map(d => d.valor))
@@ -80,8 +130,8 @@ function BarChart({ grafico }: { grafico: Grafico }) {
         <svg width={Math.max(300, datos.length * (barW + 8) + 20)} height={H + 40} className="block">
           <defs>
             <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={BRAND} />
-              <stop offset="100%" stopColor={BRAND2} />
+              <stop offset="0%" stopColor={DEFAULT_BRAND} />
+              <stop offset="100%" stopColor={DEFAULT_BRAND2} />
             </linearGradient>
           </defs>
           {datos.map((d, i) => {
@@ -92,7 +142,7 @@ function BarChart({ grafico }: { grafico: Grafico }) {
               <g key={i}>
                 <rect x={x} y={y} width={barW} height={bh} rx={4} fill="url(#bg)" />
                 <text x={x + barW / 2} y={H + 14} textAnchor="middle" fontSize={9} fill="#6B7280">{d.label}</text>
-                <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize={9} fill={BRAND} fontWeight="600">
+                <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize={9} fill={brand} fontWeight="600">
                   {d.valor >= 1000 ? `${(d.valor / 1000).toFixed(0)}k` : d.valor}
                 </text>
               </g>
@@ -107,7 +157,7 @@ function BarChart({ grafico }: { grafico: Grafico }) {
   )
 }
 
-function LineChart({ grafico }: { grafico: Grafico }) {
+function LineChart({ grafico, brand = DEFAULT_BRAND }: { grafico: Grafico; brand?: string }) {
   const { datos, titulo, unidad } = grafico
   if (!datos?.length) return null
   const max = Math.max(...datos.map(d => d.valor))
@@ -131,15 +181,15 @@ function LineChart({ grafico }: { grafico: Grafico }) {
       <svg width="100%" viewBox={`0 0 ${W} ${H + 20}`}>
         <defs>
           <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={BRAND} stopOpacity={0.25} />
-            <stop offset="100%" stopColor={BRAND} stopOpacity={0.02} />
+            <stop offset="0%" stopColor={brand} stopOpacity={0.25} />
+            <stop offset="100%" stopColor={brand} stopOpacity={0.02} />
           </linearGradient>
         </defs>
         <path d={area} fill="url(#areaGrad)" />
-        <path d={path} fill="none" stroke={BRAND} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+        <path d={path} fill="none" stroke={brand} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
         {pts.map((p, i) => (
           <g key={i}>
-            <circle cx={p.x} cy={p.y} r={4} fill="white" stroke={BRAND} strokeWidth={2} />
+            <circle cx={p.x} cy={p.y} r={4} fill="white" stroke={brand} strokeWidth={2} />
             <text x={p.x} y={H + 16} textAnchor="middle" fontSize={9} fill="#6B7280">{p.label}</text>
           </g>
         ))}
@@ -206,6 +256,9 @@ export default function WebBureauPage() {
     return catOk && busOk
   }), [socios, filtroSocio, busquedaSocio])
 
+  const BRAND = config.colorPrimario || DEFAULT_BRAND
+  const BRAND2 = config.colorSecundario || DEFAULT_BRAND2
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="flex flex-col items-center gap-3">
@@ -231,7 +284,10 @@ export default function WebBureauPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 shadow-md" style={{ background: BRAND }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-black text-white text-lg">M</div>
+            {config.logoUrl
+              ? <img src={config.logoUrl} alt="Logo" className="h-9 w-auto object-contain" />
+              : <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-black text-white text-lg">M</div>
+            }
             <div>
               <p className="text-white font-bold text-sm leading-tight">Mendoza Bureau</p>
               <p className="text-white/70 text-[10px] leading-tight hidden sm:block">Convention & Visitors Bureau</p>
@@ -431,6 +487,9 @@ export default function WebBureauPage() {
         </div>
       </div>
 
+      {/* ── Logos Marquee ── */}
+      <LogosMarquee socios={socios} />
+
       {/* ── Prensa ── */}
       <div ref={secRefs.prensa} className="py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -511,8 +570,8 @@ export default function WebBureauPage() {
                   {o.descripcion && <p className="text-gray-500 text-sm leading-relaxed mb-5">{o.descripcion}</p>}
                   {o.grafico && (
                     o.grafico.tipo === 'barra'
-                      ? <BarChart grafico={o.grafico} />
-                      : <LineChart grafico={o.grafico} />
+                      ? <BarChart grafico={o.grafico} brand={BRAND} />
+                      : <LineChart grafico={o.grafico} brand={BRAND} />
                   )}
                 </div>
               ))}

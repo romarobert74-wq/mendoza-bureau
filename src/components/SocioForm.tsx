@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import type { SocioFormData, CategoriaSocio } from '@/types'
 import { CATEGORIAS } from '@/types'
 import { useAuth } from '@/context/AuthContext'
+import { SocioFotos } from './SocioFotos'
 
 const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
 
@@ -11,9 +12,10 @@ interface Props {
   defaultValues?: Partial<SocioFormData>
   onSubmit: (data: SocioFormData) => Promise<void>
   submitLabel: string
+  socioId?: string  // si existe, muestra la galería de fotos
 }
 
-export function SocioForm({ defaultValues, onSubmit, submitLabel }: Props) {
+export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Props) {
   const { usuario } = useAuth()
   const isElFaro = usuario?.rol === 'el_faro'
 
@@ -89,6 +91,16 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel }: Props) {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">URL Logo del Socio</label>
+            <input
+              {...register('logoUrl')}
+              className="input"
+              placeholder="https://... (PNG transparente recomendado)"
+            />
+            <p className="text-gray-400 text-xs mt-1">Se mostrará en el banner de socios de la web institucional</p>
+          </div>
+
           <div className="flex items-center gap-2 pt-6">
             <input type="checkbox" id="activo" {...register('activo')} className="w-4 h-4 accent-primary-600" />
             <label htmlFor="activo" className="text-sm text-gray-700">Socio activo (visible en tours)</label>
@@ -162,6 +174,9 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel }: Props) {
           {isSubmitting ? 'Guardando...' : submitLabel}
         </button>
       </div>
+
+      {/* Galería de fotos — solo disponible al editar un socio ya creado */}
+      {socioId && <SocioFotos socioId={socioId} />}
     </form>
   )
 }

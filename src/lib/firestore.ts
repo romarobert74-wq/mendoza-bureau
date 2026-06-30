@@ -102,6 +102,28 @@ export async function setConfigTourMadre(data: Record<string, unknown>) {
   })
 }
 
+// ── Fotos de socio (subcollection) ───────────────────────
+
+export interface FotoSocio { id: string; url: string; orden: number; nombre: string }
+
+export async function getFotosSocio(socioId: string): Promise<FotoSocio[]> {
+  const q = query(collection(db, 'socios', socioId, 'fotos'), orderBy('orden', 'asc'))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as FotoSocio))
+}
+
+export async function addFotoSocio(socioId: string, data: Omit<FotoSocio, 'id'>) {
+  return addDoc(collection(db, 'socios', socioId, 'fotos'), data)
+}
+
+export async function deleteFotoSocio(socioId: string, fotoId: string) {
+  await deleteDoc(doc(db, 'socios', socioId, 'fotos', fotoId))
+}
+
+export async function reorderFotosSocio(socioId: string, fotos: FotoSocio[]) {
+  await Promise.all(fotos.map((f, i) => updateDoc(doc(db, 'socios', socioId, 'fotos', f.id), { orden: i })))
+}
+
 // ── Web Bureau ───────────────────────────────────────────
 
 export async function getWebBureauConfig() {

@@ -33,6 +33,7 @@ export interface Socio {
   }
   infoGeneral: string
   fotoPortada: string
+  logoUrl: string
   activo: boolean
   urlInternaTour: string
   urlInternaVuelta: string

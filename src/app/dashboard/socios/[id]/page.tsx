@@ -68,6 +68,7 @@ export default function EditarSocioPage() {
         defaultValues={socio}
         onSubmit={handleSubmit}
         submitLabel="Guardar cambios"
+        socioId={id}
       />
     </div>
   )

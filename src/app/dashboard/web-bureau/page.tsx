@@ -18,6 +18,7 @@ interface DirectivaMember { nombre: string; cargo: string; foto: string }
 interface Config {
   heroTitulo: string; heroSubtitulo: string; heroImagen: string
   sobreNosotros: string; mision: string
+  colorPrimario: string; colorSecundario: string; logoUrl: string
   contactoWhatsapp: string; contactoEmail: string
   directiva: DirectivaMember[]
 }
@@ -37,6 +38,9 @@ const CFG_DEFAULT: Config = {
   contactoWhatsapp: '',
   contactoEmail: 'info@mendozabureau.com',
   directiva: [],
+  colorPrimario: '#E85D04',
+  colorSecundario: '#C0391B',
+  logoUrl: '',
 }
 
 const MAX_FOTOS = 30
@@ -265,6 +269,65 @@ function TabInicio() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Logo & Colores */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+        <h3 className="font-bold text-gray-900">Logo & Paleta de colores</h3>
+
+        <Field label="Logo de Mendoza Bureau (URL o subir)">
+          <div className="flex gap-3 items-start">
+            <div className="flex-1 space-y-2">
+              <input className={INPUT} placeholder="https://... (PNG transparente recomendado)"
+                value={cfg.logoUrl.startsWith('data:') ? '' : cfg.logoUrl}
+                onChange={e => setCfg(c => ({ ...c, logoUrl: e.target.value }))} />
+              <label className="inline-flex items-center gap-2 cursor-pointer px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium transition">
+                Subir imagen
+                <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                  const f = e.target.files?.[0]; if (!f) return
+                  const b64 = await resizeImage(f, 300)
+                  setCfg(c => ({ ...c, logoUrl: b64 }))
+                }} />
+              </label>
+            </div>
+            {cfg.logoUrl && (
+              <div className="flex-shrink-0 w-20 h-14 bg-gray-800 rounded-lg flex items-center justify-center p-2">
+                <img src={cfg.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
+              </div>
+            )}
+          </div>
+        </Field>
+
+        <div className="grid sm:grid-cols-2 gap-5">
+          <Field label="Color primario (navbar, botones, acentos)">
+            <div className="flex items-center gap-3">
+              <input type="color" value={cfg.colorPrimario} onChange={e => setCfg(c => ({ ...c, colorPrimario: e.target.value }))}
+                className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5" />
+              <input className={INPUT} value={cfg.colorPrimario} onChange={e => setCfg(c => ({ ...c, colorPrimario: e.target.value }))} />
+              <div className="w-10 h-10 rounded-lg border border-gray-200 flex-shrink-0" style={{ background: cfg.colorPrimario }} />
+            </div>
+          </Field>
+          <Field label="Color secundario (gradiente)">
+            <div className="flex items-center gap-3">
+              <input type="color" value={cfg.colorSecundario} onChange={e => setCfg(c => ({ ...c, colorSecundario: e.target.value }))}
+                className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5" />
+              <input className={INPUT} value={cfg.colorSecundario} onChange={e => setCfg(c => ({ ...c, colorSecundario: e.target.value }))} />
+              <div className="w-10 h-10 rounded-lg border border-gray-200 flex-shrink-0" style={{ background: cfg.colorSecundario }} />
+            </div>
+          </Field>
+        </div>
+
+        {/* Preview */}
+        <div className="rounded-xl overflow-hidden">
+          <div className="h-10 flex items-center px-4 gap-3" style={{ background: cfg.colorPrimario }}>
+            {cfg.logoUrl
+              ? <img src={cfg.logoUrl} alt="Logo" className="h-6 object-contain" />
+              : <div className="w-6 h-6 bg-white/20 rounded flex items-center justify-center text-white font-black text-sm">M</div>
+            }
+            <span className="text-white font-bold text-sm">Mendoza Bureau</span>
+          </div>
+          <div className="h-12" style={{ background: `linear-gradient(135deg,${cfg.colorPrimario},${cfg.colorSecundario})` }} />
+        </div>
       </div>
 
       <button onClick={guardar} disabled={saving} className={BTN_PRIMARY}>
