@@ -1,0 +1,14 @@
+# Next.js
+.next/
+out/
+node_modules/
+.env.local
+.env*.local
+
+# Firebase
+.firebase/
+
+# Misc
+.DS_Store
+*.log
+npm-debug.log*

@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
+    function isElFaro() {
+      return request.auth != null && getUserData().rol == 'el_faro';
+    }
+
+    function isBureau() {
+      return request.auth != null && getUserData().rol == 'bureau';
+    }
+
+    function isSocio() {
+      return request.auth != null && getUserData().rol == 'socio';
+    }
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Usuarios: cada uno ve el suyo; bureau y el_faro ven todos
+    match /usuarios/{userId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == userId || isBureau() || isElFaro()
+      );
+      allow create: if isElFaro();
+      allow update: if isElFaro() || (isBureau() && request.auth.uid == userId);
+      allow delete: if isElFaro();
+    }
+
+    // Socios: socio ve solo el suyo, bureau y el_faro ven todos
+    match /socios/{socioId} {
+      allow read: if isAuthenticated() && (
+        isElFaro() ||
+        isBureau() ||
+        (isSocio() && getUserData().socioId == socioId)
+      );
+      allow create: if isBureau() || isElFaro();
+      allow update: if isElFaro() || (
+        isBureau() && !(
+          'urlInternaTour' in request.resource.data ||
+          'urlInternaVuelta' in request.resource.data ||
+          'urlDrive' in request.resource.data
+        )
+      );
+      allow delete: if isElFaro();
+    }
+
+    // Configuración del tour madre: solo el_faro escribe
+    match /configuracion/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isElFaro();
+    }
+
+    // Analytics / clicks: escritura pública (desde tours), lectura con rol
+    match /analytics/{docId} {
+      allow create: if true;
+      allow read: if isAuthenticated();
+      allow update, delete: if isElFaro();
+    }
+  }
+}

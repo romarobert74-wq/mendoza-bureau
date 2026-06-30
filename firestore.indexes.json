@@ -1,0 +1,21 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "socios",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "categoria", "order": "ASCENDING" },
+        { "fieldPath": "razonSocial", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "socios",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "activo", "order": "ASCENDING" },
+        { "fieldPath": "razonSocial", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
