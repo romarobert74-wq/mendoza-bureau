@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   Map,
+  Bot,
 } from 'lucide-react'
 import type { Rol } from '@/types'
 
@@ -33,6 +34,12 @@ const navItems = [
     href: '/dashboard/tour-madre',
     label: 'Tour Madre',
     icon: Map,
+    roles: ['el_faro'] as Rol[],
+  },
+  {
+    href: '/dashboard/chat-ia',
+    label: 'Chat IA',
+    icon: Bot,
     roles: ['el_faro'] as Rol[],
   },
   {
