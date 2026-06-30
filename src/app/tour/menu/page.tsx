@@ -303,17 +303,33 @@ export default function TourMenuPage() {
               </p>
             </div>
             <div className="space-y-2.5">
-              {[
-                { icon: '📍', text: 'Mendoza, Argentina' },
-                { icon: '🌐', text: 'mendozabureau.com' },
-                { icon: '📧', text: 'info@mendozabureau.com' },
-                { icon: '📱', text: 'WhatsApp Bureau' },
-              ].map(row => (
-                <div key={row.text} className="flex items-center gap-2.5">
-                  <span className="text-sm">{row.icon}</span>
-                  <span className="text-white/70 text-[12px]">{row.text}</span>
-                </div>
-              ))}
+              <div className="flex items-center gap-2.5">
+                <span className="text-sm">📍</span>
+                <span className="text-white/70 text-[12px]">Mendoza, Argentina</span>
+              </div>
+              <a
+                href="https://mendozabureau.com"
+                onClick={e => { e.preventDefault(); try { window.top!.location.href = 'https://mendozabureau.com' } catch { window.open('https://mendozabureau.com', '_blank') } }}
+                className="flex items-center gap-2.5 group"
+              >
+                <span className="text-sm">🌐</span>
+                <span className="text-[12px] text-blue-300 underline group-hover:text-blue-200">mendozabureau.com</span>
+              </a>
+              <a
+                href="mailto:info@mendozabureau.com"
+                className="flex items-center gap-2.5 group"
+              >
+                <span className="text-sm">📧</span>
+                <span className="text-[12px] text-blue-300 underline group-hover:text-blue-200">info@mendozabureau.com</span>
+              </a>
+              <a
+                href="https://wa.me/5492614000000"
+                onClick={e => { e.preventDefault(); try { window.top!.location.href = 'https://wa.me/5492614000000' } catch { window.open('https://wa.me/5492614000000', '_blank') } }}
+                className="flex items-center gap-2.5 group"
+              >
+                <span className="text-sm">📱</span>
+                <span className="text-[12px] text-green-300 underline group-hover:text-green-200">WhatsApp Bureau</span>
+              </a>
             </div>
           </div>
         )}

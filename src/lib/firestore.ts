@@ -102,6 +102,54 @@ export async function setConfigTourMadre(data: Record<string, unknown>) {
   })
 }
 
+// ── Web Bureau ───────────────────────────────────────────
+
+export async function getWebBureauConfig() {
+  const snap = await getDoc(doc(db, 'web_bureau', 'config'))
+  if (!snap.exists()) return null
+  return snap.data()
+}
+
+export async function setWebBureauConfig(data: Record<string, unknown>) {
+  await setDoc(doc(db, 'web_bureau', 'config'), { ...data, updatedAt: serverTimestamp() })
+}
+
+export async function getPrensaItems() {
+  const q = query(collection(db, 'web_bureau_prensa'), orderBy('fecha', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+export async function crearPrensaItem(data: Record<string, unknown>) {
+  return addDoc(collection(db, 'web_bureau_prensa'), { ...data, creadoEn: serverTimestamp() })
+}
+
+export async function actualizarPrensaItem(id: string, data: Record<string, unknown>) {
+  await updateDoc(doc(db, 'web_bureau_prensa', id), data)
+}
+
+export async function eliminarPrensaItem(id: string) {
+  await deleteDoc(doc(db, 'web_bureau_prensa', id))
+}
+
+export async function getObservatorioItems() {
+  const q = query(collection(db, 'web_bureau_observatorio'), orderBy('fecha', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+export async function crearObservatorioItem(data: Record<string, unknown>) {
+  return addDoc(collection(db, 'web_bureau_observatorio'), { ...data, creadoEn: serverTimestamp() })
+}
+
+export async function actualizarObservatorioItem(id: string, data: Record<string, unknown>) {
+  await updateDoc(doc(db, 'web_bureau_observatorio', id), data)
+}
+
+export async function eliminarObservatorioItem(id: string) {
+  await deleteDoc(doc(db, 'web_bureau_observatorio', id))
+}
+
 // ── Analytics ────────────────────────────────────────────
 
 export async function registrarClick(socioId: string, tipo: string) {

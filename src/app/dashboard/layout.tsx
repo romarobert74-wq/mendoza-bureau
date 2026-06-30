@@ -14,6 +14,7 @@ import {
   LogOut,
   Map,
   Bot,
+  Globe,
 } from 'lucide-react'
 import type { Rol } from '@/types'
 
@@ -35,6 +36,12 @@ const navItems = [
     label: 'Tour Madre',
     icon: Map,
     roles: ['el_faro'] as Rol[],
+  },
+  {
+    href: '/dashboard/web-bureau',
+    label: 'Web Institucional',
+    icon: Globe,
+    roles: ['el_faro', 'bureau'] as Rol[],
   },
   {
     href: '/dashboard/chat-ia',
