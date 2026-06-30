@@ -27,8 +27,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser)
       if (firebaseUser) {
-        const data = await getUsuario(firebaseUser.uid)
-        setUsuario(data)
+        try {
+          const data = await getUsuario(firebaseUser.uid)
+          console.log('[Auth] usuario Firestore:', data)
+          setUsuario(data)
+        } catch (err) {
+          console.error('[Auth] error leyendo usuario Firestore:', err)
+          setUsuario(null)
+        }
       } else {
         setUsuario(null)
       }
