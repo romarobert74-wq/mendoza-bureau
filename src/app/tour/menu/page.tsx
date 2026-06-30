@@ -40,6 +40,8 @@ const CAT_COLORS: Record<string, string> = {
 
 const MIN_OPACITY = 0.45
 const MAX_OPACITY = 0.95
+const CACHE_KEY = 'tour_socios_cache'
+const CACHE_TTL = 5 * 60 * 1000
 
 export default function TourMenuPage() {
   const [socios, setSocios] = useState<Socio[]>([])
@@ -56,6 +58,19 @@ export default function TourMenuPage() {
 
   useEffect(() => {
     const cargar = async () => {
+      // Intentar cache primero para carga instantánea
+      try {
+        const cached = localStorage.getItem(CACHE_KEY)
+        if (cached) {
+          const { data, ts } = JSON.parse(cached)
+          if (Date.now() - ts < CACHE_TTL) {
+            setSocios(data)
+            setLoading(false)
+            return
+          }
+        }
+      } catch {}
+
       try {
         const q = query(collection(db, 'socios'), orderBy('razonSocial', 'asc'))
         const snap = await getDocs(q)
@@ -63,6 +78,9 @@ export default function TourMenuPage() {
           .map(d => ({ id: d.id, ...d.data() } as Socio))
           .filter(s => s.activo !== false)
         setSocios(data)
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }))
+        } catch {}
       } catch (err) {
         console.error('Error cargando socios:', err)
       } finally {
@@ -209,8 +227,22 @@ export default function TourMenuPage() {
             {/* Lista */}
             <div className="overflow-y-auto flex-1 px-4 pb-4 space-y-2">
               {loading ? (
-                <div className="flex justify-center py-8">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                // Skeleton loader
+                <div className="space-y-2 pt-1">
+                  {[...Array(4)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="rounded-xl p-3 flex items-center gap-3 animate-pulse"
+                      style={{ background: 'rgba(255,255,255,0.07)' }}
+                    >
+                      <div className="w-2 h-2 rounded-full bg-white/20 flex-shrink-0" />
+                      <div className="flex-1 space-y-1.5">
+                        <div className="h-3 bg-white/15 rounded w-3/4" />
+                        <div className="h-2 bg-white/10 rounded w-1/2" />
+                      </div>
+                      <div className="h-6 w-10 bg-white/10 rounded-lg" />
+                    </div>
+                  ))}
                 </div>
               ) : filtrados.length === 0 ? (
                 <p className="text-white/40 text-xs text-center py-8">
