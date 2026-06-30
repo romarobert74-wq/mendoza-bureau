@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 import { Search } from 'lucide-react'
 
 interface Socio {
@@ -48,34 +50,49 @@ export default function TourMenuPage() {
   }, [])
 
   useEffect(() => {
-    fetch('/api/socios-public')
-      .then(r => r.json())
-      .then(data => {
+    const cargar = async () => {
+      try {
+        const q = query(
+          collection(db, 'socios'),
+          where('activo', '==', true),
+          orderBy('razonSocial', 'asc')
+        )
+        const snap = await getDocs(q)
+        const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as Socio))
         setSocios(data)
+      } catch (err) {
+        console.error('Error cargando socios:', err)
+      } finally {
         setLoading(false)
-      })
-      .catch(() => setLoading(false))
+      }
+    }
+    cargar()
   }, [])
-
-  const filtrados = useMemo(() => {
-    return socios.filter(s => {
-      const coincideCategoria = filtro === 'todos' || s.categoria === filtro
-      const coincideBusqueda =
-        busqueda === '' ||
-        s.razonSocial.toLowerCase().includes(busqueda.toLowerCase()) ||
-        s.etiqueta.toLowerCase().includes(busqueda.toLowerCase()) ||
-        s.direccion?.toLowerCase().includes(busqueda.toLowerCase())
-      return coincideCategoria && coincideBusqueda
-    })
-  }, [socios, filtro, busqueda])
 
   const categoriasConSocios = CATEGORIAS.filter(
     c => c.key === 'todos' || socios.some(s => s.categoria === c.key)
   )
 
+  const filtrados = useMemo(() => {
+    return socios.filter(s => {
+      const coincideCategoria = filtro === 'todos' || s.categoria === filtro
+      const q = busqueda.toLowerCase()
+      const coincideBusqueda =
+        q === '' ||
+        s.razonSocial?.toLowerCase().includes(q) ||
+        s.etiqueta?.toLowerCase().includes(q) ||
+        s.direccion?.toLowerCase().includes(q)
+      return coincideCategoria && coincideBusqueda
+    })
+  }, [socios, filtro, busqueda])
+
   const handleVerSocio = (socio: Socio) => {
     if (!socio.urlInternaTour) return
-    window.top!.location.href = socio.urlInternaTour
+    try {
+      window.top!.location.href = socio.urlInternaTour
+    } catch {
+      window.location.href = socio.urlInternaTour
+    }
   }
 
   return (
@@ -105,26 +122,19 @@ export default function TourMenuPage() {
 
           {/* Tabs */}
           <div className="flex gap-1 mt-3 border-b border-white/20">
-            <button
-              onClick={() => setTab('lugares')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition rounded-t-lg ${
-                tab === 'lugares'
-                  ? 'text-white border-b-2 border-white'
-                  : 'text-white/50 hover:text-white/80'
-              }`}
-            >
-              <span>📍</span> Lugares
-            </button>
-            <button
-              onClick={() => setTab('informacion')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition rounded-t-lg ${
-                tab === 'informacion'
-                  ? 'text-white border-b-2 border-white'
-                  : 'text-white/50 hover:text-white/80'
-              }`}
-            >
-              <span>ℹ️</span> Información
-            </button>
+            {(['lugares', 'informacion'] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className="px-3 py-1.5 text-xs font-medium transition"
+                style={{
+                  color: tab === t ? 'white' : 'rgba(255,255,255,0.5)',
+                  borderBottom: tab === t ? '2px solid white' : '2px solid transparent',
+                }}
+              >
+                {t === 'lugares' ? '📍 Lugares' : 'ℹ️ Información'}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -136,7 +146,7 @@ export default function TourMenuPage() {
                 className="flex items-center gap-2 rounded-xl px-3 py-2"
                 style={{ background: 'rgba(255,255,255,0.15)' }}
               >
-                <Search size={14} className="text-white/60" />
+                <Search size={14} className="text-white/60 flex-shrink-0" />
                 <input
                   type="text"
                   placeholder="Buscar un lugar..."
@@ -148,17 +158,14 @@ export default function TourMenuPage() {
             </div>
 
             {/* Filtros */}
-            <div className="px-4 pb-2 flex gap-1.5 flex-wrap">
+            <div className="px-4 pb-3 flex gap-1.5 flex-wrap">
               {categoriasConSocios.map(cat => (
                 <button
                   key={cat.key}
                   onClick={() => setFiltro(cat.key)}
                   className="px-3 py-1 rounded-full text-xs font-medium transition"
                   style={{
-                    background:
-                      filtro === cat.key
-                        ? 'rgba(255,255,255,0.9)'
-                        : 'rgba(255,255,255,0.15)',
+                    background: filtro === cat.key ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.15)',
                     color: filtro === cat.key ? '#1a1a1a' : 'rgba(255,255,255,0.85)',
                     border: '1px solid rgba(255,255,255,0.3)',
                   }}
@@ -182,7 +189,7 @@ export default function TourMenuPage() {
                 filtrados.map(socio => (
                   <div
                     key={socio.id}
-                    className="rounded-xl p-3 flex items-center justify-between gap-3 transition"
+                    className="rounded-xl p-3 flex items-center justify-between gap-3"
                     style={{
                       background: 'rgba(255,255,255,0.12)',
                       border: '1px solid rgba(255,255,255,0.2)',
@@ -191,7 +198,7 @@ export default function TourMenuPage() {
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span
                         className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                        style={{ background: CAT_COLORS[socio.categoria] || '#9CA3AF' }}
+                        style={{ background: CAT_COLORS[socio.categoria] ?? '#9CA3AF' }}
                       />
                       <div className="min-w-0">
                         <p className="text-white text-sm font-semibold leading-tight truncate">
@@ -218,41 +225,30 @@ export default function TourMenuPage() {
             </div>
           </>
         ) : (
-          /* Tab Información */
-          <div className="px-5 py-4 overflow-y-auto flex-1">
-            <InfoBureau />
+          <div className="px-5 py-4 overflow-y-auto flex-1 text-white space-y-4">
+            <div>
+              <h3 className="font-bold text-base mb-1">Mendoza Bureau</h3>
+              <p className="text-white/70 text-xs leading-relaxed">
+                Somos una asociación que agrupa a los principales socios corporativos de Mendoza,
+                ofreciendo experiencias únicas en bodegas, gastronomía, hotelería y servicios.
+              </p>
+            </div>
+            <div className="space-y-2">
+              {[
+                { icon: '📍', text: 'Mendoza, Argentina' },
+                { icon: '🌐', text: 'mendozabureau.com' },
+                { icon: '📧', text: 'info@mendozabureau.com' },
+                { icon: '📱', text: 'WhatsApp Bureau' },
+              ].map(row => (
+                <div key={row.text} className="flex items-center gap-2.5">
+                  <span className="text-sm">{row.icon}</span>
+                  <span className="text-white/75 text-xs">{row.text}</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
-    </div>
-  )
-}
-
-function InfoBureau() {
-  return (
-    <div className="space-y-4 text-white">
-      <div>
-        <h3 className="font-bold text-base mb-1">Mendoza Bureau</h3>
-        <p className="text-white/70 text-xs leading-relaxed">
-          Somos una asociación que agrupa a los principales socios corporativos de Mendoza,
-          ofreciendo experiencias únicas en bodegas, gastronomía, hotelería y servicios.
-        </p>
-      </div>
-      <div className="space-y-2">
-        <InfoRow icon="📍" text="Mendoza, Argentina" />
-        <InfoRow icon="🌐" text="mendozabureau.com" />
-        <InfoRow icon="📧" text="info@mendozabureau.com" />
-        <InfoRow icon="📱" text="WhatsApp Bureau" />
-      </div>
-    </div>
-  )
-}
-
-function InfoRow({ icon, text }: { icon: string; text: string }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <span className="text-sm">{icon}</span>
-      <span className="text-white/75 text-xs">{text}</span>
     </div>
   )
 }
