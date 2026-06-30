@@ -3,7 +3,51 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { collection, getDocs, orderBy, query, doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Send, ChevronLeft, MapPin, Utensils, Hotel, Wrench, Package, Wine } from 'lucide-react'
+import { Send, Utensils, Hotel, Wrench, Package, Wine } from 'lucide-react'
+
+function renderMensaje(texto: string) {
+  const partes = texto.split('\n')
+  return partes.map((linea, i) => {
+    // Heading ## o ###
+    if (/^#{1,3}\s/.test(linea)) {
+      const txt = linea.replace(/^#+\s/, '')
+      return <p key={i} className="font-bold text-white text-[13px] mt-1">{renderInline(txt)}</p>
+    }
+    // Línea vacía
+    if (linea.trim() === '') return <div key={i} className="h-1" />
+    return <p key={i} className="text-[13px] leading-relaxed">{renderInline(linea)}</p>
+  })
+}
+
+function renderInline(texto: string) {
+  // Split by URLs and **bold**
+  const regex = /(\*\*[^*]+\*\*|https?:\/\/[^\s]+)/g
+  const parts = texto.split(regex)
+  return parts.map((part, i) => {
+    if (/^\*\*[^*]+\*\*$/.test(part)) {
+      return <strong key={i} className="font-semibold text-white">{part.slice(2, -2)}</strong>
+    }
+    if (/^https?:\/\//.test(part)) {
+      return (
+        <a
+          key={i}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={e => {
+            e.preventDefault()
+            try { window.top!.location.href = part } catch { window.open(part, '_blank') }
+          }}
+          className="underline font-medium break-all"
+          style={{ color: '#93C5FD' }}
+        >
+          {part}
+        </a>
+      )
+    }
+    return <span key={i}>{part}</span>
+  })
+}
 
 interface Socio {
   id: string
@@ -256,18 +300,21 @@ export default function TourChatPage() {
                     </div>
                   )}
                   <div
-                    className="text-[13px] leading-relaxed max-w-[85%] px-3 py-2.5 rounded-2xl whitespace-pre-wrap"
+                    className="max-w-[85%] px-3 py-2.5 rounded-2xl"
                     style={m.rol === 'user' ? {
                       background: 'linear-gradient(135deg,#7C3AED,#4F46E5)',
                       color: 'white',
                       borderBottomRightRadius: 4,
                     } : {
                       background: 'rgba(255,255,255,0.12)',
-                      color: 'rgba(255,255,255,0.92)',
+                      color: 'rgba(255,255,255,0.85)',
                       borderBottomLeftRadius: 4,
                     }}
                   >
-                    {m.contenido}
+                    {m.rol === 'user'
+                      ? <p className="text-[13px] leading-relaxed">{m.contenido}</p>
+                      : renderMensaje(m.contenido)
+                    }
                   </div>
                 </div>
 
