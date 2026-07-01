@@ -1,23 +1,23 @@
 'use client'
 
 import { Suspense } from 'react'
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { getSocio, actualizarSocio } from '@/lib/firestore'
-import type { Socio, SocioFormData } from '@/types'
+import { useState } from 'react'
+import { crearSocio } from '@/lib/firestore'
+import type { SocioFormData, CategoriaSocio } from '@/types'
+import { CATEGORIAS } from '@/types'
 import { CheckCircle, AlertCircle } from 'lucide-react'
 
-function FormSocio() {
-  const params = useSearchParams()
-  const id = params.get('id') ?? ''
+const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
 
-  const [socio, setSocio] = useState<Socio | null>(null)
-  const [loading, setLoading] = useState(true)
+function FormSocio() {
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
 
   const [form, setForm] = useState({
+    razonSocial: '',
+    etiqueta: '',
+    categoria: 'bodega' as CategoriaSocio,
     infoGeneral: '',
     direccion: '',
     ubicacionUrl: '',
@@ -29,73 +29,41 @@ function FormSocio() {
     redes: '',
   })
 
-  useEffect(() => {
-    if (!id) { setLoading(false); return }
-    getSocio(id).then(s => {
-      if (s) {
-        setSocio(s)
-        setForm({
-          infoGeneral: s.infoGeneral ?? '',
-          direccion: s.direccion ?? '',
-          ubicacionUrl: s.ubicacionUrl ?? '',
-          fotoPortada: s.fotoPortada ?? '',
-          logoUrl: s.logoUrl ?? '',
-          whatsapp: s.contacto?.whatsapp ?? '',
-          email: s.contacto?.email ?? '',
-          web: s.contacto?.web ?? '',
-          redes: s.contacto?.redes ?? '',
-        })
-      }
-      setLoading(false)
-    })
-  }, [id])
+  const set = (k: keyof typeof form) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+      setForm(f => ({ ...f, [k]: e.target.value }))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!socio) return
     setSending(true)
     setError('')
     try {
-      const update: Partial<SocioFormData> = {
+      const data: SocioFormData = {
+        razonSocial: form.razonSocial,
+        etiqueta: form.etiqueta || form.razonSocial,
+        categoria: form.categoria,
         infoGeneral: form.infoGeneral,
         direccion: form.direccion,
         ubicacionUrl: form.ubicacionUrl,
         fotoPortada: form.fotoPortada,
         logoUrl: form.logoUrl,
+        activo: false, // queda pendiente hasta que el admin lo active
         contacto: {
           whatsapp: form.whatsapp,
           email: form.email,
           web: form.web,
           redes: form.redes,
         },
+        urlInternaTour: '',
+        urlInternaVuelta: '',
+        urlDrive: '',
       }
-      await actualizarSocio(id, update as SocioFormData)
+      await crearSocio(data)
       setDone(true)
     } catch {
-      setError('Hubo un error al guardar. Por favor intentá de nuevo.')
+      setError('Hubo un error al enviar. Por favor intentá de nuevo.')
     }
     setSending(false)
-  }
-
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-    setForm(f => ({ ...f, [k]: e.target.value }))
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  if (!id || !socio) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-6 text-center gap-3">
-        <AlertCircle size={40} className="text-red-400" />
-        <p className="text-gray-700 font-semibold">Link inválido</p>
-        <p className="text-gray-400 text-sm">Este formulario no tiene un socio asociado. Pedile a Mendoza Bureau que te envíe el link correcto.</p>
-      </div>
-    )
   }
 
   if (done) {
@@ -106,7 +74,7 @@ function FormSocio() {
         </div>
         <h2 className="text-xl font-bold text-gray-800">¡Datos enviados!</h2>
         <p className="text-gray-500 text-sm max-w-xs">
-          Tu información fue guardada correctamente. Mendoza Bureau la revisará y la verás reflejada en el tour virtual.
+          Tu información fue recibida por Mendoza Bureau. En breve la revisaremos y la verás reflejada en el tour virtual.
         </p>
         <p className="text-xs text-gray-300 mt-4">Mendoza Bureau · Convention & Visitors Bureau</p>
       </div>
@@ -115,17 +83,49 @@ function FormSocio() {
 
   return (
     <div className="min-h-screen bg-gray-50" style={{ fontFamily: 'system-ui, sans-serif' }}>
+      {/* Header */}
       <div className="bg-white border-b border-gray-100 px-5 py-5">
         <p className="text-xs font-semibold text-orange-500 uppercase tracking-wider mb-1">Mendoza Bureau</p>
         <h1 className="text-xl font-bold text-gray-900">Completá los datos de tu negocio</h1>
         <p className="text-sm text-gray-400 mt-1">
-          Esta información aparecerá en el tour virtual de <strong className="text-gray-600">{socio.razonSocial}</strong>.
+          Esta información aparecerá en el tour virtual de Mendoza Bureau Convention & Visitors.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="px-5 py-6 space-y-6 max-w-lg mx-auto">
+
+        {/* Identificación */}
         <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <h3 className="font-semibold text-gray-800 mb-4">Descripción del lugar</h3>
+          <h3 className="font-semibold text-gray-800 mb-4">Tu negocio</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Nombre del negocio *</label>
+              <input
+                value={form.razonSocial}
+                onChange={set('razonSocial')}
+                required
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                placeholder="Ej: Bodega Salentein"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Rubro *</label>
+              <select
+                value={form.categoria}
+                onChange={set('categoria')}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white"
+              >
+                {CATEGORIAS_OPTIONS.map(([val, label]) => (
+                  <option key={val} value={val}>{label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </section>
+
+        {/* Descripción */}
+        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <h3 className="font-semibold text-gray-800 mb-4">Descripción</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Descripción general *</label>
@@ -135,7 +135,7 @@ function FormSocio() {
                 rows={5}
                 required
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none"
-                placeholder="Contanos sobre tu bodega, restaurant, hotel... ¿Qué lo hace especial? ¿Qué ofrecen?"
+                placeholder="Contanos sobre tu negocio. ¿Qué ofrecen? ¿Qué lo hace especial? ¿Cuál es su historia?"
               />
             </div>
             <div>
@@ -144,7 +144,7 @@ function FormSocio() {
                 value={form.direccion}
                 onChange={set('direccion')}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="Ej: Ruta 89 s/n, Tunuyán"
+                placeholder="Ej: Ruta 89 s/n, Tunuyán, Mendoza"
               />
             </div>
             <div>
@@ -155,49 +155,84 @@ function FormSocio() {
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
                 placeholder="https://maps.app.goo.gl/..."
               />
-              <p className="text-xs text-gray-400 mt-1">Abrí Google Maps → buscá tu negocio → "Compartir" → copiá el link</p>
+              <p className="text-xs text-gray-400 mt-1">
+                Google Maps → buscá tu negocio → tocá "Compartir" → copiá el link
+              </p>
             </div>
           </div>
         </section>
 
+        {/* Contacto */}
         <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <h3 className="font-semibold text-gray-800 mb-4">Contacto</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">WhatsApp</label>
-              <input value={form.whatsapp} onChange={set('whatsapp')} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="+54 261 4XX XXXX" />
+              <input
+                value={form.whatsapp}
+                onChange={set('whatsapp')}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                placeholder="+54 261 4XX XXXX"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
-              <input type="email" value={form.email} onChange={set('email')} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="contacto@mibodega.com" />
+              <input
+                type="email"
+                value={form.email}
+                onChange={set('email')}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                placeholder="contacto@minegocio.com"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Sitio web</label>
-              <input value={form.web} onChange={set('web')} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="https://www.mibodega.com" />
+              <input
+                value={form.web}
+                onChange={set('web')}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                placeholder="https://www.minegocio.com"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Instagram / Redes sociales</label>
-              <input value={form.redes} onChange={set('redes')} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="@mibodega o https://instagram.com/mibodega" />
+              <input
+                value={form.redes}
+                onChange={set('redes')}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                placeholder="@minegocio"
+              />
             </div>
           </div>
         </section>
 
+        {/* Imágenes opcionales */}
         <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <h3 className="font-semibold text-gray-800 mb-1">Imágenes (opcional)</h3>
-          <p className="text-xs text-gray-400 mb-4">Si tenés fotos subidas a internet, pegá el link directo aquí.</p>
+          <p className="text-xs text-gray-400 mb-4">Si tenés fotos publicadas en internet, pegá el link directo aquí.</p>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Foto de portada</label>
-              <input value={form.fotoPortada} onChange={set('fotoPortada')} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="https://..." />
+              <input
+                value={form.fotoPortada}
+                onChange={set('fotoPortada')}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                placeholder="https://..."
+              />
               {form.fotoPortada && (
                 <img src={form.fotoPortada} alt="preview" className="mt-2 w-full h-28 object-cover rounded-xl border border-gray-100" />
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Logo</label>
-              <input value={form.logoUrl} onChange={set('logoUrl')} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="https://... (PNG transparente recomendado)" />
+              <input
+                value={form.logoUrl}
+                onChange={set('logoUrl')}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                placeholder="https://... (PNG con fondo transparente ideal)"
+              />
               {form.logoUrl && (
-                <img src={form.logoUrl} alt="logo preview" className="mt-2 h-14 object-contain rounded border border-gray-100 bg-gray-50 p-1" />
+                <img src={form.logoUrl} alt="logo" className="mt-2 h-14 object-contain rounded border border-gray-100 bg-gray-50 p-1" />
               )}
             </div>
           </div>
@@ -219,7 +254,9 @@ function FormSocio() {
           {sending ? 'Enviando...' : 'Enviar mis datos'}
         </button>
 
-        <p className="text-center text-xs text-gray-300 pb-4">Mendoza Bureau · Convention & Visitors Bureau</p>
+        <p className="text-center text-xs text-gray-300 pb-6">
+          Mendoza Bureau · Convention & Visitors Bureau
+        </p>
       </form>
     </div>
   )

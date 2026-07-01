@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext'
 import { CATEGORIAS } from '@/types'
 import type { Socio } from '@/types'
 import toast from 'react-hot-toast'
-import { Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2 } from 'lucide-react'
+import { Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2, MessageCircle, Clock } from 'lucide-react'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
@@ -98,14 +98,27 @@ export default function SociosPage() {
         </div>
         <div className="flex items-center gap-2">
           {usuario?.rol === 'el_faro' && (
-            <button
-              onClick={alimentarBestia}
-              disabled={alimentando}
-              className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition disabled:opacity-60"
-            >
-              {alimentando ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
-              Alimentar a la bestia
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  const url = 'https://mendoza-bureau.vercel.app/form/socio'
+                  const txt = `Hola! Te invitamos a completar los datos de tu negocio para el tour virtual de Mendoza Bureau. Solo te lleva unos minutos: ${url}`
+                  window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank')
+                }}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+              >
+                <MessageCircle size={16} />
+                Compartir formulario
+              </button>
+              <button
+                onClick={alimentarBestia}
+                disabled={alimentando}
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition disabled:opacity-60"
+              >
+                {alimentando ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
+                Alimentar a la bestia
+              </button>
+            </>
           )}
           {puedeEditar && (
             <Link
@@ -168,8 +181,12 @@ export default function SociosPage() {
                     <td className="px-4 py-3 text-gray-600">{socio.direccion}</td>
                     <td className="px-4 py-3">
                       {socio.activo ? (
-                        <span className="flex items-center gap-1 text-green-600 text-xs">
+                        <span className="flex items-center gap-1 text-green-600 text-xs font-medium">
                           <CheckCircle size={14} /> Activo
+                        </span>
+                      ) : socio.razonSocial ? (
+                        <span className="flex items-center gap-1 text-amber-500 text-xs font-medium">
+                          <Clock size={14} /> Pendiente
                         </span>
                       ) : (
                         <span className="flex items-center gap-1 text-gray-400 text-xs">
