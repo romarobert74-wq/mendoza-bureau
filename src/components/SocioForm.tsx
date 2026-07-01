@@ -72,6 +72,16 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">URL Google Maps (compartir)</label>
+            <input
+              {...register('ubicacionUrl')}
+              className="input"
+              placeholder="https://maps.app.goo.gl/..."
+            />
+            <p className="text-gray-400 text-xs mt-1">Pegá el link de "Compartir" de Google Maps</p>
+          </div>
+
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Información general</label>
             <textarea

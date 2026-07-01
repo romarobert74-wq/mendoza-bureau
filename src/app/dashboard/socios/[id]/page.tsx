@@ -7,13 +7,20 @@ import { SocioForm } from '@/components/SocioForm'
 import type { Socio, SocioFormData } from '@/types'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Copy, Check } from 'lucide-react'
 
 export default function EditarSocioPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [socio, setSocio] = useState<Socio | null>(null)
   const [loading, setLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
+
+  const copyId = () => {
+    navigator.clipboard.writeText(id)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   useEffect(() => {
     getSocio(id).then(data => {
@@ -62,7 +69,27 @@ export default function EditarSocioPage() {
         Volver a socios
       </Link>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Editar: {socio.razonSocial}</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">Editar: {socio.razonSocial}</h2>
+      </div>
+
+      {/* ID para 3DVista */}
+      <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 mb-6 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-0.5">ID de Firestore — usar en WebFrame 3DVista</p>
+          <p className="font-mono text-sm text-indigo-900 select-all">{id}</p>
+          <p className="text-xs text-indigo-400 mt-0.5">
+            Ejemplo URL: <span className="font-mono">https://mendoza-bureau.vercel.app/tour/socio/fotos?id={id}</span>
+          </p>
+        </div>
+        <button
+          onClick={copyId}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition shrink-0"
+        >
+          {copied ? <Check size={13} /> : <Copy size={13} />}
+          {copied ? 'Copiado' : 'Copiar ID'}
+        </button>
+      </div>
 
       <SocioForm
         defaultValues={socio}

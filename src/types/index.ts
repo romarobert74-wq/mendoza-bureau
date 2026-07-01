@@ -35,6 +35,7 @@ export interface Socio {
   fotoPortada: string
   logoUrl: string
   activo: boolean
+  ubicacionUrl: string
   urlInternaTour: string
   urlInternaVuelta: string
   urlDrive: string
