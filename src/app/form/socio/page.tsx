@@ -9,6 +9,44 @@ import { CheckCircle, AlertCircle } from 'lucide-react'
 
 const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
 
+const inp = {
+  width: '100%',
+  background: '#111827',
+  border: '1px solid #1e293b',
+  borderRadius: '10px',
+  padding: '10px 12px',
+  fontSize: '14px',
+  color: '#f1f5f9',
+  outline: 'none',
+} as React.CSSProperties
+
+const lbl = {
+  display: 'block',
+  fontSize: '11px',
+  fontWeight: '700',
+  textTransform: 'uppercase' as const,
+  letterSpacing: '0.06em',
+  color: '#64748b',
+  marginBottom: '6px',
+}
+
+const card = {
+  background: '#0d1225',
+  border: '1px solid #1a2235',
+  borderRadius: '16px',
+  padding: '20px',
+} as React.CSSProperties
+
+function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
+  return (
+    <div>
+      <label style={lbl}>{label}</label>
+      {children}
+      {hint && <p style={{ fontSize: '11px', color: '#334155', marginTop: '4px' }}>{hint}</p>}
+    </div>
+  )
+}
+
 function FormSocio() {
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
@@ -47,13 +85,8 @@ function FormSocio() {
         ubicacionUrl: form.ubicacionUrl,
         fotoPortada: form.fotoPortada,
         logoUrl: form.logoUrl,
-        activo: false, // queda pendiente hasta que el admin lo active
-        contacto: {
-          whatsapp: form.whatsapp,
-          email: form.email,
-          web: form.web,
-          redes: form.redes,
-        },
+        activo: false,
+        contacto: { whatsapp: form.whatsapp, email: form.email, web: form.web, redes: form.redes },
         urlInternaTour: '',
         urlInternaVuelta: '',
         urlDrive: '',
@@ -68,193 +101,137 @@ function FormSocio() {
 
   if (done) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-6 text-center gap-4">
-        <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
-          <CheckCircle size={44} className="text-green-500" />
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center gap-4"
+        style={{ background: '#080c18', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(34,197,94,0.12)', border: '2px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <CheckCircle size={36} color="#4ade80" />
         </div>
-        <h2 className="text-xl font-bold text-gray-800">¡Datos enviados!</h2>
-        <p className="text-gray-500 text-sm max-w-xs">
+        <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#f1f5f9', margin: 0 }}>¡Datos enviados!</h2>
+        <p style={{ fontSize: '14px', color: '#475569', maxWidth: '280px', margin: 0 }}>
           Tu información fue recibida por Mendoza Bureau. En breve la revisaremos y la verás reflejada en el tour virtual.
         </p>
-        <p className="text-xs text-gray-300 mt-4">Mendoza Bureau · Convention & Visitors Bureau</p>
+        <p style={{ fontSize: '11px', color: '#1e293b', marginTop: '16px' }}>Mendoza Bureau · Convention & Visitors Bureau</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{ fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#080c18', fontFamily: 'system-ui, sans-serif' }}>
+
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 px-5 py-5">
-        <p className="text-xs font-semibold text-orange-500 uppercase tracking-wider mb-1">Mendoza Bureau</p>
-        <h1 className="text-xl font-bold text-gray-900">Completá los datos de tu negocio</h1>
-        <p className="text-sm text-gray-400 mt-1">
-          Esta información aparecerá en el tour virtual de Mendoza Bureau Convention & Visitors.
-        </p>
+      <div style={{ background: '#0d1225', borderBottom: '1px solid #1a2235', padding: '24px 20px' }}>
+        <div style={{ maxWidth: '520px', margin: '0 auto' }}>
+          <p style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#f97316', marginBottom: '6px' }}>
+            Mendoza Bureau
+          </p>
+          <h1 style={{ fontSize: '22px', fontWeight: '800', color: '#f1f5f9', margin: '0 0 6px' }}>
+            Completá los datos de tu negocio
+          </h1>
+          <p style={{ fontSize: '13px', color: '#475569', margin: 0 }}>
+            Esta información aparecerá en el tour virtual de Mendoza Bureau Convention & Visitors.
+          </p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="px-5 py-6 space-y-6 max-w-lg mx-auto">
+      <form onSubmit={handleSubmit} style={{ padding: '24px 20px', maxWidth: '520px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-        {/* Identificación */}
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <h3 className="font-semibold text-gray-800 mb-4">Tu negocio</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Nombre del negocio *</label>
-              <input
-                value={form.razonSocial}
-                onChange={set('razonSocial')}
-                required
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="Ej: Bodega Salentein"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Rubro *</label>
-              <select
-                value={form.categoria}
-                onChange={set('categoria')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white"
-              >
-                {CATEGORIAS_OPTIONS.map(([val, label]) => (
-                  <option key={val} value={val}>{label}</option>
-                ))}
+        {/* Tu negocio */}
+        <div style={card}>
+          <p style={{ ...lbl, color: '#f97316', marginBottom: '16px', fontSize: '10px' }}>Tu negocio</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <Field label="Nombre del negocio *">
+              <input value={form.razonSocial} onChange={set('razonSocial')} required style={inp} placeholder="Ej: Bodega Salentein" />
+            </Field>
+            <Field label="Rubro *">
+              <select value={form.categoria} onChange={set('categoria')} style={{ ...inp, background: '#111827' }}>
+                {CATEGORIAS_OPTIONS.map(([val, label]) => <option key={val} value={val}>{label}</option>)}
               </select>
-            </div>
+            </Field>
           </div>
-        </section>
+        </div>
 
         {/* Descripción */}
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <h3 className="font-semibold text-gray-800 mb-4">Descripción</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Descripción general *</label>
-              <textarea
-                value={form.infoGeneral}
-                onChange={set('infoGeneral')}
-                rows={5}
-                required
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 resize-none"
-                placeholder="Contanos sobre tu negocio. ¿Qué ofrecen? ¿Qué lo hace especial? ¿Cuál es su historia?"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Dirección</label>
-              <input
-                value={form.direccion}
-                onChange={set('direccion')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="Ej: Ruta 89 s/n, Tunuyán, Mendoza"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Link de Google Maps</label>
-              <input
-                value={form.ubicacionUrl}
-                onChange={set('ubicacionUrl')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="https://maps.app.goo.gl/..."
-              />
-              <p className="text-xs text-gray-400 mt-1">
-                Google Maps → buscá tu negocio → tocá "Compartir" → copiá el link
-              </p>
-            </div>
+        <div style={card}>
+          <p style={{ ...lbl, color: '#f97316', marginBottom: '16px', fontSize: '10px' }}>Descripción</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <Field label="Descripción general *">
+              <textarea value={form.infoGeneral} onChange={set('infoGeneral')} required rows={5}
+                style={{ ...inp, resize: 'none' }}
+                placeholder="Contanos sobre tu negocio. ¿Qué ofrecen? ¿Qué lo hace especial? ¿Cuál es su historia?" />
+            </Field>
+            <Field label="Dirección">
+              <input value={form.direccion} onChange={set('direccion')} style={inp} placeholder="Ej: Ruta 89 s/n, Tunuyán, Mendoza" />
+            </Field>
+            <Field label="Link de Google Maps" hint="Google Maps → buscá tu negocio → tocá "Compartir" → copiá el link">
+              <input value={form.ubicacionUrl} onChange={set('ubicacionUrl')} style={inp} placeholder="https://maps.app.goo.gl/..." />
+            </Field>
           </div>
-        </section>
+        </div>
 
         {/* Contacto */}
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <h3 className="font-semibold text-gray-800 mb-4">Contacto</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">WhatsApp</label>
-              <input
-                value={form.whatsapp}
-                onChange={set('whatsapp')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="+54 261 4XX XXXX"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={set('email')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="contacto@minegocio.com"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Sitio web</label>
-              <input
-                value={form.web}
-                onChange={set('web')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="https://www.minegocio.com"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Instagram / Redes sociales</label>
-              <input
-                value={form.redes}
-                onChange={set('redes')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="@minegocio"
-              />
-            </div>
+        <div style={card}>
+          <p style={{ ...lbl, color: '#f97316', marginBottom: '16px', fontSize: '10px' }}>Contacto</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <Field label="WhatsApp">
+              <input value={form.whatsapp} onChange={set('whatsapp')} style={inp} placeholder="+54 261 4XX XXXX" />
+            </Field>
+            <Field label="Email">
+              <input type="email" value={form.email} onChange={set('email')} style={inp} placeholder="contacto@minegocio.com" />
+            </Field>
+            <Field label="Sitio web">
+              <input value={form.web} onChange={set('web')} style={inp} placeholder="https://www.minegocio.com" />
+            </Field>
+            <Field label="Instagram / Redes sociales">
+              <input value={form.redes} onChange={set('redes')} style={inp} placeholder="@minegocio" />
+            </Field>
           </div>
-        </section>
+        </div>
 
-        {/* Imágenes opcionales */}
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <h3 className="font-semibold text-gray-800 mb-1">Imágenes (opcional)</h3>
-          <p className="text-xs text-gray-400 mb-4">Si tenés fotos publicadas en internet, pegá el link directo aquí.</p>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Foto de portada</label>
-              <input
-                value={form.fotoPortada}
-                onChange={set('fotoPortada')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="https://..."
-              />
+        {/* Imágenes */}
+        <div style={card}>
+          <p style={{ ...lbl, color: '#f97316', marginBottom: '4px', fontSize: '10px' }}>Imágenes (opcional)</p>
+          <p style={{ fontSize: '11px', color: '#334155', marginBottom: '16px' }}>Si tenés fotos publicadas en internet, pegá el link aquí.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <Field label="Foto de portada">
+              <input value={form.fotoPortada} onChange={set('fotoPortada')} style={inp} placeholder="https://..." />
               {form.fotoPortada && (
-                <img src={form.fotoPortada} alt="preview" className="mt-2 w-full h-28 object-cover rounded-xl border border-gray-100" />
+                <img src={form.fotoPortada} alt="preview" style={{ marginTop: '8px', width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #1e293b' }} />
               )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Logo</label>
-              <input
-                value={form.logoUrl}
-                onChange={set('logoUrl')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="https://... (PNG con fondo transparente ideal)"
-              />
+            </Field>
+            <Field label="Logo">
+              <input value={form.logoUrl} onChange={set('logoUrl')} style={inp} placeholder="https://... (PNG con fondo transparente ideal)" />
               {form.logoUrl && (
-                <img src={form.logoUrl} alt="logo" className="mt-2 h-14 object-contain rounded border border-gray-100 bg-gray-50 p-1" />
+                <img src={form.logoUrl} alt="logo" style={{ marginTop: '8px', height: '48px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #1e293b', background: '#111827', padding: '4px' }} />
               )}
-            </div>
+            </Field>
           </div>
-        </section>
+        </div>
 
         {error && (
-          <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
-            <AlertCircle size={16} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '12px 14px', color: '#f87171', fontSize: '13px' }}>
+            <AlertCircle size={15} />
             {error}
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={sending}
-          className="w-full py-4 rounded-2xl font-bold text-white text-base transition active:scale-95 disabled:opacity-50"
-          style={{ background: 'linear-gradient(135deg, #e85d04, #c0391b)' }}
-        >
+        <button type="submit" disabled={sending}
+          style={{
+            width: '100%',
+            padding: '14px',
+            borderRadius: '12px',
+            fontWeight: '700',
+            fontSize: '15px',
+            color: 'white',
+            background: sending ? '#1d4ed8' : 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+            border: '1px solid #3b82f6',
+            cursor: sending ? 'not-allowed' : 'pointer',
+            opacity: sending ? 0.7 : 1,
+            transition: 'opacity 0.2s',
+          }}>
           {sending ? 'Enviando...' : 'Enviar mis datos'}
         </button>
 
-        <p className="text-center text-xs text-gray-300 pb-6">
+        <p style={{ textAlign: 'center', fontSize: '11px', color: '#1e293b', paddingBottom: '24px' }}>
           Mendoza Bureau · Convention & Visitors Bureau
         </p>
       </form>
@@ -265,8 +242,8 @@ function FormSocio() {
 export default function FormSocioPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080c18' }}>
+        <div style={{ width: 32, height: 32, border: '2px solid #1e293b', borderTop: '2px solid #3b82f6', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       </div>
     }>
       <FormSocio />

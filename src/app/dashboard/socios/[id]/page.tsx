@@ -67,49 +67,49 @@ export default function EditarSocioPage() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <Link
-        href="/dashboard/socios"
-        className="flex items-center gap-1 text-gray-500 hover:text-gray-900 text-sm mb-6 transition"
+      <Link href="/dashboard/socios"
+        className="flex items-center gap-1 text-sm transition mb-6" style={{ color: '#475569' }}
+        onMouseOver={e => (e.currentTarget.style.color = '#94a3b8')}
+        onMouseOut={e => (e.currentTarget.style.color = '#475569')}
       >
-        <ChevronLeft size={16} />
+        <ChevronLeft size={15} />
         Volver a socios
       </Link>
 
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Editar: {socio.razonSocial}</h2>
-      </div>
+      <p className="section-title mb-1">Editar socio</p>
+      <h2 className="text-2xl font-bold text-white mb-6">{socio.razonSocial}</h2>
 
-      {/* Compartir formulario por WhatsApp */}
-      <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-0.5">Formulario para el socio</p>
-          <p className="text-sm text-green-800">Enviá este link al socio para que complete sus propios datos.</p>
+      {/* Banners de acción */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+        {/* Compartir formulario */}
+        <div className="rounded-xl px-4 py-3 flex items-center justify-between gap-3"
+          style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)' }}>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide mb-0.5" style={{ color: '#4ade80' }}>Formulario socio</p>
+            <p className="text-xs" style={{ color: '#475569' }}>Enviá el link al socio para que llene sus datos</p>
+          </div>
+          <button onClick={compartirWhatsApp}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition shrink-0"
+            style={{ background: '#16a34a', border: '1px solid #22c55e' }}>
+            <MessageCircle size={12} />
+            WhatsApp
+          </button>
         </div>
-        <button
-          onClick={compartirWhatsApp}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-600 hover:bg-green-700 text-white transition shrink-0"
-        >
-          <MessageCircle size={13} />
-          Enviar por WhatsApp
-        </button>
-      </div>
 
-      {/* ID para 3DVista */}
-      <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 mb-6 flex items-center justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-0.5">ID de Firestore — usar en WebFrame 3DVista</p>
-          <p className="font-mono text-sm text-indigo-900 select-all">{id}</p>
-          <p className="text-xs text-indigo-400 mt-0.5">
-            Ejemplo URL: <span className="font-mono">https://mendoza-bureau.vercel.app/tour/socio/fotos?id={id}</span>
-          </p>
+        {/* ID Firestore */}
+        <div className="rounded-xl px-4 py-3 flex items-center justify-between gap-3"
+          style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.2)' }}>
+          <div className="min-w-0">
+            <p className="text-xs font-bold uppercase tracking-wide mb-0.5" style={{ color: '#60a5fa' }}>ID Firestore · 3DVista</p>
+            <p className="font-mono text-xs select-all truncate" style={{ color: '#93c5fd' }}>{id}</p>
+          </div>
+          <button onClick={copyId}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition shrink-0"
+            style={{ background: '#2563eb', border: '1px solid #3b82f6' }}>
+            {copied ? <Check size={12} /> : <Copy size={12} />}
+            {copied ? 'Copiado' : 'Copiar'}
+          </button>
         </div>
-        <button
-          onClick={copyId}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white transition shrink-0"
-        >
-          {copied ? <Check size={13} /> : <Copy size={13} />}
-          {copied ? 'Copiado' : 'Copiar ID'}
-        </button>
       </div>
 
       <SocioForm

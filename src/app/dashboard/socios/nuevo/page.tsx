@@ -23,18 +23,18 @@ export default function NuevoSocioPage() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <Link
-        href="/dashboard/socios"
-        className="flex items-center gap-1 text-gray-500 hover:text-gray-900 text-sm mb-6 transition"
-      >
-        <ChevronLeft size={16} />
+      <Link href="/dashboard/socios"
+        className="flex items-center gap-1 text-sm transition mb-6" style={{ color: '#475569' }}>
+        <ChevronLeft size={15} />
         Volver a socios
       </Link>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuevo Socio</h2>
+      <p className="section-title mb-1">Nuevo registro</p>
+      <h2 className="text-2xl font-bold text-white mb-5">Crear Socio</h2>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6 text-sm text-amber-700">
-        📸 La <strong>galería de fotos</strong> y el <strong>ID de Firestore</strong> (para 3DVista) aparecen una vez que guardás el socio y lo abrís para editar.
+      <div className="rounded-xl px-4 py-3 mb-6 text-sm flex items-center gap-2"
+        style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#fbbf24' }}>
+        📸 La <strong>galería de fotos</strong> y el <strong>ID para 3DVista</strong> aparecen al editar el socio una vez creado.
       </div>
 
       <SocioForm onSubmit={handleSubmit} submitLabel="Crear socio" />
