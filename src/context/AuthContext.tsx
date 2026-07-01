@@ -28,9 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(firebaseUser)
       if (firebaseUser) {
         try {
-          console.log('[Auth] UID de Firebase Auth:', firebaseUser.uid)
           const data = await getUsuario(firebaseUser.uid)
-          console.log('[Auth] usuario Firestore:', data)
           setUsuario(data)
         } catch (err) {
           console.error('[Auth] error leyendo usuario Firestore:', err)

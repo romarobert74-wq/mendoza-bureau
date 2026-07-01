@@ -33,6 +33,10 @@ export default function NuevoSocioPage() {
 
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Nuevo Socio</h2>
 
+      <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6 text-sm text-amber-700">
+        📸 La <strong>galería de fotos</strong> y el <strong>ID de Firestore</strong> (para 3DVista) aparecen una vez que guardás el socio y lo abrís para editar.
+      </div>
+
       <SocioForm onSubmit={handleSubmit} submitLabel="Crear socio" />
     </div>
   )
