@@ -1,12 +1,13 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getSocio, actualizarSocio } from '@/lib/firestore'
 import type { Socio, SocioFormData } from '@/types'
 import { CheckCircle, AlertCircle } from 'lucide-react'
 
-export default function FormSocioPage() {
+function FormSocio() {
   const params = useSearchParams()
   const id = params.get('id') ?? ''
 
@@ -36,7 +37,7 @@ export default function FormSocioPage() {
         setForm({
           infoGeneral: s.infoGeneral ?? '',
           direccion: s.direccion ?? '',
-          ubicacionUrl: (s as any).ubicacionUrl ?? '',
+          ubicacionUrl: s.ubicacionUrl ?? '',
           fotoPortada: s.fotoPortada ?? '',
           logoUrl: s.logoUrl ?? '',
           whatsapp: s.contacto?.whatsapp ?? '',
@@ -114,7 +115,6 @@ export default function FormSocioPage() {
 
   return (
     <div className="min-h-screen bg-gray-50" style={{ fontFamily: 'system-ui, sans-serif' }}>
-      {/* Header */}
       <div className="bg-white border-b border-gray-100 px-5 py-5">
         <p className="text-xs font-semibold text-orange-500 uppercase tracking-wider mb-1">Mendoza Bureau</p>
         <h1 className="text-xl font-bold text-gray-900">Completá los datos de tu negocio</h1>
@@ -124,8 +124,6 @@ export default function FormSocioPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="px-5 py-6 space-y-6 max-w-lg mx-auto">
-
-        {/* Descripción */}
         <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <h3 className="font-semibold text-gray-800 mb-4">Descripción del lugar</h3>
           <div className="space-y-4">
@@ -162,75 +160,42 @@ export default function FormSocioPage() {
           </div>
         </section>
 
-        {/* Contacto */}
         <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <h3 className="font-semibold text-gray-800 mb-4">Contacto</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">WhatsApp</label>
-              <input
-                value={form.whatsapp}
-                onChange={set('whatsapp')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="+54 261 4XX XXXX"
-              />
+              <input value={form.whatsapp} onChange={set('whatsapp')} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="+54 261 4XX XXXX" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Email</label>
-              <input
-                type="email"
-                value={form.email}
-                onChange={set('email')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="contacto@mibodega.com"
-              />
+              <input type="email" value={form.email} onChange={set('email')} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="contacto@mibodega.com" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Sitio web</label>
-              <input
-                value={form.web}
-                onChange={set('web')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="https://www.mibodega.com"
-              />
+              <input value={form.web} onChange={set('web')} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="https://www.mibodega.com" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Instagram / Redes sociales</label>
-              <input
-                value={form.redes}
-                onChange={set('redes')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="@mibodega o https://instagram.com/mibodega"
-              />
+              <input value={form.redes} onChange={set('redes')} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="@mibodega o https://instagram.com/mibodega" />
             </div>
           </div>
         </section>
 
-        {/* Imágenes */}
         <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
           <h3 className="font-semibold text-gray-800 mb-1">Imágenes (opcional)</h3>
           <p className="text-xs text-gray-400 mb-4">Si tenés fotos subidas a internet, pegá el link directo aquí.</p>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Foto de portada</label>
-              <input
-                value={form.fotoPortada}
-                onChange={set('fotoPortada')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="https://..."
-              />
+              <input value={form.fotoPortada} onChange={set('fotoPortada')} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="https://..." />
               {form.fotoPortada && (
                 <img src={form.fotoPortada} alt="preview" className="mt-2 w-full h-28 object-cover rounded-xl border border-gray-100" />
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-600 mb-1">Logo</label>
-              <input
-                value={form.logoUrl}
-                onChange={set('logoUrl')}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
-                placeholder="https://... (PNG transparente recomendado)"
-              />
+              <input value={form.logoUrl} onChange={set('logoUrl')} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="https://... (PNG transparente recomendado)" />
               {form.logoUrl && (
                 <img src={form.logoUrl} alt="logo preview" className="mt-2 h-14 object-contain rounded border border-gray-100 bg-gray-50 p-1" />
               )}
@@ -254,10 +219,20 @@ export default function FormSocioPage() {
           {sending ? 'Enviando...' : 'Enviar mis datos'}
         </button>
 
-        <p className="text-center text-xs text-gray-300 pb-4">
-          Mendoza Bureau · Convention & Visitors Bureau
-        </p>
+        <p className="text-center text-xs text-gray-300 pb-4">Mendoza Bureau · Convention & Visitors Bureau</p>
       </form>
     </div>
+  )
+}
+
+export default function FormSocioPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <FormSocio />
+    </Suspense>
   )
 }
