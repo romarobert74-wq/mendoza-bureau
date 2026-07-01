@@ -7,7 +7,7 @@ import { SocioForm } from '@/components/SocioForm'
 import type { Socio, SocioFormData } from '@/types'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
-import { ChevronLeft, Copy, Check } from 'lucide-react'
+import { ChevronLeft, Copy, Check, MessageCircle } from 'lucide-react'
 
 export default function EditarSocioPage() {
   const { id } = useParams<{ id: string }>()
@@ -20,6 +20,12 @@ export default function EditarSocioPage() {
     navigator.clipboard.writeText(id)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const compartirWhatsApp = () => {
+    const formUrl = `https://mendoza-bureau.vercel.app/form/socio?id=${id}`
+    const texto = `Hola! Te enviamos el formulario para completar los datos de tu negocio en el tour virtual de Mendoza Bureau. Completalo cuando puedas: ${formUrl}`
+    window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank')
   }
 
   useEffect(() => {
@@ -71,6 +77,21 @@ export default function EditarSocioPage() {
 
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Editar: {socio.razonSocial}</h2>
+      </div>
+
+      {/* Compartir formulario por WhatsApp */}
+      <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-0.5">Formulario para el socio</p>
+          <p className="text-sm text-green-800">Enviá este link al socio para que complete sus propios datos.</p>
+        </div>
+        <button
+          onClick={compartirWhatsApp}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-600 hover:bg-green-700 text-white transition shrink-0"
+        >
+          <MessageCircle size={13} />
+          Enviar por WhatsApp
+        </button>
       </div>
 
       {/* ID para 3DVista */}
