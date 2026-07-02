@@ -2,11 +2,18 @@
 
 import { useForm, useWatch } from 'react-hook-form'
 import { useRef, useState } from 'react'
-import type { SocioFormData, CategoriaSocio, SalonIndividual } from '@/types'
-import { CATEGORIAS } from '@/types'
+import type {
+  SocioFormData, CategoriaSocio, SalonIndividual,
+  HotelData, RestauranteData, BodegaData, AlojamientoData, ServicioData,
+} from '@/types'
+import {
+  CATEGORIAS,
+  HOTEL_VACIO, RESTAURANTE_VACIO, BODEGA_VACIA, ALOJAMIENTO_VACIO, SERVICIO_VACIO,
+} from '@/types'
 import { useAuth } from '@/context/AuthContext'
 import { SocioFotos } from './SocioFotos'
 import { SalonesEditor } from './SalonesEditor'
+import { CategoryEditor } from './CategoryEditor'
 import { uploadImage } from '@/lib/storage'
 import { Upload, Loader2, X } from 'lucide-react'
 
@@ -21,7 +28,7 @@ interface Props {
   socioId?: string
 }
 
-// ── Image Upload Widget ──────────────────────────────────────────────────────
+// ── Image Upload Widget ───────────────────────────────────────────────────────
 function ImageUpload({ label, hint, value, onChange, storagePath, aspect }: {
   label: string; hint?: string; value: string; onChange: (url: string) => void
   storagePath: string; aspect: 'cover' | 'logo'
@@ -96,12 +103,25 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
 
   const fotoPortada = useWatch({ control, name: 'fotoPortada' }) ?? ''
   const logoUrl = useWatch({ control, name: 'logoUrl' }) ?? ''
+  const categoria = useWatch({ control, name: 'categoria' }) ?? 'bodega'
 
-  // Salones managed as local state (array of objects)
   const [salones, setSalones] = useState<SalonIndividual[]>(defaultValues?.salones ?? [])
+  const [hotelData, setHotelData] = useState<HotelData>(defaultValues?.hotelData ?? HOTEL_VACIO())
+  const [restauranteData, setRestauranteData] = useState<RestauranteData>(defaultValues?.restauranteData ?? RESTAURANTE_VACIO())
+  const [bodegaData, setBodegaData] = useState<BodegaData>(defaultValues?.bodegaData ?? BODEGA_VACIA())
+  const [alojamientoData, setAlojamientoData] = useState<AlojamientoData>(defaultValues?.alojamientoData ?? ALOJAMIENTO_VACIO())
+  const [servicioData, setServicioData] = useState<ServicioData>(defaultValues?.servicioData ?? SERVICIO_VACIO())
 
   const doSubmit = async (data: SocioFormData) => {
-    await onSubmit({ ...data, salones })
+    await onSubmit({
+      ...data,
+      salones,
+      hotelData,
+      restauranteData,
+      bodegaData,
+      alojamientoData,
+      servicioData,
+    })
   }
 
   const Section = ({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) => (
@@ -172,6 +192,23 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
           </div>
         </div>
       </Section>
+
+      {/* ── Ficha técnica según categoría ── */}
+      <CategoryEditor
+        categoria={categoria as CategoriaSocio}
+        hotelData={hotelData}
+        restauranteData={restauranteData}
+        bodegaData={bodegaData}
+        alojamientoData={alojamientoData}
+        servicioData={servicioData}
+        onChange={updates => {
+          if (updates.hotelData) setHotelData(updates.hotelData)
+          if (updates.restauranteData) setRestauranteData(updates.restauranteData)
+          if (updates.bodegaData) setBodegaData(updates.bodegaData)
+          if (updates.alojamientoData) setAlojamientoData(updates.alojamientoData)
+          if (updates.servicioData) setServicioData(updates.servicioData)
+        }}
+      />
 
       {/* ── Salones de eventos — disponible para cualquier categoría ── */}
       <SalonesEditor salones={salones} onChange={setSalones} />
