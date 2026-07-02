@@ -38,8 +38,8 @@ const CAT_COLORS: Record<string, string> = {
   otro: '#6B7280',
 }
 
-const MIN_OPACITY = 0.45
-const MAX_OPACITY = 0.95
+const MIN_OPACITY = 0.55
+const MAX_OPACITY = 0.97
 const CACHE_KEY = 'tour_socios_cache'
 const CACHE_TTL = 5 * 60 * 1000
 
@@ -49,7 +49,7 @@ export default function TourMenuPage() {
   const [filtro, setFiltro] = useState('todos')
   const [busqueda, setBusqueda] = useState('')
   const [tab, setTab] = useState<'lugares' | 'informacion'>('lugares')
-  const [opacity, setOpacity] = useState(0.72)
+  const [opacity, setOpacity] = useState(0.85)
 
   useEffect(() => {
     document.body.style.background = 'transparent'
@@ -308,8 +308,8 @@ export default function TourMenuPage() {
                 <span className="text-white/70 text-[12px]">Mendoza, Argentina</span>
               </div>
               <a
-                href="https://mendozabureau.com"
-                onClick={e => { e.preventDefault(); try { window.top!.location.href = 'https://mendozabureau.com' } catch { window.open('https://mendozabureau.com', '_blank') } }}
+                href="https://mendoza-bureau.vercel.app/web_bureau"
+                onClick={e => { e.preventDefault(); try { window.top!.location.href = 'https://mendoza-bureau.vercel.app/web_bureau' } catch { window.open('https://mendoza-bureau.vercel.app/web_bureau', '_blank') } }}
                 className="flex items-center gap-2.5 group"
               >
                 <span className="text-sm">🌐</span>

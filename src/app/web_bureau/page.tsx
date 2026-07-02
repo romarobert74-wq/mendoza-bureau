@@ -301,6 +301,14 @@ export default function WebBureauPage() {
                 {n.label}
               </button>
             ))}
+            <a
+              href="#"
+              onClick={e => { e.preventDefault(); try { window.top!.history.back() } catch { window.history.back() } }}
+              className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition"
+              style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff' }}
+            >
+              ← Tour 360°
+            </a>
           </div>
           {/* Mobile menu toggle */}
           <button onClick={() => setMenuOpen(v => !v)} className="md:hidden text-white p-1.5">
@@ -316,6 +324,13 @@ export default function WebBureauPage() {
                 {n.label}
               </button>
             ))}
+            <a
+              href="#"
+              onClick={e => { e.preventDefault(); try { window.top!.history.back() } catch { window.history.back() } }}
+              className="block w-full text-left px-6 py-3 text-white text-sm font-semibold hover:bg-white/10 transition border-t border-white/20"
+            >
+              ← Volver al Tour 360°
+            </a>
           </div>
         )}
       </nav>
