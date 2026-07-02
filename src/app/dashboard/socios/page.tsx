@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext'
 import { CATEGORIAS } from '@/types'
 import type { Socio } from '@/types'
 import toast from 'react-hot-toast'
-import { Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2, MessageCircle, Clock } from 'lucide-react'
+import { Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2, MessageCircle, Clock, Copy, Check } from 'lucide-react'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
@@ -45,6 +45,21 @@ export default function SociosPage() {
   const puedeEditar = usuario?.rol === 'el_faro' || usuario?.rol === 'bureau'
   const puedeEliminar = usuario?.rol === 'el_faro'
   const [alimentando, setAlimentando] = useState(false)
+  const [linkCopiado, setLinkCopiado] = useState(false)
+
+  const FORM_URL = 'https://mendoza-bureau.vercel.app/form/socio'
+
+  const copiarLink = () => {
+    navigator.clipboard.writeText(FORM_URL)
+    setLinkCopiado(true)
+    toast.success('Link copiado al portapapeles')
+    setTimeout(() => setLinkCopiado(false), 2500)
+  }
+
+  const compartirWhatsApp = () => {
+    const txt = `Hola! Te invitamos a completar los datos de tu negocio para el tour virtual de Mendoza Bureau. Solo te lleva unos minutos: ${FORM_URL}`
+    window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank')
+  }
 
   const alimentarBestia = async () => {
     if (socios.length === 0) { toast.error('No hay socios cargados'); return }
@@ -101,16 +116,13 @@ export default function SociosPage() {
         <div className="flex items-center gap-2 flex-wrap justify-end">
           {usuario?.rol === 'el_faro' && (
             <>
-              <button
-                onClick={() => {
-                  const url = 'https://mendoza-bureau.vercel.app/form/socio'
-                  const txt = `Hola! Te invitamos a completar los datos de tu negocio para el tour virtual de Mendoza Bureau. Solo te lleva unos minutos: ${url}`
-                  window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank')
-                }}
-                className="btn-outline"
-              >
+              <button onClick={compartirWhatsApp} className="btn-outline">
                 <MessageCircle size={15} />
-                Compartir formulario
+                WhatsApp
+              </button>
+              <button onClick={copiarLink} className="btn-outline">
+                {linkCopiado ? <Check size={15} /> : <Copy size={15} />}
+                {linkCopiado ? 'Copiado!' : 'Copiar link'}
               </button>
               <button
                 onClick={alimentarBestia}

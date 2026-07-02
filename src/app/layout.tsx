@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className={inter.className}>
+      <body className={inter.className} style={{ background: '#080c18', color: '#f1f5f9', minHeight: '100vh' }}>
         <AuthProvider>
           {children}
           <Toaster position="top-right" />
