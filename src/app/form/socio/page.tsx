@@ -2,12 +2,21 @@
 
 import { Suspense, useState } from 'react'
 import { crearSocio } from '@/lib/firestore'
-import type { SocioFormData, CategoriaSocio } from '@/types'
-import { CATEGORIAS } from '@/types'
+import type {
+  SocioFormData, CategoriaSocio, SalonIndividual,
+  HotelData, RestauranteData, BodegaData, AlojamientoData, ServicioData,
+} from '@/types'
+import {
+  CATEGORIAS,
+  HOTEL_VACIO, RESTAURANTE_VACIO, BODEGA_VACIA, ALOJAMIENTO_VACIO, SERVICIO_VACIO,
+} from '@/types'
+import { CategoryEditor } from '@/components/CategoryEditor'
+import { SalonesEditor } from '@/components/SalonesEditor'
 import { CheckCircle, AlertCircle, ChevronRight } from 'lucide-react'
 
 const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
 
+// ── Shared inline styles ──────────────────────────────────────────────────────
 const inp: React.CSSProperties = {
   width: '100%',
   background: '#111827',
@@ -29,11 +38,20 @@ const lbl: React.CSSProperties = {
   marginBottom: '6px',
 }
 
-const card: React.CSSProperties = {
+const cardStyle: React.CSSProperties = {
   background: '#0d1225',
   border: '1px solid #1a2235',
   borderRadius: '16px',
   padding: '24px',
+}
+
+const secTitle: React.CSSProperties = {
+  fontSize: '10px',
+  fontWeight: 800,
+  textTransform: 'uppercase',
+  letterSpacing: '0.1em',
+  color: '#f97316',
+  marginBottom: '20px',
 }
 
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
@@ -46,16 +64,17 @@ function Field({ label, children, hint }: { label: string; children: React.React
   )
 }
 
+// ── Form ──────────────────────────────────────────────────────────────────────
 function FormSocio() {
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
 
+  // Campos generales
   const [form, setForm] = useState({
     razonSocial: '',
-    etiqueta: '',
-    categoria: 'bodega' as CategoriaSocio,
     infoGeneral: '',
+    categoria: 'bodega' as CategoriaSocio,
     direccion: '',
     ubicacionUrl: '',
     fotoPortada: '',
@@ -70,6 +89,28 @@ function FormSocio() {
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setForm(f => ({ ...f, [k]: e.target.value }))
 
+  // Datos por categoría
+  const [salones, setSalones] = useState<SalonIndividual[]>([])
+  const [hotelData, setHotelData] = useState<HotelData>(HOTEL_VACIO())
+  const [restauranteData, setRestauranteData] = useState<RestauranteData>(RESTAURANTE_VACIO())
+  const [bodegaData, setBodegaData] = useState<BodegaData>(BODEGA_VACIA())
+  const [alojamientoData, setAlojamientoData] = useState<AlojamientoData>(ALOJAMIENTO_VACIO())
+  const [servicioData, setServicioData] = useState<ServicioData>(SERVICIO_VACIO())
+
+  const handleCategoryChange = (updates: {
+    hotelData?: HotelData
+    restauranteData?: RestauranteData
+    bodegaData?: BodegaData
+    alojamientoData?: AlojamientoData
+    servicioData?: ServicioData
+  }) => {
+    if (updates.hotelData) setHotelData(updates.hotelData)
+    if (updates.restauranteData) setRestauranteData(updates.restauranteData)
+    if (updates.bodegaData) setBodegaData(updates.bodegaData)
+    if (updates.alojamientoData) setAlojamientoData(updates.alojamientoData)
+    if (updates.servicioData) setServicioData(updates.servicioData)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSending(true)
@@ -77,7 +118,7 @@ function FormSocio() {
     try {
       const data: SocioFormData = {
         razonSocial: form.razonSocial,
-        etiqueta: form.etiqueta || form.razonSocial,
+        etiqueta: form.razonSocial,
         categoria: form.categoria,
         infoGeneral: form.infoGeneral,
         direccion: form.direccion,
@@ -89,6 +130,12 @@ function FormSocio() {
         urlInternaTour: '',
         urlInternaVuelta: '',
         urlDrive: '',
+        salones,
+        hotelData,
+        restauranteData,
+        bodegaData,
+        alojamientoData,
+        servicioData,
       }
       await crearSocio(data)
       setDone(true)
@@ -98,6 +145,7 @@ function FormSocio() {
     setSending(false)
   }
 
+  // ── Pantalla de éxito ──────────────────────────────────────────────────────
   if (done) {
     return (
       <div style={{ minHeight: '100vh', background: '#080c18', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '16px', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
@@ -106,35 +154,32 @@ function FormSocio() {
         </div>
         <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#f1f5f9', margin: 0 }}>¡Datos enviados!</h2>
         <p style={{ fontSize: '14px', color: '#64748b', maxWidth: '300px', margin: 0, lineHeight: 1.6 }}>
-          Tu información fue recibida. En breve la revisaremos y la verás reflejada en el tour virtual.
+          Tu información fue recibida con éxito. En breve la revisaremos y la verás reflejada en el tour virtual.
         </p>
         <p style={{ fontSize: '11px', color: '#1e293b', marginTop: '24px' }}>Mendoza Bureau · El Faro 360</p>
       </div>
     )
   }
 
+  const categoriaLabel = CATEGORIAS[form.categoria]
+  const hasCategoryFields = ['hotel', 'restaurante', 'bodega', 'alojamiento', 'servicio'].includes(form.categoria)
+
   return (
     <div style={{ minHeight: '100vh', background: '#080c18', color: '#f1f5f9', fontFamily: 'system-ui, sans-serif' }}>
 
-      {/* ── Hero landing ── */}
+      {/* ── Hero ── */}
       <div style={{ background: 'linear-gradient(160deg, #0d1225 0%, #080c18 70%)', borderBottom: '1px solid #1a2235', padding: '56px 20px 48px', textAlign: 'center' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-
-          {/* Pill badge */}
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)', borderRadius: '99px', padding: '4px 16px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fb923c', marginBottom: '24px' }}>
             ✦ Mendoza Bureau · El Faro 360
           </div>
-
           <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, color: '#f1f5f9', margin: '0 0 8px', lineHeight: 1.2 }}>
             Bienvenido al futuro del
           </h1>
           <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, color: '#3b82f6', margin: '0 0 20px', lineHeight: 1.2 }}>
             turismo inmersivo
           </h1>
-
-          {/* Gradient divider */}
           <div style={{ width: '40px', height: '3px', background: 'linear-gradient(90deg, #2563eb, #f97316)', borderRadius: '99px', margin: '0 auto 24px' }} />
-
           <p style={{ fontSize: '15px', color: '#64748b', maxWidth: '520px', margin: '0 auto 14px', lineHeight: 1.7 }}>
             Mendoza Bureau junto a El Faro 360 están desarrollando una plataforma inmersiva
             para que tu destino se vea en{' '}
@@ -142,41 +187,33 @@ function FormSocio() {
             y puedas mostrar tu lugar de una manera completamente diferente.
           </p>
           <p style={{ fontSize: '14px', color: '#64748b', maxWidth: '520px', margin: '0 auto', lineHeight: 1.7 }}>
-            Para eso te pedimos que completes el siguiente formulario, que nos servirá de ayuda
-            para desarrollar la aplicación web.{' '}
-            <strong style={{ color: '#f1f5f9' }}>Muchas gracias.</strong>
+            Completá el siguiente formulario. Cuanto más detallado, mejor podremos representar tu negocio en el tour virtual.{' '}
+            <strong style={{ color: '#f1f5f9' }}>¡Muchas gracias!</strong>
           </p>
         </div>
       </div>
 
-      {/* ── Form ── */}
-      <form onSubmit={handleSubmit} style={{ padding: '32px 20px 60px', maxWidth: '540px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* ── Formulario ── */}
+      <form onSubmit={handleSubmit} style={{ padding: '32px 20px 60px', maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
         {/* Tu negocio */}
-        <div style={card}>
-          <p style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f97316', marginBottom: '20px' }}>Tu negocio</p>
+        <div style={cardStyle}>
+          <p style={secTitle}>Tu negocio</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <Field label="Nombre del negocio *">
               <input value={form.razonSocial} onChange={set('razonSocial')} required style={inp} placeholder="Ej: Bodega Salentein" />
             </Field>
-            <Field label="Rubro *">
-              <select value={form.categoria} onChange={set('categoria')} style={{ ...inp, background: '#111827' }}>
+            <Field label="Rubro *" hint="Elegí el que mejor describa tu negocio — aparecerán campos específicos a continuación">
+              <select value={form.categoria} onChange={set('categoria')} style={{ ...inp, background: '#111827', cursor: 'pointer' }}>
                 {CATEGORIAS_OPTIONS.map(([val, label]) => (
                   <option key={val} value={val}>{label}</option>
                 ))}
               </select>
             </Field>
-          </div>
-        </div>
-
-        {/* Descripción */}
-        <div style={card}>
-          <p style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f97316', marginBottom: '20px' }}>Descripción</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <Field label="Descripción general *">
-              <textarea value={form.infoGeneral} onChange={set('infoGeneral')} required rows={5}
+              <textarea value={form.infoGeneral} onChange={set('infoGeneral')} required rows={4}
                 style={{ ...inp, resize: 'none' }}
-                placeholder="Contanos sobre tu negocio. ¿Qué ofrecen? ¿Qué lo hace especial? ¿Cuál es su historia?" />
+                placeholder="Contanos sobre tu negocio: qué ofrecen, qué lo hace especial, cuál es su historia..." />
             </Field>
             <Field label="Dirección">
               <input value={form.direccion} onChange={set('direccion')} style={inp} placeholder="Ej: Ruta 89 s/n, Tunuyán, Mendoza" />
@@ -187,9 +224,58 @@ function FormSocio() {
           </div>
         </div>
 
+        {/* Ficha técnica según categoría */}
+        {hasCategoryFields && (
+          <div style={{ ...cardStyle, padding: '24px' }}>
+            <p style={secTitle}>
+              Ficha técnica · {categoriaLabel}
+            </p>
+            <p style={{ fontSize: '12px', color: '#475569', marginBottom: '20px', marginTop: '-12px' }}>
+              Completá los datos específicos de tu {categoriaLabel.toLowerCase()}. Esta información aparecerá en el tour virtual y en el directorio del Bureau.
+            </p>
+            {/* Reuse the admin CategoryEditor - same Tailwind classes available */}
+            <CategoryEditor
+              categoria={form.categoria}
+              hotelData={hotelData}
+              restauranteData={restauranteData}
+              bodegaData={bodegaData}
+              alojamientoData={alojamientoData}
+              servicioData={servicioData}
+              onChange={handleCategoryChange}
+            />
+          </div>
+        )}
+
+        {/* Salones de eventos */}
+        <div style={{ ...cardStyle, padding: '0' }}>
+          <SalonesEditor salones={salones} onChange={setSalones} />
+        </div>
+
+        {/* Imágenes */}
+        <div style={cardStyle}>
+          <p style={secTitle}>Imágenes (opcional)</p>
+          <p style={{ fontSize: '12px', color: '#334155', marginBottom: '20px', marginTop: '-12px' }}>
+            Si tenés fotos publicadas en internet, pegá el link aquí. También podremos agregarlas después.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <Field label="Foto de portada">
+              <input value={form.fotoPortada} onChange={set('fotoPortada')} style={inp} placeholder="https://..." />
+              {form.fotoPortada && (
+                <img src={form.fotoPortada} alt="preview" style={{ marginTop: '8px', width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #1e293b' }} />
+              )}
+            </Field>
+            <Field label="Logo">
+              <input value={form.logoUrl} onChange={set('logoUrl')} style={inp} placeholder="https://... (PNG con fondo transparente, ideal)" />
+              {form.logoUrl && (
+                <img src={form.logoUrl} alt="logo" style={{ marginTop: '8px', height: '48px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #1e293b', background: '#111827', padding: '4px' }} />
+              )}
+            </Field>
+          </div>
+        </div>
+
         {/* Contacto */}
-        <div style={card}>
-          <p style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f97316', marginBottom: '20px' }}>Contacto</p>
+        <div style={cardStyle}>
+          <p style={secTitle}>Contacto</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <Field label="WhatsApp">
               <input value={form.whatsapp} onChange={set('whatsapp')} style={inp} placeholder="+54 261 4XX XXXX" />
@@ -202,26 +288,6 @@ function FormSocio() {
             </Field>
             <Field label="Instagram / Redes sociales">
               <input value={form.redes} onChange={set('redes')} style={inp} placeholder="@minegocio" />
-            </Field>
-          </div>
-        </div>
-
-        {/* Imágenes */}
-        <div style={card}>
-          <p style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f97316', marginBottom: '4px' }}>Imágenes (opcional)</p>
-          <p style={{ fontSize: '12px', color: '#334155', marginBottom: '20px' }}>Si tenés fotos publicadas en internet, pegá el link aquí.</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <Field label="Foto de portada">
-              <input value={form.fotoPortada} onChange={set('fotoPortada')} style={inp} placeholder="https://..." />
-              {form.fotoPortada && (
-                <img src={form.fotoPortada} alt="preview" style={{ marginTop: '8px', width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #1e293b' }} />
-              )}
-            </Field>
-            <Field label="Logo">
-              <input value={form.logoUrl} onChange={set('logoUrl')} style={inp} placeholder="https://... (PNG con fondo transparente ideal)" />
-              {form.logoUrl && (
-                <img src={form.logoUrl} alt="logo" style={{ marginTop: '8px', height: '48px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #1e293b', background: '#111827', padding: '4px' }} />
-              )}
             </Field>
           </div>
         </div>
