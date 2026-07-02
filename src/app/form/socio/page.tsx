@@ -1,15 +1,14 @@
 'use client'
 
-import { Suspense } from 'react'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { crearSocio } from '@/lib/firestore'
 import type { SocioFormData, CategoriaSocio } from '@/types'
 import { CATEGORIAS } from '@/types'
-import { CheckCircle, AlertCircle } from 'lucide-react'
+import { CheckCircle, AlertCircle, ChevronRight } from 'lucide-react'
 
 const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
 
-const inp = {
+const inp: React.CSSProperties = {
   width: '100%',
   background: '#111827',
   border: '1px solid #1e293b',
@@ -18,24 +17,24 @@ const inp = {
   fontSize: '14px',
   color: '#f1f5f9',
   outline: 'none',
-} as React.CSSProperties
+}
 
-const lbl = {
+const lbl: React.CSSProperties = {
   display: 'block',
   fontSize: '11px',
-  fontWeight: '700',
-  textTransform: 'uppercase' as const,
+  fontWeight: 700,
+  textTransform: 'uppercase',
   letterSpacing: '0.06em',
   color: '#64748b',
   marginBottom: '6px',
 }
 
-const card = {
+const card: React.CSSProperties = {
   background: '#0d1225',
   border: '1px solid #1a2235',
   borderRadius: '16px',
-  padding: '20px',
-} as React.CSSProperties
+  padding: '24px',
+}
 
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
@@ -101,50 +100,70 @@ function FormSocio() {
 
   if (done) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center gap-4"
-        style={{ background: '#080c18', fontFamily: 'system-ui, sans-serif' }}>
-        <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(34,197,94,0.12)', border: '2px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <CheckCircle size={36} color="#4ade80" />
+      <div style={{ minHeight: '100vh', background: '#080c18', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '16px', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(34,197,94,0.1)', border: '2px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <CheckCircle size={40} color="#4ade80" />
         </div>
-        <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#f1f5f9', margin: 0 }}>¡Datos enviados!</h2>
-        <p style={{ fontSize: '14px', color: '#475569', maxWidth: '280px', margin: 0 }}>
-          Tu información fue recibida por Mendoza Bureau. En breve la revisaremos y la verás reflejada en el tour virtual.
+        <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#f1f5f9', margin: 0 }}>¡Datos enviados!</h2>
+        <p style={{ fontSize: '14px', color: '#64748b', maxWidth: '300px', margin: 0, lineHeight: 1.6 }}>
+          Tu información fue recibida. En breve la revisaremos y la verás reflejada en el tour virtual.
         </p>
-        <p style={{ fontSize: '11px', color: '#1e293b', marginTop: '16px' }}>Mendoza Bureau · Convention & Visitors Bureau</p>
+        <p style={{ fontSize: '11px', color: '#1e293b', marginTop: '24px' }}>Mendoza Bureau · El Faro 360</p>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080c18', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#080c18', color: '#f1f5f9', fontFamily: 'system-ui, sans-serif' }}>
 
-      {/* Header */}
-      <div style={{ background: '#0d1225', borderBottom: '1px solid #1a2235', padding: '24px 20px' }}>
-        <div style={{ maxWidth: '520px', margin: '0 auto' }}>
-          <p style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.12em', color: '#f97316', marginBottom: '6px' }}>
-            Mendoza Bureau
-          </p>
-          <h1 style={{ fontSize: '22px', fontWeight: '800', color: '#f1f5f9', margin: '0 0 6px' }}>
-            Completá los datos de tu negocio
+      {/* ── Hero landing ── */}
+      <div style={{ background: 'linear-gradient(160deg, #0d1225 0%, #080c18 70%)', borderBottom: '1px solid #1a2235', padding: '56px 20px 48px', textAlign: 'center' }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+
+          {/* Pill badge */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)', borderRadius: '99px', padding: '4px 16px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fb923c', marginBottom: '24px' }}>
+            ✦ Mendoza Bureau · El Faro 360
+          </div>
+
+          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, color: '#f1f5f9', margin: '0 0 8px', lineHeight: 1.2 }}>
+            Bienvenido al futuro del
           </h1>
-          <p style={{ fontSize: '13px', color: '#475569', margin: 0 }}>
-            Esta información aparecerá en el tour virtual de Mendoza Bureau Convention & Visitors.
+          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, color: '#3b82f6', margin: '0 0 20px', lineHeight: 1.2 }}>
+            turismo inmersivo
+          </h1>
+
+          {/* Gradient divider */}
+          <div style={{ width: '40px', height: '3px', background: 'linear-gradient(90deg, #2563eb, #f97316)', borderRadius: '99px', margin: '0 auto 24px' }} />
+
+          <p style={{ fontSize: '15px', color: '#64748b', maxWidth: '520px', margin: '0 auto 14px', lineHeight: 1.7 }}>
+            Mendoza Bureau junto a El Faro 360 están desarrollando una plataforma inmersiva
+            para que tu destino se vea en{' '}
+            <strong style={{ color: '#f1f5f9' }}>360°</strong>{' '}
+            y puedas mostrar tu lugar de una manera completamente diferente.
+          </p>
+          <p style={{ fontSize: '14px', color: '#64748b', maxWidth: '520px', margin: '0 auto', lineHeight: 1.7 }}>
+            Para eso te pedimos que completes el siguiente formulario, que nos servirá de ayuda
+            para desarrollar la aplicación web.{' '}
+            <strong style={{ color: '#f1f5f9' }}>Muchas gracias.</strong>
           </p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} style={{ padding: '24px 20px', maxWidth: '520px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* ── Form ── */}
+      <form onSubmit={handleSubmit} style={{ padding: '32px 20px 60px', maxWidth: '540px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
         {/* Tu negocio */}
         <div style={card}>
-          <p style={{ ...lbl, color: '#f97316', marginBottom: '16px', fontSize: '10px' }}>Tu negocio</p>
+          <p style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f97316', marginBottom: '20px' }}>Tu negocio</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <Field label="Nombre del negocio *">
               <input value={form.razonSocial} onChange={set('razonSocial')} required style={inp} placeholder="Ej: Bodega Salentein" />
             </Field>
             <Field label="Rubro *">
               <select value={form.categoria} onChange={set('categoria')} style={{ ...inp, background: '#111827' }}>
-                {CATEGORIAS_OPTIONS.map(([val, label]) => <option key={val} value={val}>{label}</option>)}
+                {CATEGORIAS_OPTIONS.map(([val, label]) => (
+                  <option key={val} value={val}>{label}</option>
+                ))}
               </select>
             </Field>
           </div>
@@ -152,7 +171,7 @@ function FormSocio() {
 
         {/* Descripción */}
         <div style={card}>
-          <p style={{ ...lbl, color: '#f97316', marginBottom: '16px', fontSize: '10px' }}>Descripción</p>
+          <p style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f97316', marginBottom: '20px' }}>Descripción</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <Field label="Descripción general *">
               <textarea value={form.infoGeneral} onChange={set('infoGeneral')} required rows={5}
@@ -162,7 +181,7 @@ function FormSocio() {
             <Field label="Dirección">
               <input value={form.direccion} onChange={set('direccion')} style={inp} placeholder="Ej: Ruta 89 s/n, Tunuyán, Mendoza" />
             </Field>
-            <Field label="Link de Google Maps" hint="Google Maps → buscá tu negocio → tocá "Compartir" → copiá el link">
+            <Field label="Link de Google Maps" hint="Google Maps → buscá tu negocio → tocá 'Compartir' → copiá el link">
               <input value={form.ubicacionUrl} onChange={set('ubicacionUrl')} style={inp} placeholder="https://maps.app.goo.gl/..." />
             </Field>
           </div>
@@ -170,7 +189,7 @@ function FormSocio() {
 
         {/* Contacto */}
         <div style={card}>
-          <p style={{ ...lbl, color: '#f97316', marginBottom: '16px', fontSize: '10px' }}>Contacto</p>
+          <p style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f97316', marginBottom: '20px' }}>Contacto</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <Field label="WhatsApp">
               <input value={form.whatsapp} onChange={set('whatsapp')} style={inp} placeholder="+54 261 4XX XXXX" />
@@ -189,8 +208,8 @@ function FormSocio() {
 
         {/* Imágenes */}
         <div style={card}>
-          <p style={{ ...lbl, color: '#f97316', marginBottom: '4px', fontSize: '10px' }}>Imágenes (opcional)</p>
-          <p style={{ fontSize: '11px', color: '#334155', marginBottom: '16px' }}>Si tenés fotos publicadas en internet, pegá el link aquí.</p>
+          <p style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f97316', marginBottom: '4px' }}>Imágenes (opcional)</p>
+          <p style={{ fontSize: '12px', color: '#334155', marginBottom: '20px' }}>Si tenés fotos publicadas en internet, pegá el link aquí.</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <Field label="Foto de portada">
               <input value={form.fotoPortada} onChange={set('fotoPortada')} style={inp} placeholder="https://..." />
@@ -215,24 +234,14 @@ function FormSocio() {
         )}
 
         <button type="submit" disabled={sending}
-          style={{
-            width: '100%',
-            padding: '14px',
-            borderRadius: '12px',
-            fontWeight: '700',
-            fontSize: '15px',
-            color: 'white',
-            background: sending ? '#1d4ed8' : 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-            border: '1px solid #3b82f6',
-            cursor: sending ? 'not-allowed' : 'pointer',
-            opacity: sending ? 0.7 : 1,
-            transition: 'opacity 0.2s',
-          }}>
-          {sending ? 'Enviando...' : 'Enviar mis datos'}
+          style={{ width: '100%', padding: '15px', borderRadius: '12px', fontWeight: 700, fontSize: '15px', color: 'white', background: sending ? '#1d4ed8' : 'linear-gradient(135deg, #2563eb, #1d4ed8)', border: '1px solid #3b82f6', cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.7 : 1, transition: 'opacity 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          {sending ? 'Enviando...' : (
+            <>Enviar mis datos <ChevronRight size={16} /></>
+          )}
         </button>
 
-        <p style={{ textAlign: 'center', fontSize: '11px', color: '#1e293b', paddingBottom: '24px' }}>
-          Mendoza Bureau · Convention & Visitors Bureau
+        <p style={{ textAlign: 'center', fontSize: '11px', color: '#1e293b', paddingBottom: '8px' }}>
+          Mendoza Bureau · Convention & Visitors Bureau · El Faro 360
         </p>
       </form>
     </div>
