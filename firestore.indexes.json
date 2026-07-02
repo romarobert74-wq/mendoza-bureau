@@ -17,5 +17,15 @@
       ]
     }
   ],
+    {
+      "collectionGroup": "socios",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "categoria", "order": "ASCENDING" },
+        { "fieldPath": "activo", "order": "ASCENDING" },
+        { "fieldPath": "razonSocial", "order": "ASCENDING" }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }

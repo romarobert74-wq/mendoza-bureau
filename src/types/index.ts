@@ -7,6 +7,7 @@ export type CategoriaSocio =
   | 'restaurante'
   | 'hotel'
   | 'alojamiento'
+  | 'salon'
   | 'servicio'
   | 'otro'
 
@@ -17,6 +18,27 @@ export interface Usuario {
   rol: Rol
   socioId?: string
   creadoEn: Timestamp
+}
+
+export interface SalonData {
+  capacidadSentados: number | null
+  capacidadCoctel: number | null
+  capacidadPie: number | null
+  metrosCuadrados: number | null
+  cantidadBanios: number | null
+  tieneEscenario: boolean
+  dimensionesEscenario: string
+  tieneMusica: boolean
+  tieneLuces: boolean
+  tieneSonido: boolean
+  tieneProyector: boolean
+  tienePantalla: boolean
+  incluyeCatering: boolean
+  tieneEstacionamiento: boolean
+  tieneAccesibilidad: boolean
+  cantidadSalones: number | null
+  dividible: boolean
+  observaciones: string
 }
 
 export interface Socio {
@@ -39,6 +61,7 @@ export interface Socio {
   urlInternaTour: string
   urlInternaVuelta: string
   urlDrive: string
+  salonData?: SalonData
   creadoEn: Timestamp
   actualizadoEn: Timestamp
 }
@@ -50,6 +73,7 @@ export const CATEGORIAS: Record<CategoriaSocio, string> = {
   restaurante: 'Restaurante',
   hotel: 'Hotel',
   alojamiento: 'Alojamiento',
+  salon: 'Salón de Eventos',
   servicio: 'Servicio',
   otro: 'Otro',
 }
@@ -58,4 +82,25 @@ export const ROLES: Record<Rol, string> = {
   el_faro: 'El Faro (Superadmin)',
   bureau: 'Bureau (Admin)',
   socio: 'Socio',
+}
+
+export const SALON_DATA_DEFAULT: SalonData = {
+  capacidadSentados: null,
+  capacidadCoctel: null,
+  capacidadPie: null,
+  metrosCuadrados: null,
+  cantidadBanios: null,
+  tieneEscenario: false,
+  dimensionesEscenario: '',
+  tieneMusica: false,
+  tieneLuces: false,
+  tieneSonido: false,
+  tieneProyector: false,
+  tienePantalla: false,
+  incluyeCatering: false,
+  tieneEstacionamiento: false,
+  tieneAccesibilidad: false,
+  cantidadSalones: null,
+  dividible: false,
+  observaciones: '',
 }
