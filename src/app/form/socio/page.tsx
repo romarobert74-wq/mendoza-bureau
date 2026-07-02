@@ -20,10 +20,10 @@ const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string
 // ── Shared inline styles ──────────────────────────────────────────────────────
 const inp: React.CSSProperties = {
   width: '100%',
-  background: '#111827',
-  border: '1px solid #1e293b',
+  background: 'rgba(255,255,255,0.04)',
+  border: '1px solid rgba(255,255,255,0.1)',
   borderRadius: '10px',
-  padding: '10px 12px',
+  padding: '11px 14px',
   fontSize: '14px',
   color: '#f1f5f9',
   outline: 'none',
@@ -34,14 +34,14 @@ const lbl: React.CSSProperties = {
   fontSize: '11px',
   fontWeight: 700,
   textTransform: 'uppercase',
-  letterSpacing: '0.06em',
-  color: '#64748b',
-  marginBottom: '6px',
+  letterSpacing: '0.08em',
+  color: '#94a3b8',   // era #64748b — muy oscuro
+  marginBottom: '7px',
 }
 
 const cardStyle: React.CSSProperties = {
   background: '#0d1225',
-  border: '1px solid #1a2235',
+  border: '1px solid rgba(255,255,255,0.08)',
   borderRadius: '16px',
   padding: '24px',
 }
@@ -50,9 +50,9 @@ const secTitle: React.CSSProperties = {
   fontSize: '10px',
   fontWeight: 800,
   textTransform: 'uppercase',
-  letterSpacing: '0.1em',
-  color: '#f97316',
-  marginBottom: '20px',
+  letterSpacing: '0.12em',
+  color: '#fb923c',
+  marginBottom: '4px',
 }
 
 function ImageUploadField({ label, hint, value, onChange, storageId, aspect }: {
@@ -81,7 +81,7 @@ function ImageUploadField({ label, hint, value, onChange, storageId, aspect }: {
   return (
     <div>
       <label style={lbl}>{label}</label>
-      {hint && <p style={{ fontSize: '11px', color: '#334155', marginBottom: '8px' }}>{hint}</p>}
+      {hint && <p style={{ fontSize: '11px', color: '#64748b', marginBottom: '8px' }}>{hint}</p>}
 
       {value ? (
         <div style={{ position: 'relative', marginBottom: '10px' }}>
@@ -96,28 +96,28 @@ function ImageUploadField({ label, hint, value, onChange, storageId, aspect }: {
               display: 'block',
             }} />
           <button type="button" onClick={() => onChange('')}
-            style={{ position: 'absolute', top: '6px', right: '6px', width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(15,23,42,0.85)', border: '1px solid #334155', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            style={{ position: 'absolute', top: '6px', right: '6px', width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(15,23,42,0.85)', border: '1px solid #64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <X size={12} color="#94a3b8" />
           </button>
         </div>
       ) : (
         <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading}
-          style={{ width: '100%', padding: '20px', borderRadius: '10px', border: '2px dashed #1e293b', background: '#0a0f1e', cursor: uploading ? 'not-allowed' : 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', transition: 'border-color 0.2s' }}
-          onMouseEnter={e => !uploading && ((e.currentTarget as HTMLButtonElement).style.borderColor = '#3b82f6')}
-          onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = '#1e293b')}>
+          style={{ width: '100%', padding: '22px', borderRadius: '12px', border: '2px dashed rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)', cursor: uploading ? 'not-allowed' : 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', transition: 'border-color 0.2s, background 0.2s' }}
+          onMouseEnter={e => { if (!uploading) { (e.currentTarget as HTMLButtonElement).style.borderColor = '#3b82f6'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.06)' } }}
+          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.12)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)' }}>
           {uploading ? (
             <>
-              <Loader2 size={22} color="#3b82f6" style={{ animation: 'spin 0.8s linear infinite' }} />
-              <span style={{ fontSize: '13px', color: '#64748b' }}>Subiendo... {progress}%</span>
-              <div style={{ width: '100%', height: '3px', background: '#1e293b', borderRadius: '99px' }}>
+              <Loader2 size={24} color="#60a5fa" style={{ animation: 'spin 0.8s linear infinite' }} />
+              <span style={{ fontSize: '13px', color: '#94a3b8' }}>Subiendo... {progress}%</span>
+              <div style={{ width: '100%', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '99px' }}>
                 <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg,#2563eb,#60a5fa)', borderRadius: '99px', transition: 'width 0.2s' }} />
               </div>
             </>
           ) : (
             <>
-              <Upload size={22} color="#475569" />
-              <span style={{ fontSize: '13px', color: '#475569' }}>Tocá para subir {label.toLowerCase()}</span>
-              <span style={{ fontSize: '11px', color: '#334155' }}>JPG, PNG, WEBP</span>
+              <Upload size={24} color="#60a5fa" />
+              <span style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: 500 }}>Tocá para subir {label.toLowerCase()}</span>
+              <span style={{ fontSize: '11px', color: '#64748b' }}>JPG, PNG, WEBP</span>
             </>
           )}
         </button>
@@ -133,7 +133,7 @@ function Field({ label, children, hint }: { label: string; children: React.React
     <div>
       <label style={lbl}>{label}</label>
       {children}
-      {hint && <p style={{ fontSize: '11px', color: '#334155', marginTop: '4px' }}>{hint}</p>}
+      {hint && <p style={{ fontSize: '11px', color: '#64748b', marginTop: '5px', lineHeight: 1.5 }}>{hint}</p>}
     </div>
   )
 }
@@ -145,14 +145,14 @@ function AccSection({ emoji, title, sub, defaultOpen = true, children }: {
   return (
     <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
       <button type="button" onClick={() => setOpen(v => !v)}
-        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' as const }}>
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', background: open ? 'rgba(255,255,255,0.02)' : 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' as const, transition: 'background 0.15s' }}>
         <div>
-          <p style={{ ...secTitle, marginBottom: sub ? '2px' : 0 }}>{emoji} {title}</p>
-          {sub && <p style={{ fontSize: '12px', color: '#475569', margin: 0 }}>{sub}</p>}
+          <p style={{ ...secTitle, marginBottom: sub ? '3px' : 0 }}>{emoji} {title}</p>
+          {sub && <p style={{ fontSize: '12px', color: '#64748b', margin: 0, lineHeight: 1.5 }}>{sub}</p>}
         </div>
-        <span style={{ color: '#475569', fontSize: '12px', flexShrink: 0, marginLeft: '12px' }}>{open ? '▲' : '▼'}</span>
+        <span style={{ color: '#94a3b8', fontSize: '14px', flexShrink: 0, marginLeft: '12px' }}>{open ? '▲' : '▼'}</span>
       </button>
-      {open && <div style={{ padding: '0 24px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>{children}</div>}
+      {open && <div style={{ padding: '0 24px 24px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '16px', paddingTop: '20px' }}>{children}</div>}
     </div>
   )
 }

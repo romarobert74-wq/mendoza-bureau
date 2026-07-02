@@ -13,49 +13,51 @@ import { Check, ChevronDown, ChevronUp, Star, MapPin, Globe, Phone, Mail, Instag
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
-  orange: '#f97316',
-  blue: '#3b82f6',
-  green: '#22c55e',
-  purple: '#a78bfa',
+  orange: '#fb923c',
+  blue: '#60a5fa',
+  green: '#4ade80',
+  purple: '#c4b5fd',
   text: '#f1f5f9',
-  muted: '#94a3b8',
-  faint: '#475569',
-  border: 'rgba(255,255,255,0.08)',
-  divider: 'rgba(255,255,255,0.06)',
-  cardBg: 'rgba(13,18,37,0.85)',
+  sub: '#cbd5e1',       // subtítulos legibles
+  muted: '#94a3b8',     // texto secundario con contraste
+  label: '#64748b',     // labels de campos — mínimo visible
+  border: 'rgba(255,255,255,0.1)',
+  divider: 'rgba(255,255,255,0.07)',
+  cardBg: '#0d1225',
   glass: 'rgba(255,255,255,0.04)',
+  row: 'rgba(255,255,255,0.03)',
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const Divider = () => (
-  <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)', margin: '20px 0' }} />
+  <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)', margin: '18px 0' }} />
 )
 
 const SecLabel = ({ color, children }: { color: string; children: React.ReactNode }) => (
-  <p style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color, margin: '0 0 10px' }}>
+  <p style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.14em', color, margin: '0 0 10px', opacity: 0.95 }}>
     {children}
   </p>
 )
 
 const KV = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: `1px solid ${T.divider}`, gap: '12px' }}>
-    <span style={{ fontSize: '11px', color: T.faint, flexShrink: 0 }}>{label}</span>
-    <span style={{ fontSize: '11px', color: T.text, fontWeight: 500, textAlign: 'right' as const }}>{value}</span>
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 10px', borderRadius: '7px', background: T.row, gap: '12px', marginBottom: '3px' }}>
+    <span style={{ fontSize: '12px', color: T.muted, flexShrink: 0 }}>{label}</span>
+    <span style={{ fontSize: '12px', color: T.text, fontWeight: 600, textAlign: 'right' as const }}>{value}</span>
   </div>
 )
 
 const Chip = ({ label }: { label: string }) => (
-  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.18)', borderRadius: '6px', padding: '3px 8px' }}>
+  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.22)', borderRadius: '6px', padding: '4px 9px' }}>
     <Check size={9} style={{ color: T.green, flexShrink: 0 }} />
-    <span style={{ fontSize: '10px', color: '#86efac' }}>{label}</span>
+    <span style={{ fontSize: '11px', color: '#bbf7d0', fontWeight: 500 }}>{label}</span>
   </div>
 )
 
 const ChipGrid = ({ items }: { items: { label: string; ok: boolean | undefined | null }[] }) => {
   const active = items.filter(i => i.ok)
-  if (!active.length) return <span style={{ fontSize: '11px', color: T.faint }}>—</span>
+  if (!active.length) return <span style={{ fontSize: '12px', color: T.muted, fontStyle: 'italic' }}>No especificado</span>
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
       {active.map(i => <Chip key={i.label} label={i.label} />)}
     </div>
   )
@@ -76,29 +78,31 @@ function SalonCard({ salon, index, total }: { salon: SalonIndividual; index: num
   ].filter(c => c.v)
 
   return (
-    <div style={{ border: `1px solid ${T.border}`, borderRadius: '10px', overflow: 'hidden', marginBottom: '8px', background: T.glass }}>
+    <div style={{ border: `1px solid ${T.border}`, borderRadius: '12px', overflow: 'hidden', marginBottom: '8px', background: 'rgba(255,255,255,0.03)' }}>
       <button type="button" onClick={() => setOpen(v => !v)}
-        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', background: 'transparent', border: 'none', cursor: 'pointer', color: T.text, textAlign: 'left' as const }}>
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 16px', background: 'transparent', border: 'none', cursor: 'pointer', color: T.text, textAlign: 'left' as const }}>
         <div>
-          <p style={{ fontWeight: 700, fontSize: '13px', margin: 0 }}>
+          <p style={{ fontWeight: 700, fontSize: '14px', margin: 0, color: T.text }}>
             {salon.nombre || `Salón ${index + 1}`}
-            {total > 1 && <span style={{ fontSize: '10px', color: T.faint, marginLeft: '6px' }}>({index + 1}/{total})</span>}
+            {total > 1 && <span style={{ fontSize: '11px', color: T.muted, marginLeft: '8px' }}>({index + 1}/{total})</span>}
           </p>
-          <p style={{ fontSize: '10px', color: T.faint, margin: '1px 0 0' }}>{TIPOS_SALON[salon.tipo]}</p>
+          <p style={{ fontSize: '11px', color: T.muted, margin: '2px 0 0' }}>{TIPOS_SALON[salon.tipo]}</p>
         </div>
-        {open ? <ChevronUp size={14} color={T.faint} /> : <ChevronDown size={14} color={T.faint} />}
+        {open ? <ChevronUp size={15} color={T.muted} /> : <ChevronDown size={15} color={T.muted} />}
       </button>
 
       {open && (
-        <div style={{ padding: '4px 14px 14px', borderTop: `1px solid ${T.divider}` }}>
+        <div style={{ padding: '4px 16px 16px', borderTop: `1px solid ${T.divider}` }}>
           {caps.length > 0 && (
             <>
-              <SecLabel color={T.orange}>Capacidades por montaje</SecLabel>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px', marginBottom: '14px' }}>
+              <div style={{ paddingTop: '12px', marginBottom: '10px' }}>
+                <SecLabel color={T.orange}>Capacidades por montaje</SecLabel>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px', marginBottom: '14px' }}>
                 {caps.map(c => (
-                  <div key={c.k} style={{ display: 'flex', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', padding: '5px 8px' }}>
-                    <span style={{ fontSize: '10px', color: T.faint }}>{c.k}</span>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#fb923c' }}>{c.v}</span>
+                  <div key={c.k} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(251,146,60,0.06)', border: '1px solid rgba(251,146,60,0.12)', borderRadius: '8px', padding: '7px 10px' }}>
+                    <span style={{ fontSize: '11px', color: T.muted }}>{c.k}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 800, color: T.orange }}>{c.v}</span>
                   </div>
                 ))}
               </div>
@@ -108,7 +112,7 @@ function SalonCard({ salon, index, total }: { salon: SalonIndividual; index: num
           {salon.metrosCuadrados && <KV label="Superficie cubierta" value={`${salon.metrosCuadrados} m²`} />}
           {salon.tipoCatering && <KV label="Catering" value={TIPOS_CATERING[salon.tipoCatering]} />}
 
-          <div style={{ marginTop: '12px' }}>
+          <div style={{ marginTop: '14px', marginBottom: '10px' }}>
             <SecLabel color={T.purple}>AV y tecnología</SecLabel>
             <ChipGrid items={[
               { label: 'Proyector', ok: salon.tieneProyector },
@@ -122,8 +126,8 @@ function SalonCard({ salon, index, total }: { salon: SalonIndividual; index: num
             ]} />
           </div>
 
-          <div style={{ marginTop: '12px' }}>
-            <SecLabel color={T.green}>Servicios</SecLabel>
+          <div style={{ marginTop: '14px', marginBottom: '10px' }}>
+            <SecLabel color={T.green}>Servicios incluidos</SecLabel>
             <ChipGrid items={[
               { label: 'Estacionamiento', ok: salon.tieneEstacionamiento },
               { label: 'Valet parking', ok: salon.tieneValet },
@@ -136,14 +140,14 @@ function SalonCard({ salon, index, total }: { salon: SalonIndividual; index: num
           </div>
 
           {salon.precioDesde && (
-            <div style={{ marginTop: '12px', background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '8px', padding: '8px 12px' }}>
-              <p style={{ fontSize: '9px', color: T.faint, margin: '0 0 1px' }}>Precio desde</p>
-              <p style={{ fontSize: '13px', fontWeight: 700, color: '#60a5fa', margin: 0 }}>{salon.precioDesde}</p>
+            <div style={{ marginTop: '14px', background: 'rgba(96,165,250,0.08)', border: '1px solid rgba(96,165,250,0.18)', borderRadius: '10px', padding: '10px 14px' }}>
+              <p style={{ fontSize: '10px', color: T.muted, margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Precio desde</p>
+              <p style={{ fontSize: '16px', fontWeight: 800, color: T.blue, margin: 0 }}>{salon.precioDesde}</p>
             </div>
           )}
 
           {salon.observaciones && (
-            <p style={{ fontSize: '11px', color: T.muted, marginTop: '10px', lineHeight: 1.6 }}>{salon.observaciones}</p>
+            <p style={{ fontSize: '12px', color: T.sub, marginTop: '12px', lineHeight: 1.7 }}>{salon.observaciones}</p>
           )}
         </div>
       )}
@@ -178,13 +182,13 @@ function HotelSection({ socio }: { socio: Socio }) {
           {d.totalHabitaciones && (
             <div style={{ background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '12px' }}>
               <p style={{ fontSize: '22px', fontWeight: 800, color: T.text, margin: 0 }}>{d.totalHabitaciones}</p>
-              <p style={{ fontSize: '10px', color: T.faint, margin: '2px 0 0' }}>habitaciones</p>
+              <p style={{ fontSize: '10px', color: T.muted, margin: '2px 0 0' }}>habitaciones</p>
             </div>
           )}
           {d.capacidadMaxima && (
             <div style={{ background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '12px' }}>
               <p style={{ fontSize: '22px', fontWeight: 800, color: T.text, margin: 0 }}>{d.capacidadMaxima}</p>
-              <p style={{ fontSize: '10px', color: T.faint, margin: '2px 0 0' }}>huéspedes máx.</p>
+              <p style={{ fontSize: '10px', color: T.muted, margin: '2px 0 0' }}>huéspedes máx.</p>
             </div>
           )}
         </div>
@@ -232,7 +236,7 @@ function HotelSection({ socio }: { socio: Socio }) {
 
         {d.precioDesde && (
           <div style={{ marginTop: '12px', background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '8px', padding: '8px 12px' }}>
-            <p style={{ fontSize: '9px', color: T.faint, margin: '0 0 1px' }}>Precio desde</p>
+            <p style={{ fontSize: '9px', color: T.muted, margin: '0 0 1px' }}>Precio desde</p>
             <p style={{ fontSize: '13px', fontWeight: 700, color: '#60a5fa', margin: 0 }}>{d.precioDesde}</p>
           </div>
         )}
@@ -257,13 +261,13 @@ function RestauranteSection({ socio }: { socio: Socio }) {
             {d.cubiertos && (
               <div style={{ background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '12px' }}>
                 <p style={{ fontSize: '22px', fontWeight: 800, color: T.text, margin: 0 }}>{d.cubiertos}</p>
-                <p style={{ fontSize: '10px', color: T.faint, margin: '2px 0 0' }}>cubiertos</p>
+                <p style={{ fontSize: '10px', color: T.muted, margin: '2px 0 0' }}>cubiertos</p>
               </div>
             )}
             {d.cubiertosPrivado && (
               <div style={{ background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '12px' }}>
                 <p style={{ fontSize: '22px', fontWeight: 800, color: T.text, margin: 0 }}>{d.cubiertosPrivado}</p>
-                <p style={{ fontSize: '10px', color: T.faint, margin: '2px 0 0' }}>sala privada</p>
+                <p style={{ fontSize: '10px', color: T.muted, margin: '2px 0 0' }}>sala privada</p>
               </div>
             )}
           </div>
@@ -319,13 +323,13 @@ function BodegaSection({ socio }: { socio: Socio }) {
           {d.añoFundacion && (
             <div style={{ background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '10px 12px' }}>
               <p style={{ fontSize: '18px', fontWeight: 800, color: T.text, margin: 0 }}>{d.añoFundacion}</p>
-              <p style={{ fontSize: '10px', color: T.faint, margin: '2px 0 0' }}>fundación</p>
+              <p style={{ fontSize: '10px', color: T.muted, margin: '2px 0 0' }}>fundación</p>
             </div>
           )}
           {d.hectareas && (
             <div style={{ background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '10px 12px' }}>
               <p style={{ fontSize: '18px', fontWeight: 800, color: T.text, margin: 0 }}>{d.hectareas}</p>
-              <p style={{ fontSize: '10px', color: T.faint, margin: '2px 0 0' }}>hectáreas</p>
+              <p style={{ fontSize: '10px', color: T.muted, margin: '2px 0 0' }}>hectáreas</p>
             </div>
           )}
         </div>
@@ -378,13 +382,13 @@ function AlojamientoSection({ socio }: { socio: Socio }) {
             {d.totalUnidades && (
               <div style={{ background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '12px' }}>
                 <p style={{ fontSize: '22px', fontWeight: 800, color: T.text, margin: 0 }}>{d.totalUnidades}</p>
-                <p style={{ fontSize: '10px', color: T.faint, margin: '2px 0 0' }}>unidades</p>
+                <p style={{ fontSize: '10px', color: T.muted, margin: '2px 0 0' }}>unidades</p>
               </div>
             )}
             {d.capacidadTotal && (
               <div style={{ background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '12px' }}>
                 <p style={{ fontSize: '22px', fontWeight: 800, color: T.text, margin: 0 }}>{d.capacidadTotal}</p>
-                <p style={{ fontSize: '10px', color: T.faint, margin: '2px 0 0' }}>huéspedes máx.</p>
+                <p style={{ fontSize: '10px', color: T.muted, margin: '2px 0 0' }}>huéspedes máx.</p>
               </div>
             )}
           </div>
@@ -412,7 +416,7 @@ function AlojamientoSection({ socio }: { socio: Socio }) {
 
         {d.precioDesde && (
           <div style={{ marginTop: '12px', background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '8px', padding: '8px 12px' }}>
-            <p style={{ fontSize: '9px', color: T.faint, margin: '0 0 1px' }}>Precio desde</p>
+            <p style={{ fontSize: '9px', color: T.muted, margin: '0 0 1px' }}>Precio desde</p>
             <p style={{ fontSize: '13px', fontWeight: 700, color: '#60a5fa', margin: 0 }}>{d.precioDesde}</p>
           </div>
         )}
@@ -457,24 +461,24 @@ function AccordionCard({ emoji, title, badge, defaultOpen = true, children }: {
 }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div style={{ border: `1px solid ${T.border}`, borderRadius: '14px', overflow: 'hidden', marginBottom: '10px', background: T.cardBg, backdropFilter: 'blur(12px)' }}>
+    <div style={{ border: `1px solid ${T.border}`, borderRadius: '16px', overflow: 'hidden', marginBottom: '10px', background: T.cardBg }}>
       <button type="button" onClick={() => setOpen(v => !v)}
-        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' as const }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '18px', lineHeight: 1 }}>{emoji}</span>
-          <span style={{ fontWeight: 700, fontSize: '14px', color: T.text }}>{title}</span>
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 20px', background: open ? 'rgba(255,255,255,0.02)' : 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' as const, transition: 'background 0.15s' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
+          <span style={{ fontSize: '20px', lineHeight: 1 }}>{emoji}</span>
+          <span style={{ fontWeight: 700, fontSize: '15px', color: T.text, letterSpacing: '-0.01em' }}>{title}</span>
           {badge && (
-            <span style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: T.orange, background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: '4px', padding: '2px 6px' }}>
+            <span style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: T.orange, background: 'rgba(251,146,60,0.1)', border: '1px solid rgba(251,146,60,0.22)', borderRadius: '5px', padding: '2px 7px' }}>
               {badge}
             </span>
           )}
         </div>
-        <div style={{ color: T.faint, flexShrink: 0 }}>
+        <div style={{ color: T.muted, flexShrink: 0, marginLeft: '12px' }}>
           {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
       </button>
       {open && (
-        <div style={{ padding: '4px 18px 18px', borderTop: `1px solid ${T.divider}` }}>
+        <div style={{ padding: '2px 20px 20px', borderTop: `1px solid ${T.divider}` }}>
           {children}
         </div>
       )}
@@ -591,8 +595,8 @@ function FichaPage() {
         {/* ── Dirección (fuera del acordeón, siempre visible) ── */}
         {socio.direccion && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 4px', marginBottom: '10px' }}>
-            <MapPin size={12} style={{ color: T.faint, flexShrink: 0 }} />
-            <span style={{ fontSize: '12px', color: T.faint }}>{socio.direccion}</span>
+            <MapPin size={12} style={{ color: T.muted, flexShrink: 0 }} />
+            <span style={{ fontSize: '12px', color: T.muted }}>{socio.direccion}</span>
           </div>
         )}
 
