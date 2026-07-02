@@ -1,7 +1,8 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useState, useRef } from 'react'
 import { crearSocio } from '@/lib/firestore'
+import { uploadImage } from '@/lib/storage'
 import type {
   SocioFormData, CategoriaSocio, SalonIndividual,
   HotelData, RestauranteData, BodegaData, AlojamientoData, ServicioData,
@@ -12,7 +13,7 @@ import {
 } from '@/types'
 import { CategoryEditor } from '@/components/CategoryEditor'
 import { SalonesEditor } from '@/components/SalonesEditor'
-import { CheckCircle, AlertCircle, ChevronRight } from 'lucide-react'
+import { CheckCircle, AlertCircle, ChevronRight, Upload, Loader2, X } from 'lucide-react'
 
 const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
 
@@ -52,6 +53,79 @@ const secTitle: React.CSSProperties = {
   letterSpacing: '0.1em',
   color: '#f97316',
   marginBottom: '20px',
+}
+
+function ImageUploadField({ label, hint, value, onChange, storageId, aspect }: {
+  label: string; hint?: string; value: string; onChange: (url: string) => void
+  storageId: string; aspect: 'cover' | 'logo'
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [progress, setProgress] = useState(0)
+
+  const handleFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) return
+    setUploading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const url = await uploadImage(file, `form/${storageId}/${aspect}.${ext}`, setProgress)
+      onChange(url)
+    } catch {
+      alert('Error al subir la imagen. Intentá de nuevo.')
+    } finally {
+      setUploading(false)
+      setProgress(0)
+    }
+  }
+
+  return (
+    <div>
+      <label style={lbl}>{label}</label>
+      {hint && <p style={{ fontSize: '11px', color: '#334155', marginBottom: '8px' }}>{hint}</p>}
+
+      {value ? (
+        <div style={{ position: 'relative', marginBottom: '10px' }}>
+          <img src={value} alt={label}
+            style={{
+              width: '100%',
+              height: aspect === 'cover' ? '120px' : '64px',
+              objectFit: aspect === 'cover' ? 'cover' : 'contain',
+              borderRadius: '10px',
+              border: '1px solid #1e293b',
+              background: '#111827',
+              display: 'block',
+            }} />
+          <button type="button" onClick={() => onChange('')}
+            style={{ position: 'absolute', top: '6px', right: '6px', width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(15,23,42,0.85)', border: '1px solid #334155', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={12} color="#94a3b8" />
+          </button>
+        </div>
+      ) : (
+        <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading}
+          style={{ width: '100%', padding: '20px', borderRadius: '10px', border: '2px dashed #1e293b', background: '#0a0f1e', cursor: uploading ? 'not-allowed' : 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', transition: 'border-color 0.2s' }}
+          onMouseEnter={e => !uploading && ((e.currentTarget as HTMLButtonElement).style.borderColor = '#3b82f6')}
+          onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.borderColor = '#1e293b')}>
+          {uploading ? (
+            <>
+              <Loader2 size={22} color="#3b82f6" style={{ animation: 'spin 0.8s linear infinite' }} />
+              <span style={{ fontSize: '13px', color: '#64748b' }}>Subiendo... {progress}%</span>
+              <div style={{ width: '100%', height: '3px', background: '#1e293b', borderRadius: '99px' }}>
+                <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg,#2563eb,#60a5fa)', borderRadius: '99px', transition: 'width 0.2s' }} />
+              </div>
+            </>
+          ) : (
+            <>
+              <Upload size={22} color="#475569" />
+              <span style={{ fontSize: '13px', color: '#475569' }}>Tocá para subir {label.toLowerCase()}</span>
+              <span style={{ fontSize: '11px', color: '#334155' }}>JPG, PNG, WEBP</span>
+            </>
+          )}
+        </button>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }}
+        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
+    </div>
+  )
 }
 
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
@@ -255,21 +329,25 @@ function FormSocio() {
         <div style={cardStyle}>
           <p style={secTitle}>Imágenes (opcional)</p>
           <p style={{ fontSize: '12px', color: '#334155', marginBottom: '20px', marginTop: '-12px' }}>
-            Si tenés fotos publicadas en internet, pegá el link aquí. También podremos agregarlas después.
+            Subí una foto de portada y tu logo. También los podemos agregar después si no los tenés ahora.
           </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <Field label="Foto de portada">
-              <input value={form.fotoPortada} onChange={set('fotoPortada')} style={inp} placeholder="https://..." />
-              {form.fotoPortada && (
-                <img src={form.fotoPortada} alt="preview" style={{ marginTop: '8px', width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #1e293b' }} />
-              )}
-            </Field>
-            <Field label="Logo">
-              <input value={form.logoUrl} onChange={set('logoUrl')} style={inp} placeholder="https://... (PNG con fondo transparente, ideal)" />
-              {form.logoUrl && (
-                <img src={form.logoUrl} alt="logo" style={{ marginTop: '8px', height: '48px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #1e293b', background: '#111827', padding: '4px' }} />
-              )}
-            </Field>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <ImageUploadField
+              label="Foto de portada"
+              hint="Imagen que representa tu negocio — fachada, interior, paisaje"
+              value={form.fotoPortada}
+              onChange={url => setForm(f => ({ ...f, fotoPortada: url }))}
+              storageId={form.razonSocial.toLowerCase().replace(/\s+/g, '-') || 'nuevo'}
+              aspect="cover"
+            />
+            <ImageUploadField
+              label="Logo"
+              hint="PNG con fondo transparente, ideal"
+              value={form.logoUrl}
+              onChange={url => setForm(f => ({ ...f, logoUrl: url }))}
+              storageId={form.razonSocial.toLowerCase().replace(/\s+/g, '-') || 'nuevo'}
+              aspect="logo"
+            />
           </div>
         </div>
 
