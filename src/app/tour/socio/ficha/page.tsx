@@ -51,7 +51,7 @@ const Chip = ({ label }: { label: string }) => (
   </div>
 )
 
-const ChipGrid = ({ items }: { items: { label: string; ok: boolean }[] }) => {
+const ChipGrid = ({ items }: { items: { label: string; ok: boolean | undefined | null }[] }) => {
   const active = items.filter(i => i.ok)
   if (!active.length) return <span style={{ fontSize: '11px', color: T.faint }}>—</span>
   return (
@@ -153,8 +153,8 @@ function SalonCard({ salon, index, total }: { salon: SalonIndividual; index: num
 
 // ── Category data sections ────────────────────────────────────────────────────
 function HotelSection({ socio }: { socio: Socio }) {
-  const d = socio.hotelData
-  if (!d || (!d.totalHabitaciones && !d.tienePool && !d.estrellas)) return null
+  if (socio.categoria !== 'hotel') return null
+  const d = (socio.hotelData ?? {}) as Partial<NonNullable<Socio['hotelData']>>
   const planes = [
     { label: 'Solo habitación', ok: d.planSoloHabitacion },
     { label: 'Desayuno (BB)', ok: d.planDesayuno },
@@ -244,8 +244,8 @@ function HotelSection({ socio }: { socio: Socio }) {
 }
 
 function RestauranteSection({ socio }: { socio: Socio }) {
-  const d = socio.restauranteData
-  if (!d || !d.tipoCocina) return null
+  if (socio.categoria !== 'restaurante') return null
+  const d = (socio.restauranteData ?? {}) as Partial<NonNullable<Socio['restauranteData']>>
   return (
     <>
       <Divider />
@@ -254,7 +254,7 @@ function RestauranteSection({ socio }: { socio: Socio }) {
 
         <div style={{ background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.18)', borderRadius: '10px', padding: '12px 14px', marginBottom: '14px' }}>
           <p style={{ fontSize: '15px', fontWeight: 700, color: T.text, margin: '0 0 3px' }}>{d.tipoCocina}</p>
-          {d.rangoPrecio && <p style={{ fontSize: '11px', color: T.muted, margin: 0 }}>{RANGO_PRECIO[d.rangoPrecio]}</p>}
+          {d.rangoPrecio && <p style={{ fontSize: '11px', color: T.muted, margin: 0 }}>{RANGO_PRECIO[d.rangoPrecio!]}</p>}
         </div>
 
         {(d.cubiertos || d.cubiertosPrivado) && (
@@ -315,13 +315,13 @@ function RestauranteSection({ socio }: { socio: Socio }) {
 }
 
 function BodegaSection({ socio }: { socio: Socio }) {
-  const d = socio.bodegaData
-  if (!d || !d.subzona) return null
+  if (socio.categoria !== 'bodega') return null
+  const d = (socio.bodegaData ?? {}) as Partial<NonNullable<Socio['bodegaData']>>
   return (
     <>
       <Divider />
       <div>
-        <SecLabel color={T.orange}>Bodega · {SUBZONAS_MENDOZA[d.subzona]}</SecLabel>
+        <SecLabel color={T.orange}>Bodega{d.subzona ? ` · ${SUBZONAS_MENDOZA[d.subzona]}` : ''}</SecLabel>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '10px', marginBottom: '14px' }}>
           {d.añoFundacion && (
@@ -376,13 +376,13 @@ function BodegaSection({ socio }: { socio: Socio }) {
 }
 
 function AlojamientoSection({ socio }: { socio: Socio }) {
-  const d = socio.alojamientoData
-  if (!d || !d.tipoAlojamiento) return null
+  if (socio.categoria !== 'alojamiento') return null
+  const d = (socio.alojamientoData ?? {}) as Partial<NonNullable<Socio['alojamientoData']>>
   return (
     <>
       <Divider />
       <div>
-        <SecLabel color={T.orange}>Alojamiento · {TIPOS_ALOJAMIENTO[d.tipoAlojamiento]}</SecLabel>
+        <SecLabel color={T.orange}>Alojamiento{d.tipoAlojamiento ? ` · ${TIPOS_ALOJAMIENTO[d.tipoAlojamiento]}` : ''}</SecLabel>
 
         {(d.totalUnidades || d.capacidadTotal) && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px', marginBottom: '14px' }}>
@@ -433,8 +433,8 @@ function AlojamientoSection({ socio }: { socio: Socio }) {
 }
 
 function ServicioSection({ socio }: { socio: Socio }) {
-  const d = socio.servicioData
-  if (!d || !d.tiposServicio) return null
+  if (socio.categoria !== 'servicio') return null
+  const d = (socio.servicioData ?? {}) as Partial<NonNullable<Socio['servicioData']>>
   return (
     <>
       <Divider />
