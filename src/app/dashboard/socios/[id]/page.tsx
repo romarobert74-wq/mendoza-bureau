@@ -16,10 +16,13 @@ export default function EditarSocioPage() {
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
 
-  const copyId = () => {
-    navigator.clipboard.writeText(id)
+  const BASE = 'https://mendoza-bureau.vercel.app'
+  const fichaUrl = `${BASE}/tour/socio/ficha?id=${id}`
+
+  const copyUrl = () => {
+    navigator.clipboard.writeText(fichaUrl)
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setTimeout(() => setCopied(false), 2500)
   }
 
   useEffect(() => {
@@ -74,16 +77,18 @@ export default function EditarSocioPage() {
       <p className="section-title mb-1">Editar socio</p>
       <h2 className="text-2xl font-bold mb-6" style={{ color: '#f1f5f9' }}>{socio.razonSocial}</h2>
 
-      {/* ID Firestore · 3DVista */}
+      {/* URL para 3DVista WebFrame */}
       <div className="rounded-xl px-4 py-3 flex items-center justify-between gap-3 mb-6"
         style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.2)' }}>
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wide mb-0.5" style={{ color: '#60a5fa' }}>ID Firestore · 3DVista</p>
-          <p className="font-mono text-xs select-all truncate" style={{ color: '#93c5fd' }}>{id}</p>
+          <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: '#60a5fa' }}>
+            🔗 URL para WebFrame · 3DVista
+          </p>
+          <p className="font-mono text-xs select-all truncate" style={{ color: '#93c5fd' }}>{fichaUrl}</p>
         </div>
-        <button onClick={copyId}
+        <button onClick={copyUrl}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition shrink-0"
-          style={{ background: '#2563eb', border: '1px solid #3b82f6' }}>
+          style={{ background: copied ? '#16a34a' : '#2563eb', border: `1px solid ${copied ? '#22c55e' : '#3b82f6'}` }}>
           {copied ? <Check size={12} /> : <Copy size={12} />}
           {copied ? 'Copiado' : 'Copiar'}
         </button>
