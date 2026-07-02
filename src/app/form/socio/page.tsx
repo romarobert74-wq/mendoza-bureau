@@ -138,6 +138,25 @@ function Field({ label, children, hint }: { label: string; children: React.React
   )
 }
 
+function AccSection({ emoji, title, sub, defaultOpen = true, children }: {
+  emoji: string; title: string; sub?: string; defaultOpen?: boolean; children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div style={{ ...cardStyle, padding: 0, overflow: 'hidden' }}>
+      <button type="button" onClick={() => setOpen(v => !v)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' as const }}>
+        <div>
+          <p style={{ ...secTitle, marginBottom: sub ? '2px' : 0 }}>{emoji} {title}</p>
+          {sub && <p style={{ fontSize: '12px', color: '#475569', margin: 0 }}>{sub}</p>}
+        </div>
+        <span style={{ color: '#475569', fontSize: '12px', flexShrink: 0, marginLeft: '12px' }}>{open ? '▲' : '▼'}</span>
+      </button>
+      {open && <div style={{ padding: '0 24px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>{children}</div>}
+    </div>
+  )
+}
+
 // ── Form ──────────────────────────────────────────────────────────────────────
 function FormSocio() {
   const [sending, setSending] = useState(false)
@@ -271,43 +290,38 @@ function FormSocio() {
       <form onSubmit={handleSubmit} style={{ padding: '32px 20px 60px', maxWidth: '680px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
         {/* Tu negocio */}
-        <div style={cardStyle}>
-          <p style={secTitle}>Tu negocio</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <Field label="Nombre del negocio *">
-              <input value={form.razonSocial} onChange={set('razonSocial')} required style={inp} placeholder="Ej: Bodega Salentein" />
-            </Field>
-            <Field label="Rubro *" hint="Elegí el que mejor describa tu negocio — aparecerán campos específicos a continuación">
-              <select value={form.categoria} onChange={set('categoria')} style={{ ...inp, background: '#111827', cursor: 'pointer' }}>
-                {CATEGORIAS_OPTIONS.map(([val, label]) => (
-                  <option key={val} value={val}>{label}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Descripción general *">
-              <textarea value={form.infoGeneral} onChange={set('infoGeneral')} required rows={4}
-                style={{ ...inp, resize: 'none' }}
-                placeholder="Contanos sobre tu negocio: qué ofrecen, qué lo hace especial, cuál es su historia..." />
-            </Field>
-            <Field label="Dirección">
-              <input value={form.direccion} onChange={set('direccion')} style={inp} placeholder="Ej: Ruta 89 s/n, Tunuyán, Mendoza" />
-            </Field>
-            <Field label="Link de Google Maps" hint="Google Maps → buscá tu negocio → tocá 'Compartir' → copiá el link">
-              <input value={form.ubicacionUrl} onChange={set('ubicacionUrl')} style={inp} placeholder="https://maps.app.goo.gl/..." />
-            </Field>
-          </div>
-        </div>
+        <AccSection emoji="🏢" title="Tu negocio" defaultOpen={true}>
+          <Field label="Nombre del negocio *">
+            <input value={form.razonSocial} onChange={set('razonSocial')} required style={inp} placeholder="Ej: Bodega Salentein" />
+          </Field>
+          <Field label="Rubro *" hint="Elegí el que mejor describa tu negocio — aparecerán campos específicos a continuación">
+            <select value={form.categoria} onChange={set('categoria')} style={{ ...inp, background: '#111827', cursor: 'pointer' }}>
+              {CATEGORIAS_OPTIONS.map(([val, label]) => (
+                <option key={val} value={val}>{label}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Descripción general *">
+            <textarea value={form.infoGeneral} onChange={set('infoGeneral')} required rows={4}
+              style={{ ...inp, resize: 'none' }}
+              placeholder="Contanos sobre tu negocio: qué ofrecen, qué lo hace especial, cuál es su historia..." />
+          </Field>
+          <Field label="Dirección">
+            <input value={form.direccion} onChange={set('direccion')} style={inp} placeholder="Ej: Ruta 89 s/n, Tunuyán, Mendoza" />
+          </Field>
+          <Field label="Link de Google Maps" hint="Google Maps → buscá tu negocio → tocá 'Compartir' → copiá el link">
+            <input value={form.ubicacionUrl} onChange={set('ubicacionUrl')} style={inp} placeholder="https://maps.app.goo.gl/..." />
+          </Field>
+        </AccSection>
 
         {/* Ficha técnica según categoría */}
         {hasCategoryFields && (
-          <div style={{ ...cardStyle, padding: '24px' }}>
-            <p style={secTitle}>
-              Ficha técnica · {categoriaLabel}
-            </p>
-            <p style={{ fontSize: '12px', color: '#475569', marginBottom: '20px', marginTop: '-12px' }}>
-              Completá los datos específicos de tu {categoriaLabel.toLowerCase()}. Esta información aparecerá en el tour virtual y en el directorio del Bureau.
-            </p>
-            {/* Reuse the admin CategoryEditor - same Tailwind classes available */}
+          <AccSection
+            emoji="📋"
+            title={`Ficha técnica · ${categoriaLabel}`}
+            sub={`Completá los datos específicos de tu ${categoriaLabel.toLowerCase()}. Aparecerán en el tour virtual y el directorio del Bureau.`}
+            defaultOpen={true}
+          >
             <CategoryEditor
               categoria={form.categoria}
               hotelData={hotelData}
@@ -317,58 +331,49 @@ function FormSocio() {
               servicioData={servicioData}
               onChange={handleCategoryChange}
             />
-          </div>
+          </AccSection>
         )}
 
         {/* Salones de eventos */}
-        <div style={{ ...cardStyle, padding: '0' }}>
+        <div style={{ ...cardStyle, padding: '0', overflow: 'hidden' }}>
           <SalonesEditor salones={salones} onChange={setSalones} />
         </div>
 
         {/* Imágenes */}
-        <div style={cardStyle}>
-          <p style={secTitle}>Imágenes (opcional)</p>
-          <p style={{ fontSize: '12px', color: '#334155', marginBottom: '20px', marginTop: '-12px' }}>
-            Subí una foto de portada y tu logo. También los podemos agregar después si no los tenés ahora.
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <ImageUploadField
-              label="Foto de portada"
-              hint="Imagen que representa tu negocio — fachada, interior, paisaje"
-              value={form.fotoPortada}
-              onChange={url => setForm(f => ({ ...f, fotoPortada: url }))}
-              storageId={form.razonSocial.toLowerCase().replace(/\s+/g, '-') || 'nuevo'}
-              aspect="cover"
-            />
-            <ImageUploadField
-              label="Logo"
-              hint="PNG con fondo transparente, ideal"
-              value={form.logoUrl}
-              onChange={url => setForm(f => ({ ...f, logoUrl: url }))}
-              storageId={form.razonSocial.toLowerCase().replace(/\s+/g, '-') || 'nuevo'}
-              aspect="logo"
-            />
-          </div>
-        </div>
+        <AccSection emoji="🖼️" title="Imágenes" sub="Subí una foto de portada y tu logo. También los podemos agregar después." defaultOpen={false}>
+          <ImageUploadField
+            label="Foto de portada"
+            hint="Imagen que representa tu negocio — fachada, interior, paisaje"
+            value={form.fotoPortada}
+            onChange={url => setForm(f => ({ ...f, fotoPortada: url }))}
+            storageId={form.razonSocial.toLowerCase().replace(/\s+/g, '-') || 'nuevo'}
+            aspect="cover"
+          />
+          <ImageUploadField
+            label="Logo"
+            hint="PNG con fondo transparente, ideal"
+            value={form.logoUrl}
+            onChange={url => setForm(f => ({ ...f, logoUrl: url }))}
+            storageId={form.razonSocial.toLowerCase().replace(/\s+/g, '-') || 'nuevo'}
+            aspect="logo"
+          />
+        </AccSection>
 
         {/* Contacto */}
-        <div style={cardStyle}>
-          <p style={secTitle}>Contacto</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <Field label="WhatsApp">
-              <input value={form.whatsapp} onChange={set('whatsapp')} style={inp} placeholder="+54 261 4XX XXXX" />
-            </Field>
-            <Field label="Email">
-              <input type="email" value={form.email} onChange={set('email')} style={inp} placeholder="contacto@minegocio.com" />
-            </Field>
-            <Field label="Sitio web">
-              <input value={form.web} onChange={set('web')} style={inp} placeholder="https://www.minegocio.com" />
-            </Field>
-            <Field label="Instagram / Redes sociales">
-              <input value={form.redes} onChange={set('redes')} style={inp} placeholder="@minegocio" />
-            </Field>
-          </div>
-        </div>
+        <AccSection emoji="📞" title="Contacto" defaultOpen={true}>
+          <Field label="WhatsApp">
+            <input value={form.whatsapp} onChange={set('whatsapp')} style={inp} placeholder="+54 261 4XX XXXX" />
+          </Field>
+          <Field label="Email">
+            <input type="email" value={form.email} onChange={set('email')} style={inp} placeholder="contacto@minegocio.com" />
+          </Field>
+          <Field label="Sitio web">
+            <input value={form.web} onChange={set('web')} style={inp} placeholder="https://www.minegocio.com" />
+          </Field>
+          <Field label="Instagram / Redes sociales">
+            <input value={form.redes} onChange={set('redes')} style={inp} placeholder="@minegocio" />
+          </Field>
+        </AccSection>
 
         {error && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '12px 14px', color: '#f87171', fontSize: '13px' }}>

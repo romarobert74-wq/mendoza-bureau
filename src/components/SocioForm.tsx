@@ -124,15 +124,23 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
     })
   }
 
-  const Section = ({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) => (
-    <section className="rounded-xl p-6 space-y-4" style={{ background: '#0d1225', border: '1px solid #1a2235' }}>
-      <div>
-        <p className="section-title">{title}</p>
-        {sub && <p className="text-xs mt-0.5" style={{ color: '#475569' }}>{sub}</p>}
-      </div>
-      {children}
-    </section>
-  )
+  const Section = ({ title, sub, children, defaultOpen = true }: { title: string; sub?: string; children: React.ReactNode; defaultOpen?: boolean }) => {
+    const [open, setOpen] = useState(defaultOpen)
+    return (
+      <section className="rounded-xl overflow-hidden" style={{ background: '#0d1225', border: '1px solid #1a2235' }}>
+        <button type="button" onClick={() => setOpen(v => !v)}
+          className="w-full flex items-center justify-between px-6 py-4 text-left"
+          style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+          <div>
+            <p className="section-title" style={{ margin: 0 }}>{title}</p>
+            {sub && <p className="text-xs mt-0.5" style={{ color: '#475569' }}>{sub}</p>}
+          </div>
+          <span style={{ color: '#475569', flexShrink: 0 }}>{open ? '▲' : '▼'}</span>
+        </button>
+        {open && <div className="px-6 pb-6 space-y-4">{children}</div>}
+      </section>
+    )
+  }
 
   return (
     <form onSubmit={handleSubmit(doSubmit)} className="space-y-5">

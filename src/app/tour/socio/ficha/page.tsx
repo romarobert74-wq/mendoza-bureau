@@ -163,9 +163,7 @@ function HotelSection({ socio }: { socio: Socio }) {
     { label: 'Todo incluido (AI)', ok: d.planTodoIncluido },
   ]
   return (
-    <>
-      <Divider />
-      <div>
+    <div>
         <SecLabel color={T.orange}>Hotel · {d.categoriaHotel ? CATEGORIAS_HOTEL[d.categoriaHotel] : ''}</SecLabel>
 
         {d.estrellas && (
@@ -238,8 +236,7 @@ function HotelSection({ socio }: { socio: Socio }) {
             <p style={{ fontSize: '13px', fontWeight: 700, color: '#60a5fa', margin: 0 }}>{d.precioDesde}</p>
           </div>
         )}
-      </div>
-    </>
+    </div>
   )
 }
 
@@ -247,9 +244,7 @@ function RestauranteSection({ socio }: { socio: Socio }) {
   if (socio.categoria !== 'restaurante') return null
   const d = (socio.restauranteData ?? {}) as Partial<NonNullable<Socio['restauranteData']>>
   return (
-    <>
-      <Divider />
-      <div>
+    <div>
         <SecLabel color={T.orange}>Restaurante</SecLabel>
 
         <div style={{ background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.18)', borderRadius: '10px', padding: '12px 14px', marginBottom: '14px' }}>
@@ -309,8 +304,7 @@ function RestauranteSection({ socio }: { socio: Socio }) {
             {d.reservaRequerida && <KV label="Reserva" value="Requerida" />}
           </div>
         )}
-      </div>
-    </>
+    </div>
   )
 }
 
@@ -318,9 +312,7 @@ function BodegaSection({ socio }: { socio: Socio }) {
   if (socio.categoria !== 'bodega') return null
   const d = (socio.bodegaData ?? {}) as Partial<NonNullable<Socio['bodegaData']>>
   return (
-    <>
-      <Divider />
-      <div>
+    <div>
         <SecLabel color={T.orange}>Bodega{d.subzona ? ` · ${SUBZONAS_MENDOZA[d.subzona]}` : ''}</SecLabel>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '10px', marginBottom: '14px' }}>
@@ -370,8 +362,7 @@ function BodegaSection({ socio }: { socio: Socio }) {
             { label: 'Eventos corporativos', ok: d.tieneEventosCorporativos },
           ]} />
         </div>
-      </div>
-    </>
+    </div>
   )
 }
 
@@ -379,9 +370,7 @@ function AlojamientoSection({ socio }: { socio: Socio }) {
   if (socio.categoria !== 'alojamiento') return null
   const d = (socio.alojamientoData ?? {}) as Partial<NonNullable<Socio['alojamientoData']>>
   return (
-    <>
-      <Divider />
-      <div>
+    <div>
         <SecLabel color={T.orange}>Alojamiento{d.tipoAlojamiento ? ` · ${TIPOS_ALOJAMIENTO[d.tipoAlojamiento]}` : ''}</SecLabel>
 
         {(d.totalUnidades || d.capacidadTotal) && (
@@ -427,8 +416,7 @@ function AlojamientoSection({ socio }: { socio: Socio }) {
             <p style={{ fontSize: '13px', fontWeight: 700, color: '#60a5fa', margin: 0 }}>{d.precioDesde}</p>
           </div>
         )}
-      </div>
-    </>
+    </div>
   )
 }
 
@@ -436,9 +424,7 @@ function ServicioSection({ socio }: { socio: Socio }) {
   if (socio.categoria !== 'servicio') return null
   const d = (socio.servicioData ?? {}) as Partial<NonNullable<Socio['servicioData']>>
   return (
-    <>
-      <Divider />
-      <div>
+    <div>
         <SecLabel color={T.orange}>Proveedor de Servicios</SecLabel>
 
         {d.tiposServicio && (
@@ -461,8 +447,38 @@ function ServicioSection({ socio }: { socio: Socio }) {
         {d.idiomasServicio && <KV label="Idiomas" value={d.idiomasServicio} />}
         {d.tieneFlota && d.descripcionFlota && <KV label="Flota" value={d.descripcionFlota} />}
         {d.modeloPrecio && <KV label="Precio" value={d.modeloPrecio} />}
-      </div>
-    </>
+    </div>
+  )
+}
+
+// ── Accordion wrapper ─────────────────────────────────────────────────────────
+function AccordionCard({ emoji, title, badge, defaultOpen = true, children }: {
+  emoji: string; title: string; badge?: string; defaultOpen?: boolean; children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div style={{ border: `1px solid ${T.border}`, borderRadius: '14px', overflow: 'hidden', marginBottom: '10px', background: T.cardBg, backdropFilter: 'blur(12px)' }}>
+      <button type="button" onClick={() => setOpen(v => !v)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' as const }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '18px', lineHeight: 1 }}>{emoji}</span>
+          <span style={{ fontWeight: 700, fontSize: '14px', color: T.text }}>{title}</span>
+          {badge && (
+            <span style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: T.orange, background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: '4px', padding: '2px 6px' }}>
+              {badge}
+            </span>
+          )}
+        </div>
+        <div style={{ color: T.faint, flexShrink: 0 }}>
+          {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </div>
+      </button>
+      {open && (
+        <div style={{ padding: '4px 18px 18px', borderTop: `1px solid ${T.divider}` }}>
+          {children}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -509,138 +525,157 @@ function FichaPage() {
     return socio.salones
   })()
 
+  const CATEGORY_EMOJI: Record<string, string> = {
+    hotel: '🏨', restaurante: '🍽️', bodega: '🍷', alojamiento: '🏡', servicio: '🎯',
+  }
+
   return (
     <div style={{ minHeight: '100vh', background: 'transparent', color: T.text, fontFamily: 'system-ui, sans-serif' }}>
-
-      {/* ── Layout wrapper responsive ── */}
       <div style={{ maxWidth: '820px', margin: '0 auto', padding: '0 0 32px' }}>
 
-        {/* ── Hero portada ── */}
+        {/* ── Hero ── */}
         {socio.fotoPortada && (
-          <div style={{ position: 'relative', marginBottom: '0' }}>
+          <div style={{ position: 'relative' }}>
             <img src={socio.fotoPortada} alt={socio.razonSocial}
-              style={{ width: '100%', height: '180px', objectFit: 'cover', display: 'block' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 40%, rgba(8,12,24,0.9) 100%)' }} />
+              style={{ width: '100%', height: '200px', objectFit: 'cover', display: 'block' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(8,12,24,0.95) 100%)' }} />
+            {/* Title overlay on hero */}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '16px 18px', display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
+              {socio.logoUrl && (
+                <img src={socio.logoUrl} alt="logo"
+                  style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '10px', border: `1px solid ${T.border}`, background: 'rgba(8,12,24,0.8)', flexShrink: 0, padding: '4px' }} />
+              )}
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: T.orange, background: 'rgba(249,115,22,0.15)', border: '1px solid rgba(249,115,22,0.3)', borderRadius: '4px', padding: '2px 7px' }}>
+                    {CATEGORY_EMOJI[socio.categoria]} {CATEGORIAS[socio.categoria]}
+                  </span>
+                  {socio.activo && (
+                    <span style={{ fontSize: '9px', fontWeight: 700, color: '#4ade80', background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '4px', padding: '2px 7px' }}>
+                      ● Activo
+                    </span>
+                  )}
+                </div>
+                <h1 style={{ fontWeight: 800, fontSize: '20px', color: '#fff', margin: 0, lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>{socio.razonSocial}</h1>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* ── Header ── */}
-        <div style={{
-          background: T.cardBg,
-          backdropFilter: 'blur(12px)',
-          borderBottom: `1px solid ${T.border}`,
-          padding: '16px 18px 14px',
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: '12px',
-          marginTop: socio.fotoPortada ? '-1px' : '0',
-        }}>
-          {socio.logoUrl && (
-            <img src={socio.logoUrl} alt="logo"
-              style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px', border: `1px solid ${T.border}`, background: 'rgba(255,255,255,0.05)', flexShrink: 0, padding: '4px' }} />
-          )}
-          <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '3px' }}>
-              <span style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: T.orange, background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.25)', borderRadius: '4px', padding: '2px 6px' }}>
-                {CATEGORIAS[socio.categoria]}
-              </span>
-              {socio.activo && (
-                <span style={{ fontSize: '9px', fontWeight: 700, color: '#4ade80', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '4px', padding: '2px 6px' }}>
-                  ● Activo
-                </span>
-              )}
-            </div>
-            <h1 style={{ fontWeight: 800, fontSize: '18px', color: T.text, margin: '0 0 3px', lineHeight: 1.2 }}>{socio.razonSocial}</h1>
-            {socio.direccion && (
-              <p style={{ fontSize: '11px', color: T.faint, margin: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <MapPin size={10} style={{ flexShrink: 0 }} /> {socio.direccion}
-              </p>
+        {/* ── Header sin foto ── */}
+        {!socio.fotoPortada && (
+          <div style={{ background: T.cardBg, backdropFilter: 'blur(12px)', border: `1px solid ${T.border}`, borderRadius: '14px', marginBottom: '10px', padding: '16px 18px', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+            {socio.logoUrl && (
+              <img src={socio.logoUrl} alt="logo"
+                style={{ width: '52px', height: '52px', objectFit: 'contain', borderRadius: '10px', border: `1px solid ${T.border}`, background: 'rgba(255,255,255,0.04)', flexShrink: 0, padding: '4px' }} />
             )}
-          </div>
-        </div>
-
-        {/* ── Body card ── */}
-        <div style={{ background: T.cardBg, backdropFilter: 'blur(12px)', padding: '18px' }}>
-
-          {/* Descripción general */}
-          {socio.infoGeneral && (
-            <div>
-              <SecLabel color={T.muted}>Sobre nosotros</SecLabel>
-              <p style={{ fontSize: '12px', color: T.muted, lineHeight: 1.75, margin: 0 }}>{socio.infoGeneral}</p>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                <span style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: T.orange, background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.25)', borderRadius: '4px', padding: '2px 7px' }}>
+                  {CATEGORY_EMOJI[socio.categoria]} {CATEGORIAS[socio.categoria]}
+                </span>
+                {socio.activo && (
+                  <span style={{ fontSize: '9px', fontWeight: 700, color: '#4ade80', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '4px', padding: '2px 7px' }}>
+                    ● Activo
+                  </span>
+                )}
+              </div>
+              <h1 style={{ fontWeight: 800, fontSize: '20px', color: T.text, margin: 0, lineHeight: 1.2 }}>{socio.razonSocial}</h1>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Secciones por categoría */}
-          <HotelSection socio={socio} />
-          <RestauranteSection socio={socio} />
-          <BodegaSection socio={socio} />
-          <AlojamientoSection socio={socio} />
-          <ServicioSection socio={socio} />
+        {/* Gap after hero */}
+        <div style={{ height: '10px' }} />
 
-          {/* Salones */}
-          {salonesAMostrar.length > 0 && (
-            <>
-              <Divider />
-              <SecLabel color={T.orange}>
-                Salones de Eventos {salonesAMostrar.length > 1 ? `(${salonesAMostrar.length})` : ''}
-              </SecLabel>
+        {/* ── Dirección (fuera del acordeón, siempre visible) ── */}
+        {socio.direccion && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 4px', marginBottom: '10px' }}>
+            <MapPin size={12} style={{ color: T.faint, flexShrink: 0 }} />
+            <span style={{ fontSize: '12px', color: T.faint }}>{socio.direccion}</span>
+          </div>
+        )}
+
+        {/* ── Acordeón: Sobre nosotros ── */}
+        {socio.infoGeneral && (
+          <AccordionCard emoji="📋" title="Sobre nosotros" defaultOpen={true}>
+            <p style={{ fontSize: '13px', color: T.muted, lineHeight: 1.8, margin: '12px 0 0' }}>{socio.infoGeneral}</p>
+          </AccordionCard>
+        )}
+
+        {/* ── Acordeón: Ficha técnica (por categoría) ── */}
+        <AccordionCard
+          emoji={CATEGORY_EMOJI[socio.categoria] ?? '📄'}
+          title="Ficha técnica"
+          badge={CATEGORIAS[socio.categoria]}
+          defaultOpen={true}
+        >
+          <div style={{ paddingTop: '12px' }}>
+            <HotelSection socio={socio} />
+            <RestauranteSection socio={socio} />
+            <BodegaSection socio={socio} />
+            <AlojamientoSection socio={socio} />
+            <ServicioSection socio={socio} />
+          </div>
+        </AccordionCard>
+
+        {/* ── Acordeón: Salones ── */}
+        {salonesAMostrar.length > 0 && (
+          <AccordionCard emoji="🏛️" title="Salones de Eventos" badge={`${salonesAMostrar.length} salón${salonesAMostrar.length > 1 ? 'es' : ''}`} defaultOpen={true}>
+            <div style={{ paddingTop: '12px' }}>
               {salonesAMostrar.map((s, i) => (
                 <SalonCard key={s.id} salon={s} index={i} total={salonesAMostrar.length} />
               ))}
-            </>
-          )}
+            </div>
+          </AccordionCard>
+        )}
 
-          {/* Contacto */}
-          {(socio.contacto?.whatsapp || socio.contacto?.email || socio.contacto?.web || socio.ubicacionUrl) && (
-            <>
-              <Divider />
-              <SecLabel color={T.orange}>Contacto</SecLabel>
+        {/* ── Acordeón: Contacto ── */}
+        {(socio.contacto?.whatsapp || socio.contacto?.email || socio.contacto?.web || socio.contacto?.redes || socio.ubicacionUrl) && (
+          <AccordionCard emoji="📞" title="Contacto" defaultOpen={true}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '12px' }}>
+              {socio.contacto?.whatsapp && (
+                <a href={`https://wa.me/${socio.contacto.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola! Quisiera consultar sobre ${socio.razonSocial}.`)}`}
+                  target="_blank" rel="noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '10px', padding: '12px 14px', color: '#4ade80', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
+                  <Phone size={15} style={{ flexShrink: 0 }} />
+                  <span>WhatsApp · {socio.contacto.whatsapp}</span>
+                </a>
+              )}
+              {socio.contacto?.email && (
+                <a href={`mailto:${socio.contacto.email}?subject=Consulta ${socio.razonSocial}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '10px', padding: '12px 14px', color: '#60a5fa', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
+                  <Mail size={15} style={{ flexShrink: 0 }} />
+                  <span>{socio.contacto.email}</span>
+                </a>
+              )}
+              {socio.contacto?.web && (
+                <a href={socio.contacto.web} target="_blank" rel="noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', gap: '10px', background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '12px 14px', color: T.muted, fontSize: '13px', fontWeight: 500, textDecoration: 'none' }}>
+                  <Globe size={15} style={{ flexShrink: 0 }} />
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{socio.contacto.web}</span>
+                </a>
+              )}
+              {socio.contacto?.redes && (
+                <a href={socio.contacto.redes.startsWith('http') ? socio.contacto.redes : `https://instagram.com/${socio.contacto.redes.replace('@', '')}`}
+                  target="_blank" rel="noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', gap: '10px', background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '12px 14px', color: T.muted, fontSize: '13px', fontWeight: 500, textDecoration: 'none' }}>
+                  <Instagram size={15} style={{ flexShrink: 0 }} />
+                  <span>{socio.contacto.redes}</span>
+                </a>
+              )}
+              {socio.ubicacionUrl && (
+                <a href={socio.ubicacionUrl} target="_blank" rel="noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', gap: '10px', background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '12px 14px', color: T.muted, fontSize: '13px', fontWeight: 500, textDecoration: 'none' }}>
+                  <MapPin size={15} style={{ flexShrink: 0 }} />
+                  <span>Ver en Google Maps</span>
+                </a>
+              )}
+            </div>
+          </AccordionCard>
+        )}
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {socio.contacto?.whatsapp && (
-                  <a href={`https://wa.me/${socio.contacto.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola! Quisiera consultar sobre ${socio.razonSocial}.`)}`}
-                    target="_blank" rel="noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '10px', padding: '11px 14px', color: '#4ade80', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
-                    <Phone size={14} style={{ flexShrink: 0 }} />
-                    <span>WhatsApp · {socio.contacto.whatsapp}</span>
-                  </a>
-                )}
-                {socio.contacto?.email && (
-                  <a href={`mailto:${socio.contacto.email}?subject=Consulta ${socio.razonSocial}`}
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '10px', padding: '11px 14px', color: '#60a5fa', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
-                    <Mail size={14} style={{ flexShrink: 0 }} />
-                    <span>{socio.contacto.email}</span>
-                  </a>
-                )}
-                {socio.contacto?.web && (
-                  <a href={socio.contacto.web} target="_blank" rel="noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '11px 14px', color: T.muted, fontSize: '13px', fontWeight: 500, textDecoration: 'none' }}>
-                    <Globe size={14} style={{ flexShrink: 0 }} />
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{socio.contacto.web}</span>
-                  </a>
-                )}
-                {socio.contacto?.redes && (
-                  <a href={socio.contacto.redes.startsWith('http') ? socio.contacto.redes : `https://instagram.com/${socio.contacto.redes.replace('@', '')}`}
-                    target="_blank" rel="noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '11px 14px', color: T.muted, fontSize: '13px', fontWeight: 500, textDecoration: 'none' }}>
-                    <Instagram size={14} style={{ flexShrink: 0 }} />
-                    <span>{socio.contacto.redes}</span>
-                  </a>
-                )}
-                {socio.ubicacionUrl && (
-                  <a href={socio.ubicacionUrl} target="_blank" rel="noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', gap: '10px', background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '11px 14px', color: T.muted, fontSize: '13px', fontWeight: 500, textDecoration: 'none' }}>
-                    <MapPin size={14} style={{ flexShrink: 0 }} />
-                    <span>Ver en Google Maps</span>
-                  </a>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Footer */}
-        <p style={{ textAlign: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.12)', padding: '16px 0 0' }}>
+        <p style={{ textAlign: 'center', fontSize: '10px', color: 'rgba(255,255,255,0.1)', padding: '12px 0 0' }}>
           Mendoza Bureau · Convention & Visitors Bureau
         </p>
       </div>
