@@ -53,6 +53,13 @@ html, body {
   transition: background 0.25s ease, color 0.25s ease;
 }
 
+/* Tour WebFrame pages must be transparent (shown inside 3DVista) */
+html[data-tour="true"],
+html[data-tour="true"] body {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg-elev); }
