@@ -26,41 +26,31 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-900 to-gray-900">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center px-4"
+      style={{ background: 'radial-gradient(circle at 50% 0%, #1a1a1d 0%, #0a0a0b 60%)' }}>
+      <div className="rounded-2xl p-8 w-full max-w-sm"
+        style={{ background: 'var(--bg-elev)', border: '1px solid var(--border-2)', boxShadow: '0 24px 70px rgba(0,0,0,0.6)' }}>
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Mendoza Bureau</h1>
-          <p className="text-gray-500 text-sm mt-1">Panel de Administración</p>
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
+            style={{ background: 'linear-gradient(135deg,#f15a24,#ff7a45)', boxShadow: '0 0 24px rgba(241,90,36,0.45)' }}>
+            <span className="text-white text-lg font-black">MB</span>
+          </div>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>Mendoza Bureau</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Panel de Administración</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="tu@email.com"
-            />
+            <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+              className="input" placeholder="tu@email.com" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="••••••••"
-            />
+            <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>Contraseña</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} required
+              className="input" placeholder="••••••••" />
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <button type="submit" disabled={loading} className="btn-primary w-full justify-center mt-2" style={{ padding: '10px' }}>
             {loading ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>

@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation'
 import { getSocio } from '@/lib/firestore'
 import type { Socio } from '@/types'
 import { MessageCircle, Mail, Globe, Share2 } from 'lucide-react'
+import { trackEvento } from '@/lib/analytics'
 
 function SocioContacto() {
   const params = useSearchParams()
@@ -18,7 +19,8 @@ function SocioContacto() {
     getSocio(id).then(data => { setSocio(data); setLoading(false) })
   }, [id])
 
-  const abrir = (url: string) => {
+  const abrir = (url: string, tipo?: 'contacto' | 'web' | 'redes') => {
+    if (id && tipo) trackEvento(id, tipo)
     try { window.top!.location.href = url }
     catch { window.open(url, '_blank') }
   }
@@ -43,7 +45,7 @@ function SocioContacto() {
       {hasContact ? (
         <div className="flex flex-col gap-4">
           {c?.whatsapp && (
-            <button onClick={() => abrir(waUrl(c.whatsapp))}
+            <button onClick={() => abrir(waUrl(c.whatsapp), 'contacto')}
               className="flex items-center gap-4 px-5 py-4 rounded-2xl text-white text-left transition active:scale-95"
               style={{ background: 'rgba(37,211,102,0.15)', border: '1px solid rgba(37,211,102,0.35)' }}>
               <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(37,211,102,0.25)' }}>
@@ -56,7 +58,7 @@ function SocioContacto() {
             </button>
           )}
           {c?.email && (
-            <button onClick={() => abrir(`mailto:${c.email}`)}
+            <button onClick={() => abrir(`mailto:${c.email}`, 'contacto')}
               className="flex items-center gap-4 px-5 py-4 rounded-2xl text-white text-left transition active:scale-95"
               style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)' }}>
               <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(99,102,241,0.25)' }}>
@@ -69,7 +71,7 @@ function SocioContacto() {
             </button>
           )}
           {c?.web && (
-            <button onClick={() => abrir(c.web.startsWith('http') ? c.web : `https://${c.web}`)}
+            <button onClick={() => abrir(c.web.startsWith('http') ? c.web : `https://${c.web}`, 'web')}
               className="flex items-center gap-4 px-5 py-4 rounded-2xl text-white text-left transition active:scale-95"
               style={{ background: 'rgba(14,165,233,0.15)', border: '1px solid rgba(14,165,233,0.35)' }}>
               <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(14,165,233,0.25)' }}>
@@ -82,7 +84,7 @@ function SocioContacto() {
             </button>
           )}
           {c?.redes && (
-            <button onClick={() => abrir(c.redes.startsWith('http') ? c.redes : `https://instagram.com/${c.redes.replace('@', '')}`)}
+            <button onClick={() => abrir(c.redes.startsWith('http') ? c.redes : `https://instagram.com/${c.redes.replace('@', '')}`, 'redes')}
               className="flex items-center gap-4 px-5 py-4 rounded-2xl text-white text-left transition active:scale-95"
               style={{ background: 'rgba(236,72,153,0.15)', border: '1px solid rgba(236,72,153,0.35)' }}>
               <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ background: 'rgba(236,72,153,0.25)' }}>

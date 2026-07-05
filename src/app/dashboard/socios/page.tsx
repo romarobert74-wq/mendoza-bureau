@@ -2,25 +2,38 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { getSocios, eliminarSocio } from '@/lib/firestore'
+import { getSocios, eliminarSocio, getAnalyticsResumen } from '@/lib/firestore'
+import type { AnalyticsResumen } from '@/lib/firestore'
 import { useAuth } from '@/context/AuthContext'
 import { CATEGORIAS } from '@/types'
 import type { Socio } from '@/types'
 import toast from 'react-hot-toast'
-import { Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2, MessageCircle, Clock, Copy, Check } from 'lucide-react'
+import { Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2, MessageCircle, Clock, Copy, Check, Eye, MousePointerClick, Globe as GlobeIcon, Timer } from 'lucide-react'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+
+function fmtTiempo(ms: number): string {
+  if (!ms) return '0s'
+  const s = Math.round(ms / 1000)
+  if (s < 60) return `${s}s`
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m}m`
+  const h = Math.floor(m / 60)
+  return `${h}h ${m % 60}m`
+}
 
 export default function SociosPage() {
   const { usuario } = useAuth()
   const [socios, setSocios] = useState<Socio[]>([])
+  const [analytics, setAnalytics] = useState<AnalyticsResumen | null>(null)
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('')
 
   const cargar = async () => {
     setLoading(true)
-    const data = await getSocios()
+    const [data, a] = await Promise.all([getSocios(), getAnalyticsResumen()])
     setSocios(data)
+    setAnalytics(a)
     setLoading(false)
   }
 
@@ -110,8 +123,8 @@ export default function SociosPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <p className="section-title mb-1">Gestión</p>
-          <h2 className="text-2xl font-bold text-white">Socios</h2>
-          <p className="text-sm mt-0.5" style={{ color: '#475569' }}>{socios.length} socios registrados</p>
+          <h2 className="text-2xl font-bold text-[var(--text)]">Socios</h2>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{socios.length} socios registrados</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
           {usuario?.rol === 'el_faro' && (
@@ -127,7 +140,7 @@ export default function SociosPage() {
               <button
                 onClick={alimentarBestia}
                 disabled={alimentando}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition disabled:opacity-60"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-[var(--text)] transition disabled:opacity-60"
                 style={{ background: 'rgba(124,58,237,0.2)', border: '1px solid rgba(139,92,246,0.4)', color: '#c4b5fd' }}
               >
                 {alimentando ? <Loader2 size={15} className="animate-spin" /> : <Zap size={15} />}
@@ -144,6 +157,16 @@ export default function SociosPage() {
         </div>
       </div>
 
+      {/* Indicadores de interacción */}
+      {analytics && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <IndicadorCard label="Visitas a tours" value={analytics.total.tour} sub="aperturas de webframe" icon={Eye} accent="#3b82f6" />
+          <IndicadorCard label="Clicks de contacto" value={analytics.total.contacto} sub="WhatsApp / email" icon={MousePointerClick} accent="#25d366" />
+          <IndicadorCard label="Clicks a web" value={analytics.total.web} sub="sitio del socio" icon={GlobeIcon} accent="#38bdf8" />
+          <IndicadorCard label="Tiempo en tour" value={fmtTiempo(analytics.total.tiempoMs)} sub={`${analytics.total.visitas} sesiones`} icon={Timer} accent="#a855f7" isText />
+        </div>
+      )}
+
       {/* Search */}
       <input
         type="text"
@@ -154,44 +177,44 @@ export default function SociosPage() {
       />
 
       {loading ? (
-        <div className="flex items-center gap-2" style={{ color: '#475569' }}>
+        <div className="flex items-center gap-2" style={{ color: 'var(--text-muted)' }}>
           <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           Cargando...
         </div>
       ) : (
-        <div className="rounded-xl overflow-hidden" style={{ background: '#0d1225', border: '1px solid #1a2235' }}>
+        <div className="rounded-xl overflow-hidden" style={{ background: 'var(--bg-elev)', border: '1px solid var(--border)' }}>
           <table className="w-full text-sm">
-            <thead style={{ borderBottom: '1px solid #1a2235' }}>
+            <thead style={{ borderBottom: '1px solid var(--border)' }}>
               <tr>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide" style={{ color: '#475569' }}>Socio</th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide" style={{ color: '#475569' }}>Categoría</th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide hidden md:table-cell" style={{ color: '#475569' }}>Dirección</th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide" style={{ color: '#475569' }}>Estado</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Socio</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Categoría</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide hidden md:table-cell" style={{ color: 'var(--text-muted)' }}>Dirección</th>
+                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Estado</th>
                 {puedeEditar && (
-                  <th className="text-right px-4 py-3 text-xs font-bold uppercase tracking-wide" style={{ color: '#475569' }}>Acciones</th>
+                  <th className="text-right px-4 py-3 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Acciones</th>
                 )}
               </tr>
             </thead>
             <tbody>
               {filtrados.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-12 text-sm" style={{ color: '#334155' }}>
+                  <td colSpan={5} className="text-center py-12 text-sm" style={{ color: 'var(--icon)' }}>
                     No hay socios registrados
                   </td>
                 </tr>
               ) : (
                 filtrados.map((socio, idx) => (
                   <tr key={socio.id}
-                    style={{ borderTop: idx > 0 ? '1px solid #111827' : 'none' }}
+                    style={{ borderTop: idx > 0 ? '1px solid var(--border)' : 'none' }}
                     className="group transition-colors hover:bg-white/[0.02]">
                     <td className="px-4 py-3.5">
-                      <div className="font-semibold text-white">{socio.razonSocial}</div>
-                      <div className="text-xs mt-0.5" style={{ color: '#475569' }}>{socio.etiqueta}</div>
+                      <div className="font-semibold text-[var(--text)]">{socio.razonSocial}</div>
+                      <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{socio.etiqueta}</div>
                     </td>
                     <td className="px-4 py-3.5">
                       <span className="badge badge-orange">{CATEGORIAS[socio.categoria]}</span>
                     </td>
-                    <td className="px-4 py-3.5 hidden md:table-cell text-sm" style={{ color: '#64748b' }}>{socio.direccion}</td>
+                    <td className="px-4 py-3.5 hidden md:table-cell text-sm" style={{ color: 'var(--text-muted)' }}>{socio.direccion}</td>
                     <td className="px-4 py-3.5">
                       {socio.activo ? (
                         <span className="badge badge-green flex items-center gap-1 w-fit">
@@ -202,7 +225,7 @@ export default function SociosPage() {
                           <Clock size={11} /> Pendiente
                         </span>
                       ) : (
-                        <span className="badge flex items-center gap-1 w-fit" style={{ background: 'rgba(100,116,139,0.1)', color: '#64748b', border: '1px solid rgba(100,116,139,0.2)' }}>
+                        <span className="badge flex items-center gap-1 w-fit" style={{ background: 'rgba(100,116,139,0.1)', color: 'var(--text-muted)', border: '1px solid rgba(100,116,139,0.2)' }}>
                           <XCircle size={11} /> Inactivo
                         </span>
                       )}
@@ -212,17 +235,17 @@ export default function SociosPage() {
                         <div className="flex items-center justify-end gap-3">
                           {socio.urlInternaTour && (
                             <a href={socio.urlInternaTour} target="_blank" rel="noopener noreferrer"
-                              className="transition hover:text-blue-400" style={{ color: '#334155' }} title="Ver tour">
+                              className="transition hover:text-blue-400" style={{ color: 'var(--icon)' }} title="Ver tour">
                               <ExternalLink size={15} />
                             </a>
                           )}
                           <Link href={`/dashboard/socios/${socio.id}`}
-                            className="transition hover:text-blue-400" style={{ color: '#334155' }}>
+                            className="transition hover:text-blue-400" style={{ color: 'var(--icon)' }}>
                             <Pencil size={15} />
                           </Link>
                           {puedeEliminar && (
                             <button onClick={() => handleEliminar(socio)}
-                              className="transition hover:text-red-400" style={{ color: '#334155' }}>
+                              className="transition hover:text-red-400" style={{ color: 'var(--icon)' }}>
                               <Trash2 size={15} />
                             </button>
                           )}
@@ -236,6 +259,26 @@ export default function SociosPage() {
           </table>
         </div>
       )}
+    </div>
+  )
+}
+
+function IndicadorCard({ label, value, sub, icon: Icon, accent, isText }: {
+  label: string; value: number | string; sub?: string; icon: React.ElementType; accent: string; isText?: boolean
+}) {
+  return (
+    <div className="kpi-card">
+      <div className="flex items-center justify-between mb-3">
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center"
+          style={{ background: `${accent}1e`, border: `1px solid ${accent}40` }}>
+          <Icon size={17} style={{ color: accent }} />
+        </div>
+      </div>
+      <div className="text-2xl font-bold" style={{ color: 'var(--text)', fontVariantNumeric: isText ? 'normal' : 'tabular-nums' }}>
+        {value}
+      </div>
+      <div className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>{label}</div>
+      {sub && <div className="text-[11px] mt-0.5" style={{ color: 'var(--text-faint)' }}>{sub}</div>}
     </div>
   )
 }

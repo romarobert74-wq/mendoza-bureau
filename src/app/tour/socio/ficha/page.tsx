@@ -10,6 +10,7 @@ import {
   CATEGORIAS_HOTEL, RANGO_PRECIO, SUBZONAS_MENDOZA, TIPOS_ALOJAMIENTO,
 } from '@/types'
 import { Check, ChevronDown, ChevronUp, Star, MapPin, Globe, Phone, Mail, Instagram } from 'lucide-react'
+import { useWebframeTracking } from '@/lib/analytics'
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
@@ -494,6 +495,9 @@ function FichaPage() {
 
   const [socio, setSocio] = useState<Socio | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Analytics: cuenta la visita al tour del socio y mide el tiempo de permanencia
+  useWebframeTracking(id)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-tour', 'true')

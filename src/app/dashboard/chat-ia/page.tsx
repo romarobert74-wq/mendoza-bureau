@@ -93,15 +93,15 @@ function KpiCard({ label, value, sub, icon: Icon, accent }: {
   label: string; value: string; sub?: string; icon: React.ElementType; accent: string
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col gap-2">
+    <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] p-4 flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${accent}18` }}>
           <Icon size={16} style={{ color: accent }} />
         </div>
-        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</span>
+        <span className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wide">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-gray-900" style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</p>
-      {sub && <p className="text-xs text-gray-400">{sub}</p>}
+      <p className="text-2xl font-bold text-[var(--text)]" style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</p>
+      {sub && <p className="text-xs text-[var(--text-muted)]">{sub}</p>}
     </div>
   )
 }
@@ -290,13 +290,13 @@ export default function ChatIAPage() {
       <div className="flex items-center gap-3 mb-6">
         <Bot size={28} className="text-primary-600" />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Chat IA</h1>
-          <p className="text-gray-500 text-sm">Configurá el asistente virtual para el tour</p>
+          <h1 className="text-2xl font-bold text-[var(--text)]">Chat IA</h1>
+          <p className="text-[var(--text-muted)] text-sm">Configurá el asistente virtual para el tour</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-0 border-b border-gray-200 mb-6">
+      <div className="flex gap-0 border-b border-[var(--border)] mb-6">
         {([
           { key: 'config', label: 'Configuración' },
           { key: 'conocimiento', label: 'Conocimiento' },
@@ -309,7 +309,7 @@ export default function ChatIAPage() {
             className={`px-5 py-2.5 text-sm font-semibold transition border-b-2 -mb-px ${
               tab === t.key
                 ? 'border-primary-600 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-2)]'
             }`}
           >
             {t.label}
@@ -320,9 +320,9 @@ export default function ChatIAPage() {
       {/* ── Configuración ── */}
       {tab === 'config' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+          <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] p-6 space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label className="block text-sm font-semibold text-[var(--text-2)] mb-1.5">
                 Tono del asistente
               </label>
               <div className="flex gap-2 flex-wrap">
@@ -333,7 +333,7 @@ export default function ChatIAPage() {
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                       config.tono === t.value
                         ? 'bg-primary-600 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        : 'bg-[var(--bg-input)] text-[var(--text-2)] hover:bg-[var(--bg-hover)]'
                     }`}
                   >
                     {t.label}
@@ -343,13 +343,13 @@ export default function ChatIAPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label className="block text-sm font-semibold text-[var(--text-2)] mb-1.5">
                 Modelo de IA
               </label>
               <select
                 value={config.modelo}
                 onChange={e => setConfig(c => ({ ...c, modelo: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-primary-500 outline-none"
+                className="w-full border border-[var(--border-2)] rounded-lg px-3 py-2 text-sm text-[var(--text-2)] focus:ring-2 focus:ring-primary-500 outline-none"
               >
                 {MODELOS.map(m => (
                   <option key={m.value} value={m.value}>
@@ -360,27 +360,27 @@ export default function ChatIAPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label className="block text-sm font-semibold text-[var(--text-2)] mb-1.5">
                 Prompt del sistema
               </label>
               <textarea
                 rows={5}
                 value={config.promptSistema}
                 onChange={e => setConfig(c => ({ ...c, promptSistema: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-primary-500 outline-none resize-none"
+                className="w-full border border-[var(--border-2)] rounded-lg px-3 py-2 text-sm text-[var(--text-2)] focus:ring-2 focus:ring-primary-500 outline-none resize-none"
                 placeholder="Instrucciones base para el asistente..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              <label className="block text-sm font-semibold text-[var(--text-2)] mb-1.5">
                 Mensaje de bienvenida
               </label>
               <input
                 type="text"
                 value={config.bienvenida}
                 onChange={e => setConfig(c => ({ ...c, bienvenida: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-primary-500 outline-none"
+                className="w-full border border-[var(--border-2)] rounded-lg px-3 py-2 text-sm text-[var(--text-2)] focus:ring-2 focus:ring-primary-500 outline-none"
                 placeholder="Mensaje inicial que verá el usuario..."
               />
             </div>
@@ -400,34 +400,34 @@ export default function ChatIAPage() {
       {/* ── Conocimiento ── */}
       {tab === 'conocimiento' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="font-semibold text-gray-800 mb-1">Documentos de conocimiento</h3>
-            <p className="text-gray-500 text-sm mb-4">
+          <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] p-6">
+            <h3 className="font-semibold text-[var(--text)] mb-1">Documentos de conocimiento</h3>
+            <p className="text-[var(--text-muted)] text-sm mb-4">
               Subí PDFs con información turística, menús, tarifas, etc. (máx. 1 MB por archivo)
             </p>
 
-            <label className="flex items-center gap-2 cursor-pointer bg-gray-50 hover:bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition w-fit">
+            <label className="flex items-center gap-2 cursor-pointer bg-[var(--bg-input)] hover:bg-[var(--bg-input)] border-2 border-dashed border-[var(--border-2)] rounded-lg px-4 py-3 text-sm font-medium text-[var(--text-2)] transition w-fit">
               <Upload size={16} />
               Subir PDF
               <input type="file" accept="application/pdf" onChange={subirPDF} className="hidden" />
             </label>
 
             {config.documentos.length === 0 ? (
-              <p className="text-gray-400 text-sm mt-4">No hay documentos cargados aún.</p>
+              <p className="text-[var(--text-muted)] text-sm mt-4">No hay documentos cargados aún.</p>
             ) : (
               <div className="mt-4 space-y-2">
                 {config.documentos.map((d, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3"
+                    className="flex items-center justify-between bg-[var(--bg-input)] border border-[var(--border)] rounded-lg px-4 py-3"
                   >
                     <div className="flex items-center gap-2.5">
                       <FileText size={16} className="text-primary-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700 truncate max-w-xs">{d.nombre}</span>
+                      <span className="text-sm text-[var(--text-2)] truncate max-w-xs">{d.nombre}</span>
                     </div>
                     <button
                       onClick={() => eliminarDoc(idx)}
-                      className="text-gray-400 hover:text-red-500 transition"
+                      className="text-[var(--text-muted)] hover:text-red-500 transition"
                     >
                       <X size={16} />
                     </button>
@@ -459,17 +459,17 @@ export default function ChatIAPage() {
 
       {/* ── Probar ── */}
       {tab === 'probar' && (
-        <div className="bg-white rounded-xl border border-gray-200 flex flex-col" style={{ height: '60vh' }}>
-          <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] flex flex-col" style={{ height: '60vh' }}>
+          <div className="px-5 py-3 border-b border-[var(--border)] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-400 rounded-full" />
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-[var(--text-2)]">
                 {MODELOS.find(m => m.value === config.modelo)?.label ?? config.modelo}
               </span>
             </div>
             <button
               onClick={() => setMensajes([])}
-              className="text-gray-400 hover:text-gray-600 transition flex items-center gap-1 text-xs"
+              className="text-[var(--text-muted)] hover:text-[var(--text-2)] transition flex items-center gap-1 text-xs"
             >
               <Trash2 size={13} />
               Limpiar
@@ -479,7 +479,7 @@ export default function ChatIAPage() {
           <div ref={mensajesRef} className="flex-1 overflow-y-auto p-4 space-y-3">
             {mensajes.length === 0 && (
               <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-gray-700 max-w-sm">
+                <div className="bg-[var(--bg-input)] rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-[var(--text-2)] max-w-sm">
                   {config.bienvenida}
                 </div>
               </div>
@@ -490,7 +490,7 @@ export default function ChatIAPage() {
                   className={`rounded-2xl px-4 py-2.5 text-sm max-w-sm whitespace-pre-wrap ${
                     m.rol === 'user'
                       ? 'bg-primary-600 text-white rounded-tr-sm'
-                      : 'bg-gray-100 text-gray-800 rounded-tl-sm'
+                      : 'bg-[var(--bg-input)] text-[var(--text)] rounded-tl-sm'
                   }`}
                 >
                   {m.contenido}
@@ -499,7 +499,7 @@ export default function ChatIAPage() {
             ))}
             {enviando && (
               <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-2.5">
+                <div className="bg-[var(--bg-input)] rounded-2xl rounded-tl-sm px-4 py-2.5">
                   <div className="flex gap-1">
                     <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -510,7 +510,7 @@ export default function ChatIAPage() {
             )}
           </div>
 
-          <div className="p-4 border-t border-gray-100">
+          <div className="p-4 border-t border-[var(--border)]">
             <div className="flex gap-2">
               <input
                 type="text"
@@ -518,7 +518,7 @@ export default function ChatIAPage() {
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && enviarMensaje()}
                 placeholder="Escribí tu mensaje..."
-                className="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none"
+                className="flex-1 border border-[var(--border-2)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary-500 outline-none"
               />
               <button
                 onClick={enviarMensaje}
@@ -537,26 +537,26 @@ export default function ChatIAPage() {
         <div className="space-y-6">
 
           {/* Crédito cargado */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="font-semibold text-gray-800 mb-1">Crédito cargado</h3>
-            <p className="text-gray-500 text-sm mb-4">
+          <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] p-6">
+            <h3 className="font-semibold text-[var(--text)] mb-1">Crédito cargado</h3>
+            <p className="text-[var(--text-muted)] text-sm mb-4">
               Ingresá el monto en USD que tenés disponible para el bot este período.
               Incluido en el mantenimiento mensual: hasta $24 USD en tokens (≈5.000 consultas).
             </p>
             <div className="flex gap-3 items-end">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
+                <label className="block text-xs font-semibold text-[var(--text-2)] mb-1.5 uppercase tracking-wide">
                   Monto (USD)
                 </label>
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-500 font-semibold">$</span>
+                  <span className="text-[var(--text-muted)] font-semibold">$</span>
                   <input
                     type="number"
                     min={0}
                     step={0.01}
                     value={creditoInput}
                     onChange={e => setCreditoInput(e.target.value)}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 w-32 focus:ring-2 focus:ring-primary-500 outline-none font-mono"
+                    className="border border-[var(--border-2)] rounded-lg px-3 py-2 text-sm text-[var(--text)] w-32 focus:ring-2 focus:ring-primary-500 outline-none font-mono"
                     placeholder="200"
                   />
                 </div>
@@ -570,7 +570,7 @@ export default function ChatIAPage() {
                 Guardar
               </button>
             </div>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-[var(--text-muted)] mt-2">
               ≈ {Math.round(credito / COSTO_POR_CONSULTA).toLocaleString('es-AR')} consultas estimadas con Haiku 4.5
             </p>
           </div>
@@ -634,17 +634,17 @@ export default function ChatIAPage() {
           </div>
 
           {/* Tabla de escenarios */}
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h3 className="font-semibold text-gray-800">Referencia de escenarios</h3>
-              <p className="text-xs text-gray-400 mt-0.5">
+          <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] overflow-hidden">
+            <div className="px-6 py-4 border-b border-[var(--border)]">
+              <h3 className="font-semibold text-[var(--text)]">Referencia de escenarios</h3>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
                 Basado en Haiku 4.5 · $0.0048 USD/consulta estimado · Crédito cargado: ${credito} USD
               </p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                  <tr className="bg-[var(--bg-input)] text-xs text-[var(--text-muted)] uppercase tracking-wide">
                     <th className="px-6 py-3 text-left font-semibold">Uso mensual</th>
                     <th className="px-6 py-3 text-right font-semibold">Consultas</th>
                     <th className="px-6 py-3 text-right font-semibold">Costo USD</th>
@@ -670,12 +670,12 @@ export default function ChatIAPage() {
                         ? { text: '✓ Incluido', bg: '#dcfce7', color: '#166534' }
                         : { text: `+$${(costo - credito).toFixed(2)}`, bg: '#fee2e2', color: '#991b1b' }
                     return (
-                      <tr key={row.label} className="hover:bg-gray-50 transition">
-                        <td className="px-6 py-3 text-gray-700 font-medium">{row.label}</td>
-                        <td className="px-6 py-3 text-right text-gray-600 font-mono">
+                      <tr key={row.label} className="hover:bg-[var(--bg-input)] transition">
+                        <td className="px-6 py-3 text-[var(--text-2)] font-medium">{row.label}</td>
+                        <td className="px-6 py-3 text-right text-[var(--text-2)] font-mono">
                           {row.consultas.toLocaleString('es-AR')}
                         </td>
-                        <td className="px-6 py-3 text-right text-gray-800 font-mono font-semibold">
+                        <td className="px-6 py-3 text-right text-[var(--text)] font-mono font-semibold">
                           ${costo.toFixed(2)}
                         </td>
                         <td className="px-6 py-3 text-center">
@@ -695,32 +695,32 @@ export default function ChatIAPage() {
           </div>
 
           {/* Tokens detail */}
-          <div className="bg-gray-50 rounded-xl border border-gray-200 p-5">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Detalle técnico acumulado</p>
+          <div className="bg-[var(--bg-input)] rounded-xl border border-[var(--border)] p-5">
+            <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-3">Detalle técnico acumulado</p>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-gray-400 text-xs">Tokens de entrada</p>
-                <p className="font-mono font-semibold text-gray-800">
+                <p className="text-[var(--text-muted)] text-xs">Tokens de entrada</p>
+                <p className="font-mono font-semibold text-[var(--text)]">
                   {(uso.totalInputTokens ?? 0).toLocaleString('es-AR')}
                 </p>
               </div>
               <div>
-                <p className="text-gray-400 text-xs">Tokens de salida</p>
-                <p className="font-mono font-semibold text-gray-800">
+                <p className="text-[var(--text-muted)] text-xs">Tokens de salida</p>
+                <p className="font-mono font-semibold text-[var(--text)]">
                   {(uso.totalOutputTokens ?? 0).toLocaleString('es-AR')}
                 </p>
               </div>
               <div>
-                <p className="text-gray-400 text-xs">Última consulta</p>
-                <p className="font-semibold text-gray-800 text-xs">
+                <p className="text-[var(--text-muted)] text-xs">Última consulta</p>
+                <p className="font-semibold text-[var(--text)] text-xs">
                   {uso.ultimaConsulta
                     ? new Date(uso.ultimaConsulta).toLocaleString('es-AR')
                     : '—'}
                 </p>
               </div>
               <div>
-                <p className="text-gray-400 text-xs">Costo promedio / consulta</p>
-                <p className="font-mono font-semibold text-gray-800">
+                <p className="text-[var(--text-muted)] text-xs">Costo promedio / consulta</p>
+                <p className="font-mono font-semibold text-[var(--text)]">
                   ${consultasUsadas > 0
                     ? (costoReal / consultasUsadas).toFixed(5)
                     : '0.00000'} USD

@@ -76,7 +76,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2 mb-3">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg,#2563eb,#1d4ed8)', border: '1px solid #3b82f6' }}>
+              style={{ background: 'linear-gradient(135deg,#f15a24,#ff7a45)', border: '1px solid #ff7a45', boxShadow: '0 0 14px rgba(241,90,36,0.4)' }}>
               <span className="text-white text-xs font-black">MB</span>
             </div>
             <span className="font-bold text-sm tracking-wide" style={{ color: 'var(--text)' }}>Mendoza Bureau</span>
@@ -93,18 +93,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition group"
-                style={active ? {
-                  background: 'rgba(37,99,235,0.18)',
-                  color: 'var(--blue-3)',
-                  border: '1px solid rgba(59,130,246,0.25)',
-                } : {
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition group ${active ? 'nav-active' : ''}`}
+                style={active ? {} : {
                   color: 'var(--text-muted)',
                   border: '1px solid transparent',
                 }}
               >
-                <item.icon size={16} style={active ? { color: 'var(--blue-3)' } : {}} />
-                <span style={active ? { color: 'var(--blue-3)', fontWeight: 500 } : {}}>{item.label}</span>
+                <item.icon size={16} style={active ? { color: 'var(--orange-2)' } : {}} />
+                <span style={active ? { color: 'var(--orange-2)', fontWeight: 600 } : {}}>{item.label}</span>
               </Link>
             )
           })}

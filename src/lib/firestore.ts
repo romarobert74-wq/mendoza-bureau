@@ -172,12 +172,87 @@ export async function eliminarObservatorioItem(id: string) {
   await deleteDoc(doc(db, 'web_bureau_observatorio', id))
 }
 
+// ── Configuración del sistema (departamentos, categorías, etc.) ──
+
+export interface ItemLista { id: string; nombre: string }
+
+export interface ConfigSistema {
+  departamentos: ItemLista[]
+  categoriasExtra: ItemLista[]
+}
+
+export async function getConfigSistema(): Promise<ConfigSistema | null> {
+  const snap = await getDoc(doc(db, 'configuracion', 'sistema'))
+  if (!snap.exists()) return null
+  const d = snap.data()
+  return {
+    departamentos: (d.departamentos ?? []) as ItemLista[],
+    categoriasExtra: (d.categoriasExtra ?? []) as ItemLista[],
+  }
+}
+
+export async function setConfigSistema(data: ConfigSistema) {
+  await setDoc(doc(db, 'configuracion', 'sistema'), {
+    ...data,
+    actualizadoEn: serverTimestamp(),
+  }, { merge: true })
+}
+
 // ── Analytics ────────────────────────────────────────────
 
-export async function registrarClick(socioId: string, tipo: string) {
+export type TipoEvento =
+  | 'tour'            // entró / abrió el tour del socio (visita al webframe)
+  | 'contacto'       // click en botón de contacto (whatsapp/email)
+  | 'web'            // click en link de la web del socio
+  | 'redes'          // click en redes sociales
+  | 'webframe_tiempo' // tiempo de permanencia (trae campo ms)
+
+export async function registrarClick(socioId: string, tipo: string, ms?: number) {
   await addDoc(collection(db, 'analytics'), {
     socioId,
     tipo,
+    ...(typeof ms === 'number' ? { ms } : {}),
     timestamp: serverTimestamp(),
   })
+}
+
+export interface AnalyticsSocio {
+  tour: number
+  contacto: number
+  web: number
+  redes: number
+  visitas: number      // sesiones con tiempo registrado
+  tiempoMs: number     // tiempo total en webframe
+}
+
+export interface AnalyticsResumen {
+  porSocio: Record<string, AnalyticsSocio>
+  total: AnalyticsSocio
+}
+
+const EVENTO_VACIO = (): AnalyticsSocio => ({
+  tour: 0, contacto: 0, web: 0, redes: 0, visitas: 0, tiempoMs: 0,
+})
+
+export async function getAnalyticsResumen(): Promise<AnalyticsResumen> {
+  const snap = await getDocs(collection(db, 'analytics'))
+  const porSocio: Record<string, AnalyticsSocio> = {}
+  const total = EVENTO_VACIO()
+
+  snap.docs.forEach(d => {
+    const { socioId, tipo, ms } = d.data() as { socioId?: string; tipo?: string; ms?: number }
+    if (!socioId) return
+    if (!porSocio[socioId]) porSocio[socioId] = EVENTO_VACIO()
+    const s = porSocio[socioId]
+    if (tipo === 'webframe_tiempo') {
+      const dur = typeof ms === 'number' ? ms : 0
+      s.tiempoMs += dur; s.visitas += 1
+      total.tiempoMs += dur; total.visitas += 1
+    } else if (tipo === 'tour' || tipo === 'contacto' || tipo === 'web' || tipo === 'redes') {
+      s[tipo] += 1
+      total[tipo] += 1
+    }
+  })
+
+  return { porSocio, total }
 }
