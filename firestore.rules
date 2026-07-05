@@ -50,6 +50,13 @@ service cloud.firestore {
       allow delete: if isElFaro();
     }
 
+    // Contador de uso del bot: lo escribe la API del bot (server-side, sin auth).
+    // Solo guarda métricas de consumo (tokens/costo/consultas), no datos sensibles.
+    match /configuracion/chatbot_uso {
+      allow read: if isAuthenticated();
+      allow write: if true;
+    }
+
     // Configuración del tour madre: solo el_faro escribe
     match /configuracion/{docId} {
       allow read: if isAuthenticated();

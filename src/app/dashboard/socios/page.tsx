@@ -239,8 +239,12 @@ export default function SociosPage() {
                               <ExternalLink size={15} />
                             </a>
                           )}
+                          <Link href={`/dashboard/socios/${socio.id}/ver`}
+                            className="transition hover:text-[var(--orange-2)]" style={{ color: 'var(--icon)' }} title="Ver ficha e indicadores">
+                            <Eye size={15} />
+                          </Link>
                           <Link href={`/dashboard/socios/${socio.id}`}
-                            className="transition hover:text-blue-400" style={{ color: 'var(--icon)' }}>
+                            className="transition hover:text-blue-400" style={{ color: 'var(--icon)' }} title="Editar">
                             <Pencil size={15} />
                           </Link>
                           {puedeEliminar && (

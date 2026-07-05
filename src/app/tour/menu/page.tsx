@@ -50,6 +50,7 @@ export default function TourMenuPage() {
   const [busqueda, setBusqueda] = useState('')
   const [tab, setTab] = useState<'lugares' | 'informacion'>('lugares')
   const [opacity, setOpacity] = useState(0.85)
+  const [logoUrl, setLogoUrl] = useState('')
 
   useEffect(() => {
     document.body.style.background = 'transparent'
@@ -88,6 +89,16 @@ export default function TourMenuPage() {
       }
     }
     cargar()
+  }, [])
+
+  // Logo del Bureau (configurado en el panel). Falla en silencio si no hay acceso.
+  useEffect(() => {
+    import('firebase/firestore').then(async ({ doc, getDoc }) => {
+      try {
+        const snap = await getDoc(doc(db, 'configuracion', 'sistema'))
+        if (snap.exists() && snap.data().logoUrl) setLogoUrl(snap.data().logoUrl as string)
+      } catch {}
+    })
   }, [])
 
   const categoriasConSocios = CATEGORIAS.filter(
@@ -136,13 +147,19 @@ export default function TourMenuPage() {
         {/* Header */}
         <div className="px-5 pt-4 pb-0">
           <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-white font-bold text-base leading-tight">
-                Descubrí la zona
-              </h2>
-              <p className="text-white/60 text-[11px] mt-0.5">
-                Bodegas, restaurantes, hoteles y servicios
-              </p>
+            <div className="flex items-center gap-2.5">
+              {logoUrl && (
+                <img src={logoUrl} alt="Logo" className="w-9 h-9 rounded-lg object-contain shrink-0"
+                  style={{ background: 'rgba(255,255,255,0.08)' }} />
+              )}
+              <div>
+                <h2 className="text-white font-bold text-base leading-tight">
+                  Descubrí la zona
+                </h2>
+                <p className="text-white/60 text-[11px] mt-0.5">
+                  Bodegas, restaurantes, hoteles y servicios
+                </p>
+              </div>
             </div>
             {/* Opacity control */}
             <div className="flex items-center gap-1.5 pt-1">

@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
+import { getConfigSistema } from '@/lib/firestore'
 import { useAuth } from '@/context/AuthContext'
 import {
   LayoutDashboard, Users, MapPin, Settings,
@@ -32,10 +33,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, usuario, loading } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const [logoUrl, setLogoUrl] = useState('')
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
   }, [user, loading, router])
+
+  useEffect(() => {
+    getConfigSistema().then(cfg => { if (cfg?.logoUrl) setLogoUrl(cfg.logoUrl) }).catch(() => {})
+  }, [])
 
   if (loading) {
     return (
@@ -65,7 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const visibleNav = navItems.filter(item => item.roles.includes(usuario.rol))
 
   return (
-    <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
+    <div className="dashboard-scope min-h-screen flex" style={{ background: 'var(--bg)' }}>
 
       {/* Sidebar */}
       <aside className="w-60 flex flex-col shrink-0" style={{
@@ -75,10 +81,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Logo */}
         <div className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg,#f15a24,#ff7a45)', border: '1px solid #ff7a45', boxShadow: '0 0 14px rgba(241,90,36,0.4)' }}>
-              <span className="text-white text-xs font-black">MB</span>
-            </div>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-contain shrink-0"
+                style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)' }} />
+            ) : (
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg,#f15a24,#ff7a45)', border: '1px solid #ff7a45', boxShadow: '0 0 14px rgba(241,90,36,0.4)' }}>
+                <span className="text-white text-xs font-black">MB</span>
+              </div>
+            )}
             <span className="font-bold text-sm tracking-wide" style={{ color: 'var(--text)' }}>Mendoza Bureau</span>
           </div>
           <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{usuario.email}</p>

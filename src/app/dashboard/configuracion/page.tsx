@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getConfigSistema, setConfigSistema } from '@/lib/firestore'
 import type { ItemLista } from '@/lib/firestore'
+import { uploadImage } from '@/lib/storage'
 import { CATEGORIAS, SUBZONAS_MENDOZA } from '@/types'
 import { useTheme } from '@/context/ThemeContext'
 import toast from 'react-hot-toast'
-import { Save, Plus, X, Moon, Sun, Lock, MapPin, Tags, Loader2 } from 'lucide-react'
+import { Save, Plus, X, Moon, Sun, Lock, MapPin, Tags, Loader2, ImageIcon, Upload } from 'lucide-react'
 
 const uid = () => (crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2))
 
@@ -17,22 +18,45 @@ export default function ConfiguracionPage() {
   const { theme, setTheme } = useTheme()
   const [departamentos, setDepartamentos] = useState<ItemLista[]>([])
   const [categoriasExtra, setCategoriasExtra] = useState<ItemLista[]>([])
+  const [logoUrl, setLogoUrl] = useState('')
+  const [subiendoLogo, setSubiendoLogo] = useState(false)
   const [nuevoDepto, setNuevoDepto] = useState('')
   const [nuevaCat, setNuevaCat] = useState('')
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false)
+  const logoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     getConfigSistema().then(cfg => {
       if (cfg) {
         setDepartamentos(cfg.departamentos.length ? cfg.departamentos : DEPARTAMENTOS_SEED.map(n => ({ id: uid(), nombre: n })))
         setCategoriasExtra(cfg.categoriasExtra)
+        setLogoUrl(cfg.logoUrl ?? '')
       } else {
         setDepartamentos(DEPARTAMENTOS_SEED.map(n => ({ id: uid(), nombre: n })))
       }
       setLoading(false)
     })
   }, [])
+
+  const subirLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) { toast.error('Debe ser una imagen'); return }
+    setSubiendoLogo(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const url = await uploadImage(file, `sistema/logo-bureau.${ext}`)
+      setLogoUrl(url)
+      await setConfigSistema({ departamentos, categoriasExtra, logoUrl: url })
+      toast.success('Logo actualizado')
+    } catch {
+      toast.error('Error al subir el logo')
+    } finally {
+      setSubiendoLogo(false)
+      e.target.value = ''
+    }
+  }
 
   const addDepto = () => {
     const n = nuevoDepto.trim()
@@ -58,7 +82,7 @@ export default function ConfiguracionPage() {
   const guardar = async () => {
     setGuardando(true)
     try {
-      await setConfigSistema({ departamentos, categoriasExtra })
+      await setConfigSistema({ departamentos, categoriasExtra, logoUrl })
       toast.success('Configuración guardada')
     } catch {
       toast.error('Error al guardar')
@@ -109,6 +133,36 @@ export default function ConfiguracionPage() {
                 {t === 'dark' ? 'Modo oscuro' : 'Modo claro'}
               </button>
             ))}
+          </div>
+        </section>
+
+        {/* Logo del Bureau */}
+        <section className="kpi-card">
+          <h3 className="font-semibold mb-1 flex items-center gap-2" style={{ color: 'var(--text)' }}>
+            <ImageIcon size={16} style={{ color: 'var(--orange-2)' }} /> Logo de Bureau
+          </h3>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+            Se muestra arriba en el menú izquierdo y queda guardado para usarlo en el tour madre.
+          </p>
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
+              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)' }}>
+              {logoUrl
+                ? <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                : <span className="text-white text-lg font-black">MB</span>}
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => logoInputRef.current?.click()} disabled={subiendoLogo} className="btn-outline">
+                {subiendoLogo ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
+                {subiendoLogo ? 'Subiendo...' : 'Subir logo'}
+              </button>
+              {logoUrl && (
+                <button onClick={() => setLogoUrl('')} className="text-sm transition hover:text-red-400" style={{ color: 'var(--text-muted)' }}>
+                  Quitar
+                </button>
+              )}
+            </div>
+            <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={subirLogo} />
           </div>
         </section>
 

@@ -179,6 +179,7 @@ export interface ItemLista { id: string; nombre: string }
 export interface ConfigSistema {
   departamentos: ItemLista[]
   categoriasExtra: ItemLista[]
+  logoUrl?: string
 }
 
 export async function getConfigSistema(): Promise<ConfigSistema | null> {
@@ -188,6 +189,7 @@ export async function getConfigSistema(): Promise<ConfigSistema | null> {
   return {
     departamentos: (d.departamentos ?? []) as ItemLista[],
     categoriasExtra: (d.categoriasExtra ?? []) as ItemLista[],
+    logoUrl: (d.logoUrl ?? '') as string,
   }
 }
 

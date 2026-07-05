@@ -70,16 +70,16 @@ function resizeImage(file: File, maxPx = 400): Promise<string> {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-gray-700 mb-1.5">{label}</label>
+      <label className="block text-sm font-semibold text-[var(--text-2)] mb-1.5">{label}</label>
       {children}
     </div>
   )
 }
 
-const INPUT = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-orange-400 outline-none"
+const INPUT = "w-full border border-[var(--border-2)] rounded-lg px-3 py-2 text-sm text-[var(--text-2)] focus:ring-2 focus:ring-orange-400 outline-none"
 const TEXTAREA = `${INPUT} resize-none`
 const BTN_PRIMARY = "flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-60"
-const BTN_GHOST = "flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm transition"
+const BTN_GHOST = "flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-2)] text-sm transition"
 
 // ── Tab: Inicio ───────────────────────────────────────────────────────────────
 
@@ -140,8 +140,8 @@ function TabInicio() {
   return (
     <div className="space-y-8 max-w-2xl">
       {/* Hero */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-        <h3 className="font-bold text-gray-900">Hero</h3>
+      <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] p-6 space-y-4">
+        <h3 className="font-bold text-[var(--text)]">Hero</h3>
         <Field label="Título principal">
           <input className={INPUT} value={cfg.heroTitulo} onChange={e => setCfg(c => ({ ...c, heroTitulo: e.target.value }))} />
         </Field>
@@ -154,8 +154,8 @@ function TabInicio() {
       </div>
 
       {/* Sobre nosotros */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-        <h3 className="font-bold text-gray-900">Sobre Mendoza Bureau</h3>
+      <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] p-6 space-y-4">
+        <h3 className="font-bold text-[var(--text)]">Sobre Mendoza Bureau</h3>
         <Field label="Texto principal">
           <textarea rows={4} className={TEXTAREA} value={cfg.sobreNosotros} onChange={e => setCfg(c => ({ ...c, sobreNosotros: e.target.value }))} />
         </Field>
@@ -165,8 +165,8 @@ function TabInicio() {
       </div>
 
       {/* Contacto */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-        <h3 className="font-bold text-gray-900">Contacto</h3>
+      <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] p-6 space-y-4">
+        <h3 className="font-bold text-[var(--text)]">Contacto</h3>
         <Field label="WhatsApp (sólo números, ej: 5492614001000)">
           <input className={INPUT} value={cfg.contactoWhatsapp} onChange={e => setCfg(c => ({ ...c, contactoWhatsapp: e.target.value }))} />
         </Field>
@@ -176,9 +176,9 @@ function TabInicio() {
       </div>
 
       {/* Comisión Directiva */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-bold text-gray-900">Comisión Directiva ({cfg.directiva.length}/{MAX_FOTOS})</h3>
+          <h3 className="font-bold text-[var(--text)]">Comisión Directiva ({cfg.directiva.length}/{MAX_FOTOS})</h3>
           {cfg.directiva.length < MAX_FOTOS && (
             <button onClick={() => setShowAddForm(v => !v)} className={BTN_PRIMARY}>
               <UserPlus size={15} /> Agregar
@@ -201,7 +201,7 @@ function TabInicio() {
               <div className="flex gap-2 items-center">
                 <input className={INPUT} placeholder="URL de imagen o subir..." value={newMember.foto.startsWith('data:') ? '' : newMember.foto}
                   onChange={e => setNewMember(m => ({ ...m, foto: e.target.value }))} />
-                <label className="cursor-pointer px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium whitespace-nowrap transition">
+                <label className="cursor-pointer px-3 py-2 bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] rounded-lg text-xs font-medium whitespace-nowrap transition">
                   Subir
                   <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFotoUpload(f, v => setNewMember(m => ({ ...m, foto: v }))) }} />
                 </label>
@@ -216,19 +216,19 @@ function TabInicio() {
         )}
 
         {cfg.directiva.length === 0 ? (
-          <p className="text-gray-400 text-sm">No hay integrantes cargados.</p>
+          <p className="text-[var(--text-muted)] text-sm">No hay integrantes cargados.</p>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {cfg.directiva.map((m, i) => (
-              <div key={i} className="relative border border-gray-100 rounded-xl p-3 text-center group">
-                <div className="w-16 h-16 mx-auto rounded-full overflow-hidden bg-gray-100 mb-2 border-2 border-gray-200">
-                  {m.foto ? <img src={m.foto} alt={m.nombre} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xl font-bold text-gray-400">{m.nombre[0]}</div>}
+              <div key={i} className="relative border border-[var(--border)] rounded-xl p-3 text-center group">
+                <div className="w-16 h-16 mx-auto rounded-full overflow-hidden bg-[var(--bg-input)] mb-2 border-2 border-[var(--border)]">
+                  {m.foto ? <img src={m.foto} alt={m.nombre} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-xl font-bold text-[var(--text-muted)]">{m.nombre[0]}</div>}
                 </div>
-                <p className="font-semibold text-sm text-gray-900 truncate">{m.nombre}</p>
-                <p className="text-xs text-gray-500 truncate">{m.cargo}</p>
+                <p className="font-semibold text-sm text-[var(--text)] truncate">{m.nombre}</p>
+                <p className="text-xs text-[var(--text-muted)] truncate">{m.cargo}</p>
                 <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                  <button onClick={() => setEditMember({ ...m, idx: i })} className="w-6 h-6 bg-white rounded-full shadow flex items-center justify-center text-gray-400 hover:text-blue-500"><Pencil size={11} /></button>
-                  <button onClick={() => removeMember(i)} className="w-6 h-6 bg-white rounded-full shadow flex items-center justify-center text-gray-400 hover:text-red-500"><Trash2 size={11} /></button>
+                  <button onClick={() => setEditMember({ ...m, idx: i })} className="w-6 h-6 bg-[var(--bg-elev)] rounded-full shadow flex items-center justify-center text-[var(--text-muted)] hover:text-blue-500"><Pencil size={11} /></button>
+                  <button onClick={() => removeMember(i)} className="w-6 h-6 bg-[var(--bg-elev)] rounded-full shadow flex items-center justify-center text-[var(--text-muted)] hover:text-red-500"><Trash2 size={11} /></button>
                 </div>
               </div>
             ))}
@@ -238,10 +238,10 @@ function TabInicio() {
         {/* Edit member modal */}
         {editMember && (
           <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+            <div className="bg-[var(--bg-elev)] rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
               <div className="flex items-center justify-between">
-                <h4 className="font-bold text-gray-900">Editar integrante</h4>
-                <button onClick={() => setEditMember(null)}><X size={18} className="text-gray-400" /></button>
+                <h4 className="font-bold text-[var(--text)]">Editar integrante</h4>
+                <button onClick={() => setEditMember(null)}><X size={18} className="text-[var(--text-muted)]" /></button>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Nombre">
@@ -255,7 +255,7 @@ function TabInicio() {
                 <div className="flex gap-2 items-center">
                   <input className={INPUT} placeholder="URL..." value={editMember.foto.startsWith('data:') ? '' : editMember.foto}
                     onChange={e => setEditMember(m => m ? { ...m, foto: e.target.value } : m)} />
-                  <label className="cursor-pointer px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium whitespace-nowrap transition">
+                  <label className="cursor-pointer px-3 py-2 bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] rounded-lg text-xs font-medium whitespace-nowrap transition">
                     Subir
                     <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFotoUpload(f, v => setEditMember(m => m ? { ...m, foto: v } : m)) }} />
                   </label>
@@ -272,8 +272,8 @@ function TabInicio() {
       </div>
 
       {/* Logo & Colores */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
-        <h3 className="font-bold text-gray-900">Logo & Paleta de colores</h3>
+      <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] p-6 space-y-5">
+        <h3 className="font-bold text-[var(--text)]">Logo & Paleta de colores</h3>
 
         <Field label="Logo de Mendoza Bureau (URL o subir)">
           <div className="flex gap-3 items-start">
@@ -281,7 +281,7 @@ function TabInicio() {
               <input className={INPUT} placeholder="https://... (PNG transparente recomendado)"
                 value={cfg.logoUrl.startsWith('data:') ? '' : cfg.logoUrl}
                 onChange={e => setCfg(c => ({ ...c, logoUrl: e.target.value }))} />
-              <label className="inline-flex items-center gap-2 cursor-pointer px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium transition">
+              <label className="inline-flex items-center gap-2 cursor-pointer px-3 py-1.5 bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] rounded-lg text-xs font-medium transition">
                 Subir imagen
                 <input type="file" accept="image/*" className="hidden" onChange={async e => {
                   const f = e.target.files?.[0]; if (!f) return
@@ -302,17 +302,17 @@ function TabInicio() {
           <Field label="Color primario (navbar, botones, acentos)">
             <div className="flex items-center gap-3">
               <input type="color" value={cfg.colorPrimario} onChange={e => setCfg(c => ({ ...c, colorPrimario: e.target.value }))}
-                className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5" />
+                className="w-12 h-10 rounded-lg border border-[var(--border)] cursor-pointer p-0.5" />
               <input className={INPUT} value={cfg.colorPrimario} onChange={e => setCfg(c => ({ ...c, colorPrimario: e.target.value }))} />
-              <div className="w-10 h-10 rounded-lg border border-gray-200 flex-shrink-0" style={{ background: cfg.colorPrimario }} />
+              <div className="w-10 h-10 rounded-lg border border-[var(--border)] flex-shrink-0" style={{ background: cfg.colorPrimario }} />
             </div>
           </Field>
           <Field label="Color secundario (gradiente)">
             <div className="flex items-center gap-3">
               <input type="color" value={cfg.colorSecundario} onChange={e => setCfg(c => ({ ...c, colorSecundario: e.target.value }))}
-                className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5" />
+                className="w-12 h-10 rounded-lg border border-[var(--border)] cursor-pointer p-0.5" />
               <input className={INPUT} value={cfg.colorSecundario} onChange={e => setCfg(c => ({ ...c, colorSecundario: e.target.value }))} />
-              <div className="w-10 h-10 rounded-lg border border-gray-200 flex-shrink-0" style={{ background: cfg.colorSecundario }} />
+              <div className="w-10 h-10 rounded-lg border border-[var(--border)] flex-shrink-0" style={{ background: cfg.colorSecundario }} />
             </div>
           </Field>
         </div>
@@ -345,7 +345,7 @@ function TabPrensaItem({ item, onSave, onDelete }: { item: AnyRecord; onSave: (d
   const [saving, setSaving] = useState(false)
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+    <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] p-5 space-y-3">
       <div className="grid sm:grid-cols-2 gap-3">
         <Field label="Título">
           <input className={INPUT} value={d.titulo ?? ''} onChange={e => setD(x => ({ ...x, titulo: e.target.value }))} />
@@ -364,7 +364,7 @@ function TabPrensaItem({ item, onSave, onDelete }: { item: AnyRecord; onSave: (d
         <textarea rows={5} className={TEXTAREA} value={d.contenido ?? ''} onChange={e => setD(x => ({ ...x, contenido: e.target.value }))} />
       </Field>
       <div className="flex items-center gap-3">
-        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-[var(--text-2)] cursor-pointer">
           <input type="checkbox" checked={d.activo ?? true} onChange={e => setD(x => ({ ...x, activo: e.target.checked }))} className="accent-orange-500" />
           Publicar
         </label>
@@ -414,7 +414,7 @@ function TabPrensa() {
   return (
     <div className="space-y-4 max-w-2xl">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">{items.length} nota{items.length !== 1 ? 's' : ''} cargada{items.length !== 1 ? 's' : ''}</p>
+        <p className="text-sm text-[var(--text-muted)]">{items.length} nota{items.length !== 1 ? 's' : ''} cargada{items.length !== 1 ? 's' : ''}</p>
         <button onClick={() => setItems(x => [{ titulo: '', resumen: '', contenido: '', imagen: '', fecha: new Date().toISOString().split('T')[0], activo: true }, ...x])} className={BTN_PRIMARY}>
           <Plus size={15} /> Nueva nota
         </button>
@@ -424,7 +424,7 @@ function TabPrensa() {
           onSave={handleSave}
           onDelete={async () => { item.id ? await handleDelete(item.id) : setItems(x => x.filter((_, j) => j !== i)) }} />
       ))}
-      {items.length === 0 && <p className="text-gray-400 text-sm text-center py-8">No hay notas. Creá la primera.</p>}
+      {items.length === 0 && <p className="text-[var(--text-muted)] text-sm text-center py-8">No hay notas. Creá la primera.</p>}
     </div>
   )
 }
@@ -459,7 +459,7 @@ function TabObsItem({ item, onSave, onDelete }: { item: AnyRecord; onSave: (data
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+    <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] p-5 space-y-4">
       <div className="grid sm:grid-cols-2 gap-3">
         <Field label="Título">
           <input className={INPUT} value={d.titulo ?? ''} onChange={e => setD((x: AnyRecord) => ({ ...x, titulo: e.target.value }))} />
@@ -478,7 +478,7 @@ function TabObsItem({ item, onSave, onDelete }: { item: AnyRecord; onSave: (data
                 <button onClick={() => setD((x: AnyRecord) => ({ ...x, pdfBase64: '' }))} className="text-red-400 hover:text-red-600 text-xs">Quitar</button>
               </>
             ) : (
-              <label className="cursor-pointer px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-medium transition">
+              <label className="cursor-pointer px-3 py-2 bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] rounded-lg text-xs font-medium transition">
                 Subir PDF
                 <input type="file" accept="application/pdf" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) subirPDF(f) }} />
               </label>
@@ -492,10 +492,10 @@ function TabObsItem({ item, onSave, onDelete }: { item: AnyRecord; onSave: (data
       </Field>
 
       {/* Gráfico */}
-      <div className="border border-gray-100 rounded-xl p-4 space-y-3 bg-gray-50">
+      <div className="border border-[var(--border)] rounded-xl p-4 space-y-3 bg-[var(--bg-input)]">
         <div className="flex items-center gap-2">
           <BarChart2 size={15} className="text-orange-500" />
-          <p className="text-sm font-semibold text-gray-700">Gráfico</p>
+          <p className="text-sm font-semibold text-[var(--text-2)]">Gráfico</p>
         </div>
         <div className="grid sm:grid-cols-3 gap-3">
           <Field label="Tipo">
@@ -522,7 +522,7 @@ function TabObsItem({ item, onSave, onDelete }: { item: AnyRecord; onSave: (data
       </div>
 
       <div className="flex items-center gap-3">
-        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+        <label className="flex items-center gap-2 text-sm text-[var(--text-2)] cursor-pointer">
           <input type="checkbox" checked={d.activo ?? true} onChange={e => setD((x: AnyRecord) => ({ ...x, activo: e.target.checked }))} className="accent-orange-500" />
           Publicar
         </label>
@@ -572,7 +572,7 @@ function TabObservatorio() {
   return (
     <div className="space-y-4 max-w-2xl">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">{items.length} reporte{items.length !== 1 ? 's' : ''}</p>
+        <p className="text-sm text-[var(--text-muted)]">{items.length} reporte{items.length !== 1 ? 's' : ''}</p>
         <button onClick={() => setItems(x => [{ titulo: '', descripcion: '', fuente: '', fecha: '', pdfBase64: '', grafico: { tipo: 'barra', titulo: '', datos: [], unidad: '' }, activo: true }, ...x])} className={BTN_PRIMARY}>
           <Plus size={15} /> Nuevo reporte
         </button>
@@ -582,7 +582,7 @@ function TabObservatorio() {
           onSave={handleSave}
           onDelete={async () => { item.id ? await handleDelete(item.id) : setItems(x => x.filter((_, j) => j !== i)) }} />
       ))}
-      {items.length === 0 && <p className="text-gray-400 text-sm text-center py-8">No hay reportes. Creá el primero.</p>}
+      {items.length === 0 && <p className="text-[var(--text-muted)] text-sm text-center py-8">No hay reportes. Creá el primero.</p>}
     </div>
   )
 }
@@ -603,8 +603,8 @@ export default function WebBureauAdminPage() {
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-lg" style={{ background: '#E85D04' }}>M</div>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Web Institucional</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-[var(--text)]">Web Institucional</h1>
+          <p className="text-[var(--text-muted)] text-sm">
             Editá el contenido de{' '}
             <a href="/web_bureau" target="_blank" className="text-orange-500 hover:underline font-medium">
               mendoza-bureau.vercel.app/web_bureau ↗
@@ -613,14 +613,14 @@ export default function WebBureauAdminPage() {
         </div>
       </div>
 
-      <div className="flex gap-0 border-b border-gray-200 mb-6">
+      <div className="flex gap-0 border-b border-[var(--border)] mb-6">
         {([
           { key: 'inicio', label: '🏠 Inicio & Directiva' },
           { key: 'prensa', label: '📰 Prensa' },
           { key: 'observatorio', label: '📊 Observatorio' },
         ] as const).map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            className={`px-5 py-2.5 text-sm font-semibold transition border-b-2 -mb-px ${tab === t.key ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+            className={`px-5 py-2.5 text-sm font-semibold transition border-b-2 -mb-px ${tab === t.key ? 'border-orange-500 text-orange-600' : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-2)]'}`}>
             {t.label}
           </button>
         ))}

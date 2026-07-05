@@ -63,6 +63,18 @@ html[data-tour="true"] body {
   background-color: transparent !important;
 }
 
+/* ── Form controls nativos dentro del panel admin (no afecta tours ni form público) ── */
+.dashboard-scope input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.dashboard-scope select,
+.dashboard-scope textarea {
+  background-color: var(--bg-input);
+  color: var(--text);
+  border-color: var(--border-2);
+}
+.dashboard-scope input::placeholder,
+.dashboard-scope textarea::placeholder { color: var(--text-faint); }
+.dashboard-scope select option { background-color: var(--bg-input); color: var(--text); }
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: var(--bg-elev); }
