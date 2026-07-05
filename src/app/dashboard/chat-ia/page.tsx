@@ -1,12 +1,15 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { Bot, Save, Send, Trash2, Upload, X, FileText, Loader2 } from 'lucide-react'
+import {
+  Bot, Save, Send, Trash2, Upload, X, FileText, Loader2,
+  DollarSign, Zap, TrendingUp, AlertTriangle, RefreshCw,
+} from 'lucide-react'
 
 interface ChatbotConfig {
   tono: string
@@ -17,6 +20,16 @@ interface ChatbotConfig {
   updatedAt?: string
 }
 
+interface UsoData {
+  totalConsultas: number
+  totalInputTokens: number
+  totalOutputTokens: number
+  totalCostoUSD: number
+  ultimaConsulta?: string
+  meses?: Record<string, { consultas: number; costoUSD: number }>
+  creditoCargadoUSD?: number
+}
+
 const CONFIG_DEFAULT: ChatbotConfig = {
   tono: 'amigable',
   modelo: 'claude-haiku-4-5',
@@ -24,6 +37,14 @@ const CONFIG_DEFAULT: ChatbotConfig = {
     'Sos un asistente turístico experto en Mendoza, Argentina. Respondés preguntas sobre bodegas, restaurantes, hoteles y servicios de la región. Sés amable, conciso y útil. Siempre respondés en español.',
   bienvenida: '¡Hola! Soy tu guía virtual de Mendoza. ¿En qué te puedo ayudar hoy?',
   documentos: [],
+}
+
+const USO_DEFAULT: UsoData = {
+  totalConsultas: 0,
+  totalInputTokens: 0,
+  totalOutputTokens: 0,
+  totalCostoUSD: 0,
+  creditoCargadoUSD: 200,
 }
 
 const TONOS = [
@@ -39,17 +60,61 @@ const MODELOS = [
   { value: 'claude-opus-4-8', label: 'Opus 4.8 — Máxima calidad' },
 ]
 
+// Costo promedio por consulta en USD (haiku-4-5: ~2800 input + ~400 output tokens)
+const COSTO_POR_CONSULTA = 0.0048
+
 interface Mensaje {
   rol: 'user' | 'assistant'
   contenido: string
 }
 
+// ── Gauge / progress bar ────────────────────────────────────────────────────
+function CreditBar({ usado, total }: { usado: number; total: number }) {
+  const pct = total > 0 ? Math.min((usado / total) * 100, 100) : 0
+  const color = pct < 60 ? '#22c55e' : pct < 85 ? '#f59e0b' : '#ef4444'
+  return (
+    <div>
+      <div className="flex justify-between text-xs mb-1.5" style={{ color: '#6b7280' }}>
+        <span>Crédito utilizado</span>
+        <span style={{ fontWeight: 700, color }}>{pct.toFixed(1)}%</span>
+      </div>
+      <div className="w-full rounded-full h-3" style={{ background: '#f3f4f6' }}>
+        <div
+          className="h-3 rounded-full transition-all duration-700"
+          style={{ width: `${pct}%`, background: color }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ── KPI tile ────────────────────────────────────────────────────────────────
+function KpiCard({ label, value, sub, icon: Icon, accent }: {
+  label: string; value: string; sub?: string; icon: React.ElementType; accent: string
+}) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${accent}18` }}>
+          <Icon size={16} style={{ color: accent }} />
+        </div>
+        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</span>
+      </div>
+      <p className="text-2xl font-bold text-gray-900" style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</p>
+      {sub && <p className="text-xs text-gray-400">{sub}</p>}
+    </div>
+  )
+}
+
 export default function ChatIAPage() {
   const { usuario, loading } = useAuth()
   const router = useRouter()
-  const [tab, setTab] = useState<'config' | 'conocimiento' | 'probar'>('config')
+  const [tab, setTab] = useState<'config' | 'conocimiento' | 'probar' | 'costos'>('config')
   const [config, setConfig] = useState<ChatbotConfig>(CONFIG_DEFAULT)
+  const [uso, setUso] = useState<UsoData>(USO_DEFAULT)
+  const [creditoInput, setCreditoInput] = useState('')
   const [guardando, setGuardando] = useState(false)
+  const [guardandoCredito, setGuardandoCredito] = useState(false)
   const [cargando, setCargando] = useState(true)
   const [mensajes, setMensajes] = useState<Mensaje[]>([])
   const [input, setInput] = useState('')
@@ -78,6 +143,20 @@ export default function ChatIAPage() {
     cargar()
   }, [])
 
+  // Real-time listener for usage stats
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'configuracion', 'chatbot_uso'), snap => {
+      if (snap.exists()) {
+        const data = snap.data() as UsoData
+        setUso({ ...USO_DEFAULT, ...data })
+        if (data.creditoCargadoUSD !== undefined) {
+          setCreditoInput(data.creditoCargadoUSD.toString())
+        }
+      }
+    })
+    return unsub
+  }, [])
+
   useEffect(() => {
     if (mensajesRef.current) {
       mensajesRef.current.scrollTop = mensajesRef.current.scrollHeight
@@ -97,6 +176,27 @@ export default function ChatIAPage() {
       toast.error('Error al guardar')
     } finally {
       setGuardando(false)
+    }
+  }
+
+  const guardarCredito = async () => {
+    const valor = parseFloat(creditoInput)
+    if (isNaN(valor) || valor <= 0) {
+      toast.error('Ingresá un valor válido en USD')
+      return
+    }
+    setGuardandoCredito(true)
+    try {
+      await setDoc(
+        doc(db, 'configuracion', 'chatbot_uso'),
+        { creditoCargadoUSD: valor },
+        { merge: true },
+      )
+      toast.success('Crédito actualizado')
+    } catch {
+      toast.error('Error al guardar')
+    } finally {
+      setGuardandoCredito(false)
     }
   }
 
@@ -170,6 +270,21 @@ export default function ChatIAPage() {
     )
   }
 
+  // ── Costos tab derived values ─────────────────────────────────────────────
+  const credito = uso.creditoCargadoUSD ?? 200
+  const costoReal = uso.totalCostoUSD ?? 0
+  const consultasUsadas = uso.totalConsultas ?? 0
+  const consultasEstimadas = credito / COSTO_POR_CONSULTA
+  const consultasRestantes = Math.max(0, Math.round(consultasEstimadas - consultasUsadas))
+  const porcentaje = consultasEstimadas > 0 ? (consultasUsadas / consultasEstimadas) * 100 : 0
+  const estadoCredito =
+    porcentaje < 60 ? { label: 'Con margen', color: '#22c55e', bg: '#f0fdf4', border: '#bbf7d0' } :
+    porcentaje < 85 ? { label: 'Precaución', color: '#f59e0b', bg: '#fffbeb', border: '#fde68a' } :
+                      { label: 'Crítico', color: '#ef4444', bg: '#fef2f2', border: '#fecaca' }
+
+  const mesActual = new Date().toISOString().slice(0, 7)
+  const usoMesActual = uso.meses?.[mesActual]
+
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
@@ -186,6 +301,7 @@ export default function ChatIAPage() {
           { key: 'config', label: 'Configuración' },
           { key: 'conocimiento', label: 'Conocimiento' },
           { key: 'probar', label: 'Probar' },
+          { key: 'costos', label: 'Costos' },
         ] as const).map(t => (
           <button
             key={t.key}
@@ -201,6 +317,7 @@ export default function ChatIAPage() {
         ))}
       </div>
 
+      {/* ── Configuración ── */}
       {tab === 'config' && (
         <div className="space-y-6">
           <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
@@ -280,6 +397,7 @@ export default function ChatIAPage() {
         </div>
       )}
 
+      {/* ── Conocimiento ── */}
       {tab === 'conocimiento' && (
         <div className="space-y-6">
           <div className="bg-white rounded-xl border border-gray-200 p-6">
@@ -298,14 +416,14 @@ export default function ChatIAPage() {
               <p className="text-gray-400 text-sm mt-4">No hay documentos cargados aún.</p>
             ) : (
               <div className="mt-4 space-y-2">
-                {config.documentos.map((doc, idx) => (
+                {config.documentos.map((d, idx) => (
                   <div
                     key={idx}
                     className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3"
                   >
                     <div className="flex items-center gap-2.5">
                       <FileText size={16} className="text-primary-500 flex-shrink-0" />
-                      <span className="text-sm text-gray-700 truncate max-w-xs">{doc.nombre}</span>
+                      <span className="text-sm text-gray-700 truncate max-w-xs">{d.nombre}</span>
                     </div>
                     <button
                       onClick={() => eliminarDoc(idx)}
@@ -339,6 +457,7 @@ export default function ChatIAPage() {
         </div>
       )}
 
+      {/* ── Probar ── */}
       {tab === 'probar' && (
         <div className="bg-white rounded-xl border border-gray-200 flex flex-col" style={{ height: '60vh' }}>
           <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
@@ -408,6 +527,205 @@ export default function ChatIAPage() {
               >
                 <Send size={16} />
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Costos ── */}
+      {tab === 'costos' && (
+        <div className="space-y-6">
+
+          {/* Crédito cargado */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="font-semibold text-gray-800 mb-1">Crédito cargado</h3>
+            <p className="text-gray-500 text-sm mb-4">
+              Ingresá el monto en USD que tenés disponible para el bot este período.
+              Incluido en el mantenimiento mensual: hasta $24 USD en tokens (≈5.000 consultas).
+            </p>
+            <div className="flex gap-3 items-end">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
+                  Monto (USD)
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500 font-semibold">$</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={creditoInput}
+                    onChange={e => setCreditoInput(e.target.value)}
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 w-32 focus:ring-2 focus:ring-primary-500 outline-none font-mono"
+                    placeholder="200"
+                  />
+                </div>
+              </div>
+              <button
+                onClick={guardarCredito}
+                disabled={guardandoCredito}
+                className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition disabled:opacity-60"
+              >
+                {guardandoCredito ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                Guardar
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              ≈ {Math.round(credito / COSTO_POR_CONSULTA).toLocaleString('es-AR')} consultas estimadas con Haiku 4.5
+            </p>
+          </div>
+
+          {/* Estado del crédito */}
+          <div
+            className="rounded-xl border p-5"
+            style={{ background: estadoCredito.bg, borderColor: estadoCredito.border }}
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle size={16} style={{ color: estadoCredito.color }} />
+              <span className="font-semibold text-sm" style={{ color: estadoCredito.color }}>
+                Estado: {estadoCredito.label}
+              </span>
+            </div>
+            <CreditBar usado={consultasUsadas} total={Math.round(consultasEstimadas)} />
+            <div className="flex justify-between mt-3 text-sm">
+              <span style={{ color: '#374151' }}>
+                <span className="font-bold" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  {consultasUsadas.toLocaleString('es-AR')}
+                </span> consultas usadas
+              </span>
+              <span style={{ color: '#374151' }}>
+                <span className="font-bold" style={{ fontVariantNumeric: 'tabular-nums', color: estadoCredito.color }}>
+                  {consultasRestantes.toLocaleString('es-AR')}
+                </span> restantes
+              </span>
+            </div>
+          </div>
+
+          {/* KPI grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <KpiCard
+              label="Consultas totales"
+              value={consultasUsadas.toLocaleString('es-AR')}
+              sub="desde el inicio"
+              icon={Zap}
+              accent="#6366f1"
+            />
+            <KpiCard
+              label="Costo real"
+              value={`$${costoReal.toFixed(4)}`}
+              sub="USD acumulado"
+              icon={DollarSign}
+              accent="#10b981"
+            />
+            <KpiCard
+              label="Crédito restante"
+              value={`$${Math.max(0, credito - costoReal).toFixed(2)}`}
+              sub="USD disponible"
+              icon={TrendingUp}
+              accent="#f59e0b"
+            />
+            <KpiCard
+              label="Este mes"
+              value={(usoMesActual?.consultas ?? 0).toLocaleString('es-AR')}
+              sub={`$${(usoMesActual?.costoUSD ?? 0).toFixed(4)} USD`}
+              icon={RefreshCw}
+              accent="#3b82f6"
+            />
+          </div>
+
+          {/* Tabla de escenarios */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="font-semibold text-gray-800">Referencia de escenarios</h3>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Basado en Haiku 4.5 · $0.0048 USD/consulta estimado · Crédito cargado: ${credito} USD
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                    <th className="px-6 py-3 text-left font-semibold">Uso mensual</th>
+                    <th className="px-6 py-3 text-right font-semibold">Consultas</th>
+                    <th className="px-6 py-3 text-right font-semibold">Costo USD</th>
+                    <th className="px-6 py-3 text-center font-semibold">Con tu crédito</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[
+                    { label: 'Muy bajo', consultas: 50 },
+                    { label: 'Bajo', consultas: 200 },
+                    { label: 'Moderado', consultas: 500 },
+                    { label: 'Alto', consultas: 2000 },
+                    { label: 'Límite incluido', consultas: Math.round(credito / COSTO_POR_CONSULTA) },
+                    { label: 'Intensivo', consultas: Math.round((credito / COSTO_POR_CONSULTA) * 1.6) },
+                    { label: 'Máximo', consultas: Math.round((credito / COSTO_POR_CONSULTA) * 3) },
+                  ].map(row => {
+                    const costo = row.consultas * COSTO_POR_CONSULTA
+                    const incluido = costo <= credito
+                    const limite = Math.abs(costo - credito) < credito * 0.01
+                    const badge = limite
+                      ? { text: '⚠ Límite', bg: '#fef3c7', color: '#92400e' }
+                      : incluido
+                        ? { text: '✓ Incluido', bg: '#dcfce7', color: '#166534' }
+                        : { text: `+$${(costo - credito).toFixed(2)}`, bg: '#fee2e2', color: '#991b1b' }
+                    return (
+                      <tr key={row.label} className="hover:bg-gray-50 transition">
+                        <td className="px-6 py-3 text-gray-700 font-medium">{row.label}</td>
+                        <td className="px-6 py-3 text-right text-gray-600 font-mono">
+                          {row.consultas.toLocaleString('es-AR')}
+                        </td>
+                        <td className="px-6 py-3 text-right text-gray-800 font-mono font-semibold">
+                          ${costo.toFixed(2)}
+                        </td>
+                        <td className="px-6 py-3 text-center">
+                          <span
+                            className="inline-flex px-2.5 py-1 rounded-full text-xs font-bold"
+                            style={{ background: badge.bg, color: badge.color }}
+                          >
+                            {badge.text}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Tokens detail */}
+          <div className="bg-gray-50 rounded-xl border border-gray-200 p-5">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Detalle técnico acumulado</p>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-gray-400 text-xs">Tokens de entrada</p>
+                <p className="font-mono font-semibold text-gray-800">
+                  {(uso.totalInputTokens ?? 0).toLocaleString('es-AR')}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs">Tokens de salida</p>
+                <p className="font-mono font-semibold text-gray-800">
+                  {(uso.totalOutputTokens ?? 0).toLocaleString('es-AR')}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs">Última consulta</p>
+                <p className="font-semibold text-gray-800 text-xs">
+                  {uso.ultimaConsulta
+                    ? new Date(uso.ultimaConsulta).toLocaleString('es-AR')
+                    : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-400 text-xs">Costo promedio / consulta</p>
+                <p className="font-mono font-semibold text-gray-800">
+                  ${consultasUsadas > 0
+                    ? (costoReal / consultasUsadas).toFixed(5)
+                    : '0.00000'} USD
+                </p>
+              </div>
             </div>
           </div>
         </div>
