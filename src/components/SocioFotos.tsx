@@ -2,13 +2,17 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { getFotosSocio, addFotoSocio, deleteFotoSocio, reorderFotosSocio, FotoSocio } from '@/lib/firestore'
+import { uploadImage } from '@/lib/storage'
 import toast from 'react-hot-toast'
 import { Upload, Trash2, GripVertical, Loader2, ImageIcon } from 'lucide-react'
 
 const MAX_FOTOS = 25
 const MAX_PX = 1200
 
-function resizeImage(file: File): Promise<string> {
+const uid = () => (crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2))
+
+// Redimensiona la imagen en el navegador antes de subirla (menos peso, subida más rápida)
+function resizeImage(file: File): Promise<Blob> {
   return new Promise((res, rej) => {
     const img = new Image()
     const url = URL.createObjectURL(file)
@@ -19,7 +23,7 @@ function resizeImage(file: File): Promise<string> {
       canvas.height = Math.round(img.height * scale)
       canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
       URL.revokeObjectURL(url)
-      res(canvas.toDataURL('image/jpeg', 0.82))
+      canvas.toBlob(blob => blob ? res(blob) : rej(new Error('No se pudo procesar la imagen')), 'image/jpeg', 0.82)
     }
     img.onerror = rej
     img.src = url
@@ -52,7 +56,8 @@ export function SocioFotos({ socioId }: { socioId: string }) {
     setUploading(true)
     try {
       await Promise.all(toUpload.map(async (file, i) => {
-        const url = await resizeImage(file)
+        const blob = await resizeImage(file)
+        const url = await uploadImage(blob, `socios/${socioId}/fotos/${uid()}`)
         await addFotoSocio(socioId, { url, orden: fotos.length + i, nombre: file.name })
       }))
       toast.success(`${toUpload.length} foto${toUpload.length !== 1 ? 's' : ''} subida${toUpload.length !== 1 ? 's' : ''}`)
