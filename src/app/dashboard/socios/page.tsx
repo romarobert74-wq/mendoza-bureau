@@ -5,12 +5,24 @@ import Link from 'next/link'
 import { getSocios, eliminarSocio, getAnalyticsResumen } from '@/lib/firestore'
 import type { AnalyticsResumen } from '@/lib/firestore'
 import { useAuth } from '@/context/AuthContext'
-import { CATEGORIAS } from '@/types'
-import type { Socio } from '@/types'
+import { CATEGORIAS, CATEGORIA_COLOR } from '@/types'
+import type { Socio, CategoriaSocio } from '@/types'
 import toast from 'react-hot-toast'
-import { Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2, MessageCircle, Clock, Copy, Check, Eye, MousePointerClick, Globe as GlobeIcon, Timer } from 'lucide-react'
+import {
+  Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2, MessageCircle,
+  Clock, Copy, Check, Eye, MousePointerClick, Globe as GlobeIcon, Timer, ArrowUp, ArrowDown, ArrowUpDown,
+} from 'lucide-react'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+
+type Columna = 'nombre' | 'categoria' | 'direccion' | 'estado'
+type Direccion = 'asc' | 'desc'
+
+function estadoOrden(s: Socio): number {
+  if (s.activo) return 2
+  if (s.razonSocial) return 1
+  return 0
+}
 
 function fmtTiempo(ms: number): string {
   if (!ms) return '0s'
@@ -28,6 +40,11 @@ export default function SociosPage() {
   const [analytics, setAnalytics] = useState<AnalyticsResumen | null>(null)
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('')
+  const [orden, setOrden] = useState<{ col: Columna; dir: Direccion }>({ col: 'nombre', dir: 'asc' })
+
+  const ordenarPor = (col: Columna) => {
+    setOrden(o => o.col === col ? { col, dir: o.dir === 'asc' ? 'desc' : 'asc' } : { col, dir: 'asc' })
+  }
 
   const cargar = async () => {
     setLoading(true)
@@ -50,10 +67,26 @@ export default function SociosPage() {
     }
   }
 
-  const filtrados = socios.filter(s =>
-    s.razonSocial.toLowerCase().includes(filtro.toLowerCase()) ||
-    s.etiqueta.toLowerCase().includes(filtro.toLowerCase())
-  )
+  const filtrados = socios
+    .filter(s =>
+      s.razonSocial.toLowerCase().includes(filtro.toLowerCase()) ||
+      s.etiqueta.toLowerCase().includes(filtro.toLowerCase())
+    )
+    .sort((a, b) => {
+      const dir = orden.dir === 'asc' ? 1 : -1
+      switch (orden.col) {
+        case 'nombre':
+          return a.razonSocial.localeCompare(b.razonSocial) * dir
+        case 'categoria':
+          return CATEGORIAS[a.categoria].localeCompare(CATEGORIAS[b.categoria]) * dir
+        case 'direccion':
+          return (a.direccion || '').localeCompare(b.direccion || '') * dir
+        case 'estado':
+          return (estadoOrden(a) - estadoOrden(b)) * dir
+        default:
+          return 0
+      }
+    })
 
   const puedeEditar = usuario?.rol === 'el_faro' || usuario?.rol === 'bureau'
   const puedeEliminar = usuario?.rol === 'el_faro'
@@ -186,10 +219,10 @@ export default function SociosPage() {
           <table className="w-full text-sm">
             <thead style={{ borderBottom: '1px solid var(--border)' }}>
               <tr>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Socio</th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Categoría</th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide hidden md:table-cell" style={{ color: 'var(--text-muted)' }}>Dirección</th>
-                <th className="text-left px-4 py-3 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Estado</th>
+                <ThOrdenable label="Socio" col="nombre" orden={orden} onClick={ordenarPor} />
+                <ThOrdenable label="Categoría" col="categoria" orden={orden} onClick={ordenarPor} />
+                <ThOrdenable label="Dirección" col="direccion" orden={orden} onClick={ordenarPor} className="hidden md:table-cell" />
+                <ThOrdenable label="Estado" col="estado" orden={orden} onClick={ordenarPor} />
                 {puedeEditar && (
                   <th className="text-right px-4 py-3 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>Acciones</th>
                 )}
@@ -212,7 +245,7 @@ export default function SociosPage() {
                       <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{socio.etiqueta}</div>
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="badge badge-orange">{CATEGORIAS[socio.categoria]}</span>
+                      <CategoriaBadge categoria={socio.categoria} />
                     </td>
                     <td className="px-4 py-3.5 hidden md:table-cell text-sm" style={{ color: 'var(--text-muted)' }}>{socio.direccion}</td>
                     <td className="px-4 py-3.5">
@@ -264,6 +297,34 @@ export default function SociosPage() {
         </div>
       )}
     </div>
+  )
+}
+
+function CategoriaBadge({ categoria }: { categoria: CategoriaSocio }) {
+  const color = CATEGORIA_COLOR[categoria]
+  return (
+    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold w-fit"
+      style={{ background: `${color}22`, color, border: `1px solid ${color}55` }}>
+      {CATEGORIAS[categoria]}
+    </span>
+  )
+}
+
+function ThOrdenable({ label, col, orden, onClick, className = '' }: {
+  label: string; col: Columna; orden: { col: Columna; dir: Direccion }; onClick: (c: Columna) => void; className?: string
+}) {
+  const activo = orden.col === col
+  const Icon = activo ? (orden.dir === 'asc' ? ArrowUp : ArrowDown) : ArrowUpDown
+  return (
+    <th className={`text-left px-4 py-3 text-xs font-bold uppercase tracking-wide select-none ${className}`}
+      style={{ color: activo ? 'var(--orange-2)' : 'var(--text-muted)' }}>
+      <button onClick={() => onClick(col)}
+        className="flex items-center gap-1 transition hover:opacity-80"
+        style={{ color: 'inherit', background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit' }}>
+        {label}
+        <Icon size={12} style={{ opacity: activo ? 1 : 0.4 }} />
+      </button>
+    </th>
   )
 }
 

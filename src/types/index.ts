@@ -519,6 +519,17 @@ export const CATEGORIAS: Record<CategoriaSocio, string> = {
   otro: 'Otro',
 }
 
+// Colores distintivos por categoría (usados en grillas y dashboards)
+export const CATEGORIA_COLOR: Record<CategoriaSocio, string> = {
+  bodega: '#a855f7',
+  restaurante: '#f15a24',
+  hotel: '#3b82f6',
+  alojamiento: '#22c55e',
+  salon: '#ec4899',
+  servicio: '#eab308',
+  otro: '#8a8a91',
+}
+
 export const TIPOS_SALON: Record<TipoSalon, string> = {
   banquetes: 'Salón de Banquetes',
   conferencias: 'Sala de Conferencias',

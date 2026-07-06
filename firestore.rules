@@ -32,14 +32,11 @@ service cloud.firestore {
       allow delete: if isElFaro();
     }
 
-    // Socios: socio ve solo el suyo, bureau y el_faro ven todos
+    // Socios: lectura pública (el tour virtual y la web institucional los leen sin login).
+    // Crear: público (formulario del socio). Editar / borrar: solo roles internos.
     match /socios/{socioId} {
-      allow read: if isAuthenticated() && (
-        isElFaro() ||
-        isBureau() ||
-        (isSocio() && getUserData().socioId == socioId)
-      );
-      allow create: if isBureau() || isElFaro();
+      allow read: if true;
+      allow create: if true;
       allow update: if isElFaro() || (
         isBureau() && !(
           'urlInternaTour' in request.resource.data ||
@@ -48,19 +45,38 @@ service cloud.firestore {
         )
       );
       allow delete: if isElFaro();
+
+      // Fotos del socio: lectura pública (galería en el tour), escritura solo interna
+      match /fotos/{fotoId} {
+        allow read: if true;
+        allow write: if isBureau() || isElFaro();
+      }
     }
 
-    // Contador de uso del bot: lo escribe la API del bot (server-side, sin auth).
-    // Solo guarda métricas de consumo (tokens/costo/consultas), no datos sensibles.
+    // Configuración del sistema (departamentos, categorías, tour madre, chatbot, logo, etc.):
+    // lectura pública porque el tour y la web institucional la necesitan sin login.
+    // Escritura solo el_faro, salvo el contador de uso del bot que escribe la API sin auth.
     match /configuracion/chatbot_uso {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if true;
     }
-
-    // Configuración del tour madre: solo el_faro escribe
     match /configuracion/{docId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow write: if isElFaro();
+    }
+
+    // Web institucional pública: lectura libre, escritura solo roles internos
+    match /web_bureau/{docId} {
+      allow read: if true;
+      allow write: if isBureau() || isElFaro();
+    }
+    match /web_bureau_prensa/{docId} {
+      allow read: if true;
+      allow write: if isBureau() || isElFaro();
+    }
+    match /web_bureau_observatorio/{docId} {
+      allow read: if true;
+      allow write: if isBureau() || isElFaro();
     }
 
     // Analytics / clicks: escritura pública (desde tours), lectura con rol

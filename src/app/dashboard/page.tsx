@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getSocios, getUsuarios, getAnalyticsResumen } from '@/lib/firestore'
 import type { AnalyticsResumen } from '@/lib/firestore'
-import { CATEGORIAS } from '@/types'
+import { CATEGORIAS, CATEGORIA_COLOR } from '@/types'
 import type { Socio, CategoriaSocio } from '@/types'
 import {
   MapPin, Users, CheckCircle, MousePointerClick, Eye, Clock,
@@ -21,15 +21,7 @@ const CAT_ICON: Record<CategoriaSocio, React.ElementType> = {
   otro: Package,
 }
 
-const CAT_COLOR: Record<CategoriaSocio, string> = {
-  bodega: '#a855f7',
-  restaurante: '#f15a24',
-  hotel: '#3b82f6',
-  alojamiento: '#22c55e',
-  salon: '#ec4899',
-  servicio: '#eab308',
-  otro: '#8a8a91',
-}
+const CAT_COLOR = CATEGORIA_COLOR
 
 function fmtTiempo(ms: number): string {
   if (!ms) return '0s'

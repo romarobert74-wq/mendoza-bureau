@@ -36,12 +36,19 @@ export default function VerSocioPage() {
   const fichaUrl = `${BASE}/tour/socio/ficha?id=${id}`
 
   useEffect(() => {
-    Promise.all([getSocio(id), getAnalyticsResumen(), getFotosSocio(id)]).then(([s, a, f]) => {
-      setSocio(s)
-      setStats(a.porSocio[id] ?? VACIO)
-      setFotos(f.length)
+    let activo = true
+    Promise.allSettled([getSocio(id), getAnalyticsResumen(), getFotosSocio(id)]).then(results => {
+      if (!activo) return
+      const [rSocio, rAnalytics, rFotos] = results
+      if (rSocio.status === 'fulfilled') setSocio(rSocio.value)
+      else console.error('Error cargando socio:', rSocio.reason)
+      if (rAnalytics.status === 'fulfilled') setStats(rAnalytics.value.porSocio[id] ?? VACIO)
+      else console.error('Error cargando analytics:', rAnalytics.reason)
+      if (rFotos.status === 'fulfilled') setFotos(rFotos.value.length)
+      else console.error('Error cargando fotos:', rFotos.reason)
       setLoading(false)
     })
+    return () => { activo = false }
   }, [id])
 
   if (loading) {
