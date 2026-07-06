@@ -60,6 +60,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if true;
     }
+    // Plan de migración: info interna, no la necesita el tour ni la web pública
+    match /configuracion/migracion {
+      allow read: if isAuthenticated();
+      allow write: if isElFaro();
+    }
     match /configuracion/{docId} {
       allow read: if true;
       allow write: if isElFaro();

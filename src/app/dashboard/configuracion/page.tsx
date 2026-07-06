@@ -1,13 +1,16 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { getConfigSistema, setConfigSistema } from '@/lib/firestore'
+import { getConfigSistema, setConfigSistema, getConfigMigracion, setConfigMigracion } from '@/lib/firestore'
 import type { ItemLista } from '@/lib/firestore'
 import { uploadImage } from '@/lib/storage'
 import { CATEGORIAS, SUBZONAS_MENDOZA } from '@/types'
 import { useTheme } from '@/context/ThemeContext'
 import toast from 'react-hot-toast'
-import { Save, Plus, X, Moon, Sun, Lock, MapPin, Tags, Loader2, ImageIcon, Upload } from 'lucide-react'
+import {
+  Save, Plus, X, Moon, Sun, Lock, MapPin, Tags, Loader2, ImageIcon, Upload,
+  Server, CheckSquare, Square, ChevronDown, ChevronUp, ExternalLink,
+} from 'lucide-react'
 
 const uid = () => (crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2))
 
@@ -29,6 +32,10 @@ export default function ConfiguracionPage() {
   const logoInputRef = useRef<HTMLInputElement>(null)
   const logoFaroInputRef = useRef<HTMLInputElement>(null)
 
+  const [checklist, setChecklist] = useState<Record<string, boolean>>({})
+  const [notasMigracion, setNotasMigracion] = useState('')
+  const [guardandoMigracion, setGuardandoMigracion] = useState(false)
+
   useEffect(() => {
     getConfigSistema().then(cfg => {
       if (cfg) {
@@ -41,7 +48,33 @@ export default function ConfiguracionPage() {
       }
       setLoading(false)
     })
+    getConfigMigracion().then(m => {
+      setChecklist(m.checklist)
+      setNotasMigracion(m.notas)
+    })
   }, [])
+
+  const toggleChecklist = async (key: string) => {
+    const nuevo = { ...checklist, [key]: !checklist[key] }
+    setChecklist(nuevo)
+    try {
+      await setConfigMigracion({ checklist: nuevo, notas: notasMigracion })
+    } catch {
+      toast.error('Error al guardar el checklist')
+    }
+  }
+
+  const guardarNotasMigracion = async () => {
+    setGuardandoMigracion(true)
+    try {
+      await setConfigMigracion({ checklist, notas: notasMigracion })
+      toast.success('Notas guardadas')
+    } catch {
+      toast.error('Error al guardar')
+    } finally {
+      setGuardandoMigracion(false)
+    }
+  }
 
   const subirLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -260,6 +293,16 @@ export default function ConfiguracionPage() {
             <button onClick={addCat} className="btn-outline shrink-0"><Plus size={15} /> Agregar</button>
           </div>
         </section>
+
+        {/* Migración a infraestructura propia */}
+        <MigracionSection
+          checklist={checklist}
+          onToggle={toggleChecklist}
+          notas={notasMigracion}
+          onChangeNotas={setNotasMigracion}
+          onGuardarNotas={guardarNotasMigracion}
+          guardando={guardandoMigracion}
+        />
       </div>
     </div>
   )
@@ -297,5 +340,146 @@ function LogoUploader({ label, url, subiendo, onUpload, onQuitar }: {
         )}
       </div>
     </div>
+  )
+}
+
+// ── Plan de migración a infraestructura propia ─────────────────────────────
+
+interface PasoMigracion {
+  key: string
+  titulo: string
+  detalle: string
+}
+
+const PASOS_MIGRACION: PasoMigracion[] = [
+  {
+    key: 'github',
+    titulo: 'Transferir el repositorio de GitHub',
+    detalle: 'Creá una cuenta de GitHub propia (gratis). Pedile a quien administre el repositorio actual que use la opción "Transfer ownership" desde Settings del repo, ingresando el nombre de tu cuenta nueva. El código completo pasa a ser tuyo, con todo el historial.',
+  },
+  {
+    key: 'vercel',
+    titulo: 'Crear cuenta Vercel propia y conectar el repo',
+    detalle: 'Registrate en vercel.com con tu cuenta de GitHub ya transferida. Importá el repositorio (botón "Add New Project"). Vercel detecta que es Next.js automáticamente. Todavía no va a funcionar hasta completar el paso de Firebase y Cloudinary (siguientes pasos) porque faltan las variables de entorno.',
+  },
+  {
+    key: 'firebase',
+    titulo: 'Crear proyecto Firebase propio y migrar los datos',
+    detalle: 'En console.firebase.google.com creá un proyecto nuevo con tu cuenta de Google. Activá Firestore Database y Authentication (método Email/Password). Exportá los datos del proyecto actual (Firestore tiene "Export" a un bucket) e importalos al nuevo. Copiá también los usuarios de Authentication. Al final vas a tener 6 valores nuevos (API Key, Auth Domain, Project ID, etc.) que hay que cargar en Vercel.',
+  },
+  {
+    key: 'cloudinary',
+    titulo: 'Crear cuenta Cloudinary propia y migrar imágenes',
+    detalle: 'Registrate gratis en cloudinary.com. Creá un Upload Preset en modo "Unsigned" (Settings → Upload). Después hay que descargar las fotos del Cloudinary actual y volver a subirlas a tu cuenta nueva, actualizando los links guardados en Firebase (esto requiere un script, no es manual).',
+  },
+  {
+    key: 'anthropic',
+    titulo: 'Transferir la cuenta del bot (Claude / Anthropic)',
+    detalle: 'Creá tu propia cuenta en console.anthropic.com y generá una API Key nueva (Settings → API Keys → Create Key). Cargá crédito según tu uso esperado (ver la solapa Costos de Chat IA para estimar). Esa clave nueva reemplaza la actual.',
+  },
+  {
+    key: 'envvars',
+    titulo: 'Cargar todas las claves nuevas en Vercel',
+    detalle: 'En tu proyecto de Vercel: Settings → Environment Variables. Ahí cargás los 6 valores de Firebase, el Cloud Name y Upload Preset de Cloudinary, y la API Key de Anthropic — todos con el mismo nombre de variable que tienen hoy (así no hay que tocar código). Después hacés Redeploy.',
+  },
+  {
+    key: 'dominio',
+    titulo: 'Apuntar tu dominio propio',
+    detalle: 'Si tenés un dominio propio (ej. mendozabureau.com), en Vercel → Settings → Domains lo agregás y seguís las instrucciones para apuntar el DNS. Así el sitio queda con tu dirección en vez de vercel.app.',
+  },
+]
+
+function MigracionSection({ checklist, onToggle, notas, onChangeNotas, onGuardarNotas, guardando }: {
+  checklist: Record<string, boolean>
+  onToggle: (key: string) => void
+  notas: string
+  onChangeNotas: (v: string) => void
+  onGuardarNotas: () => void
+  guardando: boolean
+}) {
+  const [abierto, setAbierto] = useState<string | null>(null)
+  const completados = PASOS_MIGRACION.filter(p => checklist[p.key]).length
+
+  return (
+    <section className="kpi-card">
+      <h3 className="font-semibold mb-1 flex items-center gap-2" style={{ color: 'var(--text)' }}>
+        <Server size={16} style={{ color: 'var(--orange-2)' }} /> Migración a infraestructura propia
+      </h3>
+      <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+        Manual de referencia para el día que quieras pasar todo (código, base de datos, imágenes y el bot)
+        a cuentas 100% tuyas. Andá tildando cada paso a medida que lo completes — queda guardado acá,
+        no depende de la memoria de nadie.
+      </p>
+
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-input)' }}>
+          <div className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${(completados / PASOS_MIGRACION.length) * 100}%`, background: 'var(--orange-2)' }} />
+        </div>
+        <span className="text-xs font-bold shrink-0" style={{ color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+          {completados}/{PASOS_MIGRACION.length}
+        </span>
+      </div>
+
+      <div className="space-y-2 mb-5">
+        {PASOS_MIGRACION.map((paso, i) => {
+          const hecho = !!checklist[paso.key]
+          const expandido = abierto === paso.key
+          return (
+            <div key={paso.key} className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+              <div className="flex items-center gap-3 px-3 py-2.5" style={{ background: 'var(--bg-input)' }}>
+                <button onClick={() => onToggle(paso.key)} className="shrink-0 transition hover:opacity-70"
+                  style={{ color: hecho ? 'var(--green)' : 'var(--text-faint)' }}>
+                  {hecho ? <CheckSquare size={18} /> : <Square size={18} />}
+                </button>
+                <button onClick={() => setAbierto(expandido ? null : paso.key)}
+                  className="flex-1 flex items-center justify-between text-left gap-2"
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                  <span className="text-sm font-medium" style={{
+                    color: hecho ? 'var(--text-muted)' : 'var(--text)',
+                    textDecoration: hecho ? 'line-through' : 'none',
+                  }}>
+                    {i + 1}. {paso.titulo}
+                  </span>
+                  {expandido ? <ChevronUp size={14} style={{ color: 'var(--text-faint)' }} /> : <ChevronDown size={14} style={{ color: 'var(--text-faint)' }} />}
+                </button>
+              </div>
+              {expandido && (
+                <div className="px-3 py-3 text-sm leading-relaxed" style={{ color: 'var(--text-2)', borderTop: '1px solid var(--border)' }}>
+                  {paso.detalle}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="rounded-lg p-3 mb-5 flex items-start gap-2 text-xs leading-relaxed"
+        style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.25)', color: '#93c5fd' }}>
+        <ExternalLink size={14} className="shrink-0 mt-0.5" />
+        <span>
+          Importante: nada de esto se hace tildando casilleros — cada paso implica crear cuentas nuevas y
+          copiar credenciales reales fuera de este sistema. El checklist es solo para no perderte ni
+          repetir pasos ya hechos.
+        </span>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold uppercase tracking-wide mb-1.5" style={{ color: 'var(--text-muted)' }}>
+          Notas de referencia (nombres de cuentas destino, contactos, etc. — sin contraseñas)
+        </label>
+        <textarea
+          value={notas}
+          onChange={e => onChangeNotas(e.target.value)}
+          rows={4}
+          className="input resize-none"
+          placeholder="Ej: Cuenta GitHub destino: usuario-nuevo · Contacto DonWeb: soporte@... · etc."
+        />
+        <button onClick={onGuardarNotas} disabled={guardando} className="btn-outline mt-2">
+          {guardando ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+          {guardando ? 'Guardando...' : 'Guardar notas'}
+        </button>
+      </div>
+    </section>
   )
 }

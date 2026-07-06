@@ -202,6 +202,30 @@ export async function setConfigSistema(data: ConfigSistema) {
   }, { merge: true })
 }
 
+// ── Plan de migración a infraestructura propia (checklist + notas) ──
+
+export interface ConfigMigracion {
+  checklist: Record<string, boolean>
+  notas: string
+}
+
+export async function getConfigMigracion(): Promise<ConfigMigracion> {
+  const snap = await getDoc(doc(db, 'configuracion', 'migracion'))
+  if (!snap.exists()) return { checklist: {}, notas: '' }
+  const d = snap.data()
+  return {
+    checklist: (d.checklist ?? {}) as Record<string, boolean>,
+    notas: (d.notas ?? '') as string,
+  }
+}
+
+export async function setConfigMigracion(data: ConfigMigracion) {
+  await setDoc(doc(db, 'configuracion', 'migracion'), {
+    ...data,
+    actualizadoEn: serverTimestamp(),
+  }, { merge: true })
+}
+
 // ── Analytics ────────────────────────────────────────────
 
 export type TipoEvento =
