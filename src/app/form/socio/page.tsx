@@ -1,7 +1,7 @@
 'use client'
 
-import { Suspense, useState, useRef } from 'react'
-import { crearSocio } from '@/lib/firestore'
+import { Suspense, useState, useRef, useEffect } from 'react'
+import { crearSocio, getConfigSistema } from '@/lib/firestore'
 import { uploadImage } from '@/lib/storage'
 import type {
   SocioFormData, CategoriaSocio, SalonIndividual,
@@ -162,6 +162,15 @@ function FormSocio() {
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+  const [logoBureau, setLogoBureau] = useState('')
+  const [logoElFaro, setLogoElFaro] = useState('')
+
+  useEffect(() => {
+    getConfigSistema().then(cfg => {
+      if (cfg?.logoUrl) setLogoBureau(cfg.logoUrl)
+      if (cfg?.logoElFaroUrl) setLogoElFaro(cfg.logoElFaroUrl)
+    }).catch(() => {})
+  }, [])
 
   // Campos generales
   const [form, setForm] = useState({
@@ -263,9 +272,13 @@ function FormSocio() {
       {/* ── Hero ── */}
       <div style={{ background: 'linear-gradient(160deg, #0d1225 0%, #080c18 70%)', borderBottom: '1px solid #1a2235', padding: '56px 20px 48px', textAlign: 'center' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)', borderRadius: '99px', padding: '4px 16px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fb923c', marginBottom: '24px' }}>
-            ✦ Mendoza Bureau · El Faro 360
-          </div>
+          {logoBureau ? (
+            <img src={logoBureau} alt="Mendoza Bureau" style={{ height: '40px', objectFit: 'contain', filter: 'brightness(0) invert(1)', margin: '0 auto 24px' }} />
+          ) : (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)', borderRadius: '99px', padding: '4px 16px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fb923c', marginBottom: '24px' }}>
+              ✦ Mendoza Bureau · El Faro 360
+            </div>
+          )}
           <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, color: '#f1f5f9', margin: '0 0 8px', lineHeight: 1.2 }}>
             Bienvenido al futuro del
           </h1>
@@ -388,6 +401,13 @@ function FormSocio() {
             <>Enviar mis datos <ChevronRight size={16} /></>
           )}
         </button>
+
+        {logoElFaro && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', paddingTop: '8px' }}>
+            <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#334155' }}>Desarrollado por</span>
+            <img src={logoElFaro} alt="El Faro 360" style={{ height: '16px', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.7 }} />
+          </div>
+        )}
 
         <p style={{ textAlign: 'center', fontSize: '11px', color: '#1e293b', paddingBottom: '8px' }}>
           Mendoza Bureau · Convention & Visitors Bureau · El Faro 360

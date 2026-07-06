@@ -19,12 +19,15 @@ export default function ConfiguracionPage() {
   const [departamentos, setDepartamentos] = useState<ItemLista[]>([])
   const [categoriasExtra, setCategoriasExtra] = useState<ItemLista[]>([])
   const [logoUrl, setLogoUrl] = useState('')
+  const [logoElFaroUrl, setLogoElFaroUrl] = useState('')
   const [subiendoLogo, setSubiendoLogo] = useState(false)
+  const [subiendoLogoFaro, setSubiendoLogoFaro] = useState(false)
   const [nuevoDepto, setNuevoDepto] = useState('')
   const [nuevaCat, setNuevaCat] = useState('')
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
+  const logoFaroInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     getConfigSistema().then(cfg => {
@@ -32,6 +35,7 @@ export default function ConfiguracionPage() {
         setDepartamentos(cfg.departamentos.length ? cfg.departamentos : DEPARTAMENTOS_SEED.map(n => ({ id: uid(), nombre: n })))
         setCategoriasExtra(cfg.categoriasExtra)
         setLogoUrl(cfg.logoUrl ?? '')
+        setLogoElFaroUrl(cfg.logoElFaroUrl ?? '')
       } else {
         setDepartamentos(DEPARTAMENTOS_SEED.map(n => ({ id: uid(), nombre: n })))
       }
@@ -48,12 +52,31 @@ export default function ConfiguracionPage() {
       const ext = file.name.split('.').pop()
       const url = await uploadImage(file, `sistema/logo-bureau.${ext}`)
       setLogoUrl(url)
-      await setConfigSistema({ departamentos, categoriasExtra, logoUrl: url })
+      await setConfigSistema({ departamentos, categoriasExtra, logoUrl: url, logoElFaroUrl })
       toast.success('Logo actualizado')
     } catch {
       toast.error('Error al subir el logo')
     } finally {
       setSubiendoLogo(false)
+      e.target.value = ''
+    }
+  }
+
+  const subirLogoFaro = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) { toast.error('Debe ser una imagen'); return }
+    setSubiendoLogoFaro(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const url = await uploadImage(file, `sistema/logo-elfaro.${ext}`)
+      setLogoElFaroUrl(url)
+      await setConfigSistema({ departamentos, categoriasExtra, logoUrl, logoElFaroUrl: url })
+      toast.success('Logo actualizado')
+    } catch {
+      toast.error('Error al subir el logo')
+    } finally {
+      setSubiendoLogoFaro(false)
       e.target.value = ''
     }
   }
@@ -82,7 +105,7 @@ export default function ConfiguracionPage() {
   const guardar = async () => {
     setGuardando(true)
     try {
-      await setConfigSistema({ departamentos, categoriasExtra, logoUrl })
+      await setConfigSistema({ departamentos, categoriasExtra, logoUrl, logoElFaroUrl })
       toast.success('Configuración guardada')
     } catch {
       toast.error('Error al guardar')
@@ -136,34 +159,36 @@ export default function ConfiguracionPage() {
           </div>
         </section>
 
-        {/* Logo del Bureau */}
+        {/* Logos */}
         <section className="kpi-card">
           <h3 className="font-semibold mb-1 flex items-center gap-2" style={{ color: 'var(--text)' }}>
-            <ImageIcon size={16} style={{ color: 'var(--orange-2)' }} /> Logo de Bureau
+            <ImageIcon size={16} style={{ color: 'var(--orange-2)' }} /> Logos
           </h3>
           <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-            Se muestra arriba en el menú izquierdo y queda guardado para usarlo en el tour madre.
+            Subí el logo tal cual lo tengas (con letras oscuras está bien): el sistema lo muestra en blanco
+            automáticamente sobre fondos oscuros y en su color original sobre fondos claros. Se usan en el
+            menú principal, el formulario público del socio y el tour madre.
           </p>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0 overflow-hidden"
-              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)' }}>
-              {logoUrl
-                ? <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
-                : <span className="text-white text-lg font-black">MB</span>}
-            </div>
-            <div className="flex items-center gap-2">
-              <button onClick={() => logoInputRef.current?.click()} disabled={subiendoLogo} className="btn-outline">
-                {subiendoLogo ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
-                {subiendoLogo ? 'Subiendo...' : 'Subir logo'}
-              </button>
-              {logoUrl && (
-                <button onClick={() => setLogoUrl('')} className="text-sm transition hover:text-red-400" style={{ color: 'var(--text-muted)' }}>
-                  Quitar
-                </button>
-              )}
-            </div>
-            <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={subirLogo} />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <LogoUploader
+              label="Logo Mendoza Bureau"
+              url={logoUrl}
+              subiendo={subiendoLogo}
+              onUpload={() => logoInputRef.current?.click()}
+              onQuitar={() => setLogoUrl('')}
+            />
+            <LogoUploader
+              label="Logo El Faro 360"
+              url={logoElFaroUrl}
+              subiendo={subiendoLogoFaro}
+              onUpload={() => logoFaroInputRef.current?.click()}
+              onQuitar={() => setLogoElFaroUrl('')}
+            />
           </div>
+
+          <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={subirLogo} />
+          <input ref={logoFaroInputRef} type="file" accept="image/*" className="hidden" onChange={subirLogoFaro} />
         </section>
 
         {/* Departamentos de Mendoza */}
@@ -235,6 +260,41 @@ export default function ConfiguracionPage() {
             <button onClick={addCat} className="btn-outline shrink-0"><Plus size={15} /> Agregar</button>
           </div>
         </section>
+      </div>
+    </div>
+  )
+}
+
+function LogoUploader({ label, url, subiendo, onUpload, onQuitar }: {
+  label: string; url: string; subiendo: boolean; onUpload: () => void; onQuitar: () => void
+}) {
+  return (
+    <div className="rounded-xl p-4" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)' }}>
+      <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--text-faint)' }}>{label}</p>
+      <div className="flex items-center gap-3 mb-3">
+        {/* Preview sobre fondo oscuro (blanco automático) */}
+        <div className="w-16 h-16 rounded-lg flex items-center justify-center shrink-0 overflow-hidden" style={{ background: '#0a0a0b' }}>
+          {url
+            ? <img src={url} alt={label} className="w-full h-full object-contain p-2" style={{ filter: 'brightness(0) invert(1)' }} />
+            : <ImageIcon size={20} style={{ color: '#3f3f42' }} />}
+        </div>
+        {/* Preview sobre fondo claro (color original) */}
+        <div className="w-16 h-16 rounded-lg flex items-center justify-center shrink-0 overflow-hidden" style={{ background: '#f5f5f4' }}>
+          {url
+            ? <img src={url} alt={label} className="w-full h-full object-contain p-2" />
+            : <ImageIcon size={20} style={{ color: '#d6d3d1' }} />}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <button onClick={onUpload} disabled={subiendo} className="btn-outline" style={{ padding: '6px 12px', fontSize: '12px' }}>
+          {subiendo ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+          {subiendo ? 'Subiendo...' : 'Subir'}
+        </button>
+        {url && (
+          <button onClick={onQuitar} className="text-xs transition hover:text-red-400" style={{ color: 'var(--text-muted)' }}>
+            Quitar
+          </button>
+        )}
       </div>
     </div>
   )

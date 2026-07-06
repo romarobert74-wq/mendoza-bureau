@@ -180,6 +180,7 @@ export interface ConfigSistema {
   departamentos: ItemLista[]
   categoriasExtra: ItemLista[]
   logoUrl?: string
+  logoElFaroUrl?: string
 }
 
 export async function getConfigSistema(): Promise<ConfigSistema | null> {
@@ -190,6 +191,7 @@ export async function getConfigSistema(): Promise<ConfigSistema | null> {
     departamentos: (d.departamentos ?? []) as ItemLista[],
     categoriasExtra: (d.categoriasExtra ?? []) as ItemLista[],
     logoUrl: (d.logoUrl ?? '') as string,
+    logoElFaroUrl: (d.logoElFaroUrl ?? '') as string,
   }
 }
 

@@ -7,6 +7,7 @@ import { signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { getConfigSistema } from '@/lib/firestore'
 import { useAuth } from '@/context/AuthContext'
+import { useTheme } from '@/context/ThemeContext'
 import {
   LayoutDashboard, Users, MapPin, Settings,
   LogOut, Map, Bot, Globe,
@@ -31,17 +32,25 @@ const ROL_LABEL: Record<Rol, string> = {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, usuario, loading } = useAuth()
+  const { theme } = useTheme()
   const router = useRouter()
   const pathname = usePathname()
   const [logoUrl, setLogoUrl] = useState('')
+  const [logoElFaroUrl, setLogoElFaroUrl] = useState('')
 
   useEffect(() => {
     if (!loading && !user) router.replace('/login')
   }, [user, loading, router])
 
   useEffect(() => {
-    getConfigSistema().then(cfg => { if (cfg?.logoUrl) setLogoUrl(cfg.logoUrl) }).catch(() => {})
+    getConfigSistema().then(cfg => {
+      if (cfg?.logoUrl) setLogoUrl(cfg.logoUrl)
+      if (cfg?.logoElFaroUrl) setLogoElFaroUrl(cfg.logoElFaroUrl)
+    }).catch(() => {})
   }, [])
+
+  // Logos con letras oscuras se muestran en blanco automáticamente en tema oscuro
+  const logoFilter = theme === 'dark' ? 'brightness(0) invert(1)' : 'none'
 
   if (loading) {
     return (
@@ -82,8 +91,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2 mb-3">
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-contain shrink-0"
-                style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)' }} />
+              <img src={logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-contain shrink-0 p-1"
+                style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)', filter: logoFilter }} />
             ) : (
               <div className="w-7 h-7 rounded-lg flex items-center justify-center"
                 style={{ background: 'linear-gradient(135deg,#f15a24,#ff7a45)', border: '1px solid #ff7a45', boxShadow: '0 0 14px rgba(241,90,36,0.4)' }}>
@@ -127,6 +136,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <LogOut size={16} />
             Cerrar sesión
           </button>
+          {logoElFaroUrl && (
+            <div className="flex items-center justify-center gap-1.5 mt-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+              <span className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>Desarrollado por</span>
+              <img src={logoElFaroUrl} alt="El Faro 360" className="h-4 object-contain opacity-70"
+                style={{ filter: logoFilter }} />
+            </div>
+          )}
         </div>
       </aside>
 
