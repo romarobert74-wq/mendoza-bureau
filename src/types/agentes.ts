@@ -24,6 +24,7 @@ export type Plataforma =
   | 'tiktok'
   | 'whatsapp'
   | 'web'
+  | 'canva'
 
 export type EstadoAgente = 'activo' | 'pausado' | 'proximamente'
 
@@ -91,8 +92,8 @@ export const TIPOS_AGENTE: TipoAgenteMeta[] = [
     descripcion: 'Toma la estrategia y la transforma en creativos: copies, ideas de fotos, carruseles y guiones de video.',
     emoji: '🎨',
     color: '#f97316',
-    plataformas: ['web'],
-    disponible: false,
+    plataformas: ['canva', 'web'],
+    disponible: true,
   },
   {
     tipo: 'publicador',
@@ -218,6 +219,13 @@ export const CREDENCIALES_PLATAFORMA: Record<Plataforma, { nombre: string; campo
     nombre: 'Sitio Web',
     campos: [
       { key: 'web_url', label: 'URL del sitio', placeholder: 'https://tucomercio.com', sensible: false },
+    ],
+  },
+  canva: {
+    nombre: 'Canva (Connect API)',
+    campos: [
+      { key: 'canva_access_token', label: 'Access Token', placeholder: 'Bearer token de Canva', sensible: true },
+      { key: 'canva_brand_template_id', label: 'Brand Template ID', placeholder: 'DAF... (plantilla de marca para autofill)', sensible: false },
     ],
   },
 }
