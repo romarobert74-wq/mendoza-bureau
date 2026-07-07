@@ -12,6 +12,7 @@ interface Body {
   departamento: string
   comercio: Comercio
   imagenUrl?: string
+  brief?: string   // estrategia recibida del Agente Estratega (encadenado)
   credenciales: Record<string, string>
 }
 
@@ -76,7 +77,7 @@ export async function POST(req: NextRequest) {
     const system = `Sos un experto en Meta Ads. Convertí la idea del usuario en una campaña concreta para ${b.comercio.nombre} (${r.nombre}) en ${b.departamento}, ${b.pais}.
 Comercio: ${b.comercio.descripcion || 'N/D'}. Oferta: ${b.comercio.oferta || 'N/D'}. Web: ${b.comercio.sitioWeb || 'N/D'}. WhatsApp: ${b.comercio.whatsapp || 'N/D'}.
 ${reglas}
-El enlace del creativo debe usar el sitio web si existe; si no, un link de WhatsApp (https://wa.me/<numero>) si hay WhatsApp. La ciudad de targeting debe ser ${b.departamento}. Llamá a la herramienta definir_campania con valores realistas.`
+El enlace del creativo debe usar el sitio web si existe; si no, un link de WhatsApp (https://wa.me/<numero>) si hay WhatsApp. La ciudad de targeting debe ser ${b.departamento}.${b.brief ? `\n\nESTRATEGIA DEL AGENTE ESTRATEGA (basá la campaña en esto):\n${b.brief}` : ''}\nLlamá a la herramienta definir_campania con valores realistas.`
 
     const msg = await client.messages.create({
       model: 'claude-opus-4-8',

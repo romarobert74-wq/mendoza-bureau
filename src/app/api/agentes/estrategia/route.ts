@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { getRubroMeta, type Rubro, type Comercio } from '@/types/agentes'
+import { leerFuentes } from '@/lib/fuentes'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+interface ImagenRef { mediaType: string; data: string }  // base64 sin prefijo
 
 interface Body {
   idea: string
@@ -10,6 +13,9 @@ interface Body {
   pais: string
   departamento: string
   comercio: Comercio
+  contextoExtra?: string
+  urlsCompetencia?: string[]
+  imagenes?: ImagenRef[]
   modelo?: string
 }
 
@@ -37,7 +43,12 @@ CONTEXTO DEL COMERCIO:
 REGLAS DE CUMPLIMIENTO META PARA ESTE RUBRO:
 ${reglaCategoria}
 
+Si el usuario adjunta fuentes (URLs de competencia, redes sociales, imágenes de referencia), ANALIZALAS: identificá qué hace la competencia, qué ángulos usan, qué podés diferenciar, y aprovechá el estilo visual de las imágenes para el brief de creativos.
+
 DEVOLVÉ SIEMPRE ESTA ESTRUCTURA EN MARKDOWN:
+
+## 0. Análisis de fuentes
+Qué observaste de la competencia / imágenes / redes y cómo lo vas a aprovechar. (Omití esta sección solo si no se adjuntó ninguna fuente.)
 
 ## 1. Estrategia
 Objetivo de campaña de Meta recomendado (ej: Clientes potenciales, Ventas, Mensajes) y por qué. Embudo (frío / retargeting).
@@ -69,16 +80,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Falta la idea de la pauta' }, { status: 400 })
     }
 
+    // Construir el contenido del mensaje (texto + fuentes + imágenes)
+    const bloques: Anthropic.ContentBlockParam[] = []
+
+    let texto = `Idea de la pauta:\n\n${body.idea}`
+    if (body.contextoExtra?.trim()) {
+      texto += `\n\nContexto e instrucciones adicionales:\n${body.contextoExtra.trim()}`
+    }
+
+    // Leer URLs de competencia / redes
+    if (body.urlsCompetencia && body.urlsCompetencia.length > 0) {
+      const fuentes = await leerFuentes(body.urlsCompetencia)
+      if (fuentes) {
+        texto += `\n\n─── CONTENIDO DE FUENTES (competencia / redes) ───\n${fuentes}`
+      }
+    }
+
+    bloques.push({ type: 'text', text: texto })
+
+    // Imágenes de referencia (visión)
+    if (body.imagenes && body.imagenes.length > 0) {
+      for (const img of body.imagenes.slice(0, 5)) {
+        bloques.push({
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: img.mediaType as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif',
+            data: img.data,
+          },
+        })
+      }
+    }
+
     const response = await client.messages.create({
       model: body.modelo ?? 'claude-opus-4-8',
-      max_tokens: 3000,
+      max_tokens: 3500,
       system: buildSystemPrompt(body),
-      messages: [
-        {
-          role: 'user',
-          content: `Idea de la pauta:\n\n${body.idea}`,
-        },
-      ],
+      messages: [{ role: 'user', content: bloques }],
     })
 
     const estrategia =

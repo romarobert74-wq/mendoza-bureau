@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import toast from 'react-hot-toast'
-import { X, Sparkles, Loader2, Copy, Trash2, MapPin, Rocket, CheckCircle2, AlertTriangle, ExternalLink, Palette } from 'lucide-react'
+import { X, Sparkles, Loader2, Copy, Trash2, MapPin, Rocket, CheckCircle2, AlertTriangle, ExternalLink, Palette, Link2, Upload, Plus, ArrowDown } from 'lucide-react'
 import {
   getTipoAgenteMeta,
   getRubroMeta,
@@ -52,17 +52,46 @@ export default function AgenteDetalle({ agente, onClose, onEliminado }: Props) {
   const [canva, setCanva] = useState<CanvaOut | null>(null)
   const [creativoSim, setCreativoSim] = useState(false)
 
+  // Fuentes del Estratega
+  const [contextoExtra, setContextoExtra] = useState('')
+  const [urls, setUrls] = useState<string[]>([])
+  const [urlInput, setUrlInput] = useState('')
+  const [imagenes, setImagenes] = useState<{ mediaType: string; data: string; preview: string }[]>([])
+
   const esEstratega = agente.tipo === 'estratega'
   const esPublicador = agente.tipo === 'publicador'
   const esCreativo = agente.tipo === 'creativos'
 
+  const agregarUrl = () => {
+    const u = urlInput.trim()
+    if (!u) return
+    setUrls(prev => [...prev, u]); setUrlInput('')
+  }
+
+  const subirImagen = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    files.slice(0, 5).forEach(file => {
+      if (!file.type.startsWith('image/')) return
+      const reader = new FileReader()
+      reader.onload = () => {
+        const result = reader.result as string
+        setImagenes(prev => [...prev, { mediaType: file.type, data: result.split(',')[1], preview: result }])
+      }
+      reader.readAsDataURL(file)
+    })
+    e.target.value = ''
+  }
+
   const generarEstrategia = async () => {
     if (!idea.trim() || cargando) return
-    setCargando(true); setResultado('')
+    setCargando(true); setResultado(''); setPaquete(null); setSpec(null); setPubResultado(null); setCanva(null)
     try {
       const res = await fetch('/api/agentes/estrategia', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idea, rubro: agente.rubro, pais: agente.pais, departamento: agente.departamento, comercio: agente.comercio }),
+        body: JSON.stringify({
+          idea, rubro: agente.rubro, pais: agente.pais, departamento: agente.departamento, comercio: agente.comercio,
+          contextoExtra, urlsCompetencia: urls, imagenes: imagenes.map(({ mediaType, data }) => ({ mediaType, data })),
+        }),
       })
       if (!res.ok) throw new Error('error')
       const data = await res.json()
@@ -71,15 +100,15 @@ export default function AgenteDetalle({ agente, onClose, onEliminado }: Props) {
     finally { setCargando(false) }
   }
 
-  const publicar = async () => {
-    if (!idea.trim() || cargando) return
+  const publicar = async (brief?: string) => {
+    if ((!idea.trim() && !brief) || cargando) return
     setCargando(true); setSpec(null); setPubResultado(null)
     try {
       const res = await fetch('/api/agentes/publicar', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          idea, rubro: agente.rubro, pais: agente.pais, departamento: agente.departamento,
-          comercio: agente.comercio, imagenUrl, credenciales: agente.credenciales,
+          idea: idea || 'Ver estrategia adjunta', rubro: agente.rubro, pais: agente.pais, departamento: agente.departamento,
+          comercio: agente.comercio, imagenUrl: imagenUrl || canva?.imagenUrl || '', brief, credenciales: agente.credenciales,
         }),
       })
       const data = await res.json()
@@ -92,13 +121,13 @@ export default function AgenteDetalle({ agente, onClose, onEliminado }: Props) {
     finally { setCargando(false) }
   }
 
-  const generarCreativos = async () => {
-    if (!idea.trim() || cargando) return
+  const generarCreativos = async (brief?: string) => {
+    if ((!idea.trim() && !brief) || cargando) return
     setCargando(true); setPaquete(null); setCanva(null)
     try {
       const res = await fetch('/api/agentes/creativos', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idea, rubro: agente.rubro, pais: agente.pais, departamento: agente.departamento, comercio: agente.comercio, credenciales: agente.credenciales }),
+        body: JSON.stringify({ idea: idea || 'Ver estrategia adjunta', rubro: agente.rubro, pais: agente.pais, departamento: agente.departamento, comercio: agente.comercio, brief, credenciales: agente.credenciales }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'error')
@@ -110,7 +139,7 @@ export default function AgenteDetalle({ agente, onClose, onEliminado }: Props) {
     finally { setCargando(false) }
   }
 
-  const dispatch = esEstratega ? generarEstrategia : esPublicador ? publicar : generarCreativos
+  const dispatch = esEstratega ? generarEstrategia : esPublicador ? () => publicar() : () => generarCreativos()
 
   const eliminar = async () => {
     if (!confirm('¿Eliminar este agente?')) return
@@ -151,6 +180,63 @@ export default function AgenteDetalle({ agente, onClose, onEliminado }: Props) {
               <textarea className="input resize-none" rows={3} value={idea} onChange={e => setIdea(e.target.value)}
                 placeholder="Ej: Quiero vender 3 casas en Chacras de Coria este mes, presupuesto $150.000 diarios, generar visitas..." />
 
+              {esEstratega && (
+                <div className="mt-4 rounded-xl p-4 space-y-4" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)' }}>
+                  <p className="section-title">Fuentes para la estrategia (opcional)</p>
+
+                  {/* Contexto extra */}
+                  <div>
+                    <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>Instrucciones / contexto adicional</label>
+                    <textarea className="input resize-none" rows={2} value={contextoExtra} onChange={e => setContextoExtra(e.target.value)}
+                      placeholder="Ej: enfocate en compradores jóvenes, tono aspiracional, evitá mencionar precios..." />
+                  </div>
+
+                  {/* URLs de competencia / redes */}
+                  <div>
+                    <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>URLs de competencia / redes sociales</label>
+                    <div className="flex gap-2">
+                      <input className="input" value={urlInput} onChange={e => setUrlInput(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), agregarUrl())}
+                        placeholder="https://competencia.com o perfil de IG/FB" />
+                      <button onClick={agregarUrl} className="btn-outline shrink-0" type="button"><Plus size={14} /></button>
+                    </div>
+                    {urls.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {urls.map((u, i) => (
+                          <span key={i} className="badge badge-blue" style={{ maxWidth: 220 }}>
+                            <Link2 size={11} /> <span className="truncate">{u.replace(/^https?:\/\//, '')}</span>
+                            <button onClick={() => setUrls(urls.filter((_, j) => j !== i))} className="ml-1"><X size={11} /></button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Imágenes de referencia */}
+                  <div>
+                    <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>Imágenes de referencia (competencia, producto, estilo)</label>
+                    <label className="btn-outline cursor-pointer w-fit" style={{ fontSize: 12 }}>
+                      <Upload size={14} /> Subir imágenes
+                      <input type="file" accept="image/*" multiple onChange={subirImagen} className="hidden" />
+                    </label>
+                    {imagenes.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {imagenes.map((img, i) => (
+                          <div key={i} className="relative">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={img.preview} alt="" className="w-14 h-14 rounded-lg object-cover" style={{ border: '1px solid var(--border-2)' }} />
+                            <button onClick={() => setImagenes(imagenes.filter((_, j) => j !== i))}
+                              className="absolute -top-1.5 -right-1.5 rounded-full p-0.5" style={{ background: 'var(--bg-elev)', border: '1px solid var(--border-2)', color: 'var(--text-muted)' }}>
+                              <X size={11} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {esPublicador && (
                 <div className="mt-3">
                   <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>URL de imagen del anuncio (opcional — necesaria para crear el anuncio automático)</label>
@@ -173,11 +259,90 @@ export default function AgenteDetalle({ agente, onClose, onEliminado }: Props) {
                     <button onClick={() => { navigator.clipboard.writeText(resultado); toast.success('Copiado') }} className="flex items-center gap-1 text-xs" style={{ color: 'var(--blue-3)' }}><Copy size={13} /> Copiar</button>
                   </div>
                   <div className="rounded-xl p-4 text-sm whitespace-pre-wrap leading-relaxed" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)', color: 'var(--text-2)' }}>{resultado}</div>
+
+                  {/* Encadenado: pasar la estrategia a los otros agentes */}
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <span className="text-xs flex items-center gap-1" style={{ color: 'var(--text-muted)' }}><ArrowDown size={13} /> Pasar esta estrategia a:</span>
+                    <button onClick={() => generarCreativos(resultado)} disabled={cargando} className="btn-outline" type="button">
+                      {cargando ? <Loader2 size={14} className="animate-spin" /> : <Palette size={14} />} Agente Creativo
+                    </button>
+                    <button onClick={() => publicar(resultado)} disabled={cargando} className="btn-outline" type="button">
+                      {cargando ? <Loader2 size={14} className="animate-spin" /> : <Rocket size={14} />} Agente Publicador
+                    </button>
+                  </div>
+                  <p className="text-xs mt-2" style={{ color: 'var(--text-faint)' }}>
+                    El encadenado usa las credenciales de este agente. Para crear en Meta o generar la imagen en Canva de verdad, cargá esas credenciales; si no, corre en modo simulación.
+                  </p>
                 </div>
               )}
 
-              {/* Resultado Publicador */}
-              {esPublicador && spec && (
+              {/* Resultado Creativo (también se muestra al encadenar desde el Estratega) */}
+              {paquete && (
+                <div className="mt-5 space-y-4">
+                  {creativoSim && (
+                    <div className="rounded-lg p-3 text-xs flex items-start gap-2" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', color: '#d97706' }}>
+                      <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                      <span><b>Sin imagen automática.</b> Cargá el Access Token + Brand Template de Canva en el agente para generar la imagen. Mientras tanto, usá los prompts de abajo en Canva o tu generador de imágenes.</span>
+                    </div>
+                  )}
+                  {canva?.imagenUrl && (
+                    <div>
+                      <p className="section-title mb-2 flex items-center gap-1"><CheckCircle2 size={13} style={{ color: '#16a34a' }} /> Imagen generada en Canva</p>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={canva.imagenUrl} alt="Creativo" className="rounded-xl w-full max-w-sm" style={{ border: '1px solid var(--border-2)' }} />
+                      <div className="flex gap-3 mt-2 text-xs">
+                        <a href={canva.imagenUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1" style={{ color: 'var(--blue-3)' }}><ExternalLink size={13} /> Descargar PNG</a>
+                        {canva.editUrl && <a href={canva.editUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1" style={{ color: 'var(--blue-3)' }}><Palette size={13} /> Editar en Canva</a>}
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <p className="section-title mb-2">Variantes de anuncio</p>
+                    <div className="space-y-3">
+                      {paquete.variantes.map((v, i) => (
+                        <div key={i} className="rounded-xl p-4 text-sm space-y-1.5" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)', color: 'var(--text-2)' }}>
+                          <div className="flex items-center justify-between">
+                            <b style={{ color: 'var(--text)' }}>{v.titulo}</b>
+                            <span className="badge badge-blue">{v.cta}</span>
+                          </div>
+                          <p className="whitespace-pre-wrap">{v.textoPrincipal}</p>
+                          <p style={{ color: 'var(--text-muted)' }}>{v.descripcion}</p>
+                          <div className="rounded-lg p-2 mt-1" style={{ background: 'var(--bg-hover)' }}>
+                            <p className="text-xs" style={{ color: 'var(--text-faint)' }}><b>Prompt imagen:</b> {v.promptImagen}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="section-title mb-2">Carrusel</p>
+                    <div className="grid sm:grid-cols-2 gap-2">
+                      {paquete.carrusel.map((s, i) => (
+                        <div key={i} className="rounded-lg p-3 text-sm" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)' }}>
+                          <p style={{ color: 'var(--text-faint)', fontSize: 11 }}>Slide {i + 1}</p>
+                          <p style={{ color: 'var(--text)', fontWeight: 600 }}>{s.titulo}</p>
+                          <p style={{ color: 'var(--text-muted)' }}>{s.texto}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="section-title">Guion de video (Reel 9:16)</p>
+                      <button onClick={() => { navigator.clipboard.writeText(paquete.guionVideo); toast.success('Copiado') }} className="flex items-center gap-1 text-xs" style={{ color: 'var(--blue-3)' }}><Copy size={13} /> Copiar</button>
+                    </div>
+                    <div className="rounded-xl p-4 text-sm whitespace-pre-wrap" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)', color: 'var(--text-2)' }}>{paquete.guionVideo}</div>
+                  </div>
+                  {esEstratega && (
+                    <button onClick={() => publicar(resultado)} disabled={cargando} className="btn-primary" type="button">
+                      {cargando ? <Loader2 size={14} className="animate-spin" /> : <Rocket size={14} />} Enviar al Publicador con esta imagen
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Resultado Publicador (también al encadenar desde el Estratega) */}
+              {spec && (
                 <div className="mt-5 space-y-4">
                   {simulacion && (
                     <div className="rounded-lg p-3 text-xs flex items-start gap-2" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', color: '#d97706' }}>
@@ -230,69 +395,6 @@ export default function AgenteDetalle({ agente, onClose, onEliminado }: Props) {
                 </div>
               )}
 
-              {/* Resultado Creativo */}
-              {esCreativo && paquete && (
-                <div className="mt-5 space-y-4">
-                  {creativoSim && (
-                    <div className="rounded-lg p-3 text-xs flex items-start gap-2" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)', color: '#d97706' }}>
-                      <AlertTriangle size={14} className="mt-0.5 shrink-0" />
-                      <span><b>Sin imagen automática.</b> Cargá el Access Token + Brand Template de Canva en el agente para generar la imagen. Mientras tanto, usá los prompts de abajo en Canva o tu generador de imágenes.</span>
-                    </div>
-                  )}
-
-                  {canva?.imagenUrl && (
-                    <div>
-                      <p className="section-title mb-2 flex items-center gap-1"><CheckCircle2 size={13} style={{ color: '#16a34a' }} /> Imagen generada en Canva</p>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={canva.imagenUrl} alt="Creativo" className="rounded-xl w-full max-w-sm" style={{ border: '1px solid var(--border-2)' }} />
-                      <div className="flex gap-3 mt-2 text-xs">
-                        <a href={canva.imagenUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1" style={{ color: 'var(--blue-3)' }}><ExternalLink size={13} /> Descargar PNG</a>
-                        {canva.editUrl && <a href={canva.editUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1" style={{ color: 'var(--blue-3)' }}><Palette size={13} /> Editar en Canva</a>}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <p className="section-title mb-2">Variantes de anuncio</p>
-                    <div className="space-y-3">
-                      {paquete.variantes.map((v, i) => (
-                        <div key={i} className="rounded-xl p-4 text-sm space-y-1.5" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)', color: 'var(--text-2)' }}>
-                          <div className="flex items-center justify-between">
-                            <b style={{ color: 'var(--text)' }}>{v.titulo}</b>
-                            <span className="badge badge-blue">{v.cta}</span>
-                          </div>
-                          <p className="whitespace-pre-wrap">{v.textoPrincipal}</p>
-                          <p style={{ color: 'var(--text-muted)' }}>{v.descripcion}</p>
-                          <div className="rounded-lg p-2 mt-1" style={{ background: 'var(--bg-hover)' }}>
-                            <p className="text-xs" style={{ color: 'var(--text-faint)' }}><b>Prompt imagen:</b> {v.promptImagen}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="section-title mb-2">Carrusel</p>
-                    <div className="grid sm:grid-cols-2 gap-2">
-                      {paquete.carrusel.map((s, i) => (
-                        <div key={i} className="rounded-lg p-3 text-sm" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)' }}>
-                          <p style={{ color: 'var(--text-faint)', fontSize: 11 }}>Slide {i + 1}</p>
-                          <p style={{ color: 'var(--text)', fontWeight: 600 }}>{s.titulo}</p>
-                          <p style={{ color: 'var(--text-muted)' }}>{s.texto}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="section-title">Guion de video (Reel 9:16)</p>
-                      <button onClick={() => { navigator.clipboard.writeText(paquete.guionVideo); toast.success('Copiado') }} className="flex items-center gap-1 text-xs" style={{ color: 'var(--blue-3)' }}><Copy size={13} /> Copiar</button>
-                    </div>
-                    <div className="rounded-xl p-4 text-sm whitespace-pre-wrap" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)', color: 'var(--text-2)' }}>{paquete.guionVideo}</div>
-                  </div>
-                </div>
-              )}
             </>
           ) : (
             <div className="card p-6 text-center" style={{ background: 'var(--bg-input)' }}>

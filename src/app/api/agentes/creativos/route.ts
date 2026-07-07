@@ -11,6 +11,7 @@ interface Body {
   pais: string
   departamento: string
   comercio: Comercio
+  brief?: string   // estrategia recibida del Agente Estratega (encadenado)
   credenciales: Record<string, string>
 }
 
@@ -78,6 +79,7 @@ export async function POST(req: NextRequest) {
     const system = `Sos director creativo de una agencia de Meta Ads. Generá creativos para ${b.comercio.nombre} (${r.nombre}) en ${b.departamento}, ${b.pais}.
 Comercio: ${b.comercio.descripcion || 'N/D'}. Oferta: ${b.comercio.oferta || 'N/D'}.
 ${reglas}
+${b.brief ? `\nESTRATEGIA DEL AGENTE ESTRATEGA (usala como base para los creativos):\n${b.brief}\n` : ''}
 Copies en español rioplatense, potentes y concretos. Prompts de imagen bien detallados y accionables. Llamá a la herramienta definir_creativos.`
 
     const msg = await client.messages.create({
