@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
-import { Bot, Plus, Loader2, MapPin } from 'lucide-react'
+import { Bot, Plus, Loader2, MapPin, Wand2 } from 'lucide-react'
 import { getAgentes } from '@/lib/agentes'
 import { getTipoAgenteMeta, getRubroMeta, type Agente } from '@/types/agentes'
 import AgregarAgenteModal from '@/components/agentes/AgregarAgenteModal'
 import AgenteDetalle from '@/components/agentes/AgenteDetalle'
+import OrquestadorModal from '@/components/agentes/OrquestadorModal'
 
 export default function AgentesPage() {
   const { usuario, loading } = useAuth()
@@ -16,6 +17,7 @@ export default function AgentesPage() {
   const [agentes, setAgentes] = useState<Agente[]>([])
   const [cargando, setCargando] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showOrq, setShowOrq] = useState(false)
   const [seleccionado, setSeleccionado] = useState<Agente | null>(null)
 
   useEffect(() => {
@@ -55,9 +57,16 @@ export default function AgentesPage() {
             </p>
           </div>
         </div>
-        <button onClick={() => setShowModal(true)} className="btn-primary">
-          <Plus size={16} /> Agregar Agente
-        </button>
+        <div className="flex items-center gap-2">
+          {agentes.length > 0 && (
+            <button onClick={() => setShowOrq(true)} className="btn-outline">
+              <Wand2 size={16} /> Campaña completa
+            </button>
+          )}
+          <button onClick={() => setShowModal(true)} className="btn-primary">
+            <Plus size={16} /> Agregar Agente
+          </button>
+        </div>
       </div>
 
       {/* Grid de agentes */}
@@ -119,6 +128,9 @@ export default function AgentesPage() {
           onClose={() => setSeleccionado(null)}
           onEliminado={() => { setSeleccionado(null); cargar() }}
         />
+      )}
+      {showOrq && (
+        <OrquestadorModal agentes={agentes} onClose={() => setShowOrq(false)} />
       )}
     </div>
   )
