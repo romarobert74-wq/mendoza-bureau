@@ -101,7 +101,7 @@ export const TIPOS_AGENTE: TipoAgenteMeta[] = [
     emoji: '🚀',
     color: '#8b5cf6',
     plataformas: ['meta_ads', 'facebook', 'instagram'],
-    disponible: false,
+    disponible: true,
   },
   {
     tipo: 'community',
