@@ -8,7 +8,7 @@ import { auth } from '@/lib/firebase'
 import { useAuth } from '@/context/AuthContext'
 import {
   LayoutDashboard, Users, MapPin, Settings,
-  LogOut, Map, Bot, Globe,
+  LogOut, Map, Bot, Globe, Sparkles,
 } from 'lucide-react'
 import type { Rol } from '@/types'
 
@@ -18,6 +18,7 @@ const navItems = [
   { href: '/dashboard/tour-madre',    label: 'Tour Madre',        icon: Map,              roles: ['el_faro'] as Rol[] },
   { href: '/dashboard/web-bureau',    label: 'Web Institucional', icon: Globe,            roles: ['el_faro', 'bureau'] as Rol[] },
   { href: '/dashboard/chat-ia',       label: 'Chat IA',           icon: Bot,              roles: ['el_faro'] as Rol[] },
+  { href: '/dashboard/agentes',       label: 'Agentes IA',        icon: Sparkles,         roles: ['el_faro'] as Rol[] },
   { href: '/dashboard/usuarios',      label: 'Usuarios',          icon: Users,            roles: ['el_faro'] as Rol[] },
   { href: '/dashboard/configuracion', label: 'Configuración',     icon: Settings,         roles: ['el_faro'] as Rol[] },
 ]

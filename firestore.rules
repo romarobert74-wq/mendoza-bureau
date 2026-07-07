@@ -56,6 +56,11 @@ service cloud.firestore {
       allow write: if isElFaro();
     }
 
+    // Agentes IA: solo el_faro (contiene credenciales sensibles)
+    match /agentes/{agenteId} {
+      allow read, write: if isElFaro();
+    }
+
     // Analytics / clicks: escritura pública (desde tours), lectura con rol
     match /analytics/{docId} {
       allow create: if true;
