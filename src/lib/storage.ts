@@ -1,43 +1,55 @@
-const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+// Almacenamiento de imágenes SIN dependencias externas: se redimensionan en el
+// navegador y se guardan como data URL directamente en Firestore. Es lo que ya
+// funcionaba para la galería de fotos; evita Firebase Storage (plan pago) y
+// Cloudinary (setup externo).
+
+interface UploadOpts {
+  maxPx?: number         // dimensión máxima del lado más largo
+  preserveAlpha?: boolean // true → PNG (mantiene transparencia, ideal logos)
+  quality?: number        // calidad JPEG (0-1)
+}
+
+function procesar(file: File | Blob, opts: UploadOpts): Promise<string> {
+  const maxPx = opts.maxPx ?? 1400
+  const preserveAlpha = opts.preserveAlpha ?? false
+  const quality = opts.quality ?? 0.82
+
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const objUrl = URL.createObjectURL(file)
+    img.onload = () => {
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      URL.revokeObjectURL(objUrl)
+      const dataUrl = preserveAlpha
+        ? canvas.toDataURL('image/png')
+        : canvas.toDataURL('image/jpeg', quality)
+      resolve(dataUrl)
+    }
+    img.onerror = () => { URL.revokeObjectURL(objUrl); reject(new Error('No se pudo leer la imagen')) }
+    img.src = objUrl
+  })
+}
 
 /**
- * Sube una imagen a Cloudinary (unsigned upload, sin backend propio).
- * @param file   Archivo a subir
- * @param path   Identificador único del asset (soporta "/" como carpetas virtuales), sin extensión
- * @param onProgress  Callback 0-100 con el progreso de subida
+ * Redimensiona la imagen y devuelve un data URL listo para guardar en Firestore.
+ * @param file  Archivo o Blob de imagen
+ * @param _path Se ignora (compatibilidad con la firma anterior)
+ * @param onProgress  Callback de progreso (0-100)
+ * @param opts  Opciones de tamaño/formato
  */
 export async function uploadImage(
   file: File | Blob,
-  path: string,
+  _path?: string,
   onProgress?: (pct: number) => void,
+  opts: UploadOpts = {},
 ): Promise<string> {
-  if (!CLOUD_NAME || !UPLOAD_PRESET) {
-    throw new Error('Cloudinary no está configurado (faltan variables de entorno)')
-  }
-
-  const publicId = path.replace(/\.[^/.]+$/, '') // Cloudinary asigna su propia extensión
-
-  const formData = new FormData()
-  formData.append('file', file)
-  formData.append('upload_preset', UPLOAD_PRESET)
-  formData.append('public_id', publicId)
-
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`)
-    xhr.upload.onprogress = e => {
-      if (e.lengthComputable) onProgress?.(Math.round((e.loaded / e.total) * 100))
-    }
-    xhr.onload = () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        const data = JSON.parse(xhr.responseText)
-        resolve(data.secure_url as string)
-      } else {
-        reject(new Error('Error al subir la imagen a Cloudinary'))
-      }
-    }
-    xhr.onerror = () => reject(new Error('Error de red al subir la imagen'))
-    xhr.send(formData)
-  })
+  onProgress?.(10)
+  const dataUrl = await procesar(file, opts)
+  onProgress?.(100)
+  return dataUrl
 }

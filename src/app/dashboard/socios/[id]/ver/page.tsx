@@ -3,14 +3,15 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { getSocio, getAnalyticsResumen } from '@/lib/firestore'
+import { getSocio, getAnalyticsResumen, getAnalyticsSocioPeriodo } from '@/lib/firestore'
 import type { AnalyticsSocio } from '@/lib/firestore'
 import { getFotosSocio } from '@/lib/firestore'
 import { CATEGORIAS } from '@/types'
 import type { Socio } from '@/types'
+import toast from 'react-hot-toast'
 import {
   ChevronLeft, Pencil, ExternalLink, Eye, MousePointerClick, Globe as GlobeIcon,
-  Share2, Timer, Image as ImageIcon, MapPin, Mail, Phone, Loader2,
+  Share2, Timer, Image as ImageIcon, MapPin, Mail, Phone, Loader2, FileDown,
 } from 'lucide-react'
 
 function fmtTiempo(ms: number): string {
@@ -31,9 +32,26 @@ export default function VerSocioPage() {
   const [stats, setStats] = useState<AnalyticsSocio>(VACIO)
   const [fotos, setFotos] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [generando, setGenerando] = useState(false)
 
   const BASE = 'https://mendoza-bureau.vercel.app'
   const fichaUrl = `${BASE}/tour/socio/ficha?id=${id}`
+
+  const generarReporte = async (periodo: 'mensual' | 'trimestral') => {
+    if (!socio) return
+    setGenerando(true)
+    try {
+      const hasta = new Date()
+      const desde = new Date()
+      desde.setMonth(desde.getMonth() - (periodo === 'mensual' ? 1 : 3))
+      const p = await getAnalyticsSocioPeriodo(id, desde, hasta)
+      abrirReporteImprimible(socio, periodo, desde, hasta, p)
+    } catch {
+      toast.error('Error al generar el reporte')
+    } finally {
+      setGenerando(false)
+    }
+  }
 
   useEffect(() => {
     let activo = true
@@ -98,9 +116,20 @@ export default function VerSocioPage() {
       </div>
 
       {/* Indicadores por socio */}
-      <h3 className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: 'var(--text-2)' }}>
-        Indicadores de interacción
-      </h3>
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-2)' }}>
+          Indicadores de interacción
+        </h3>
+        <div className="flex items-center gap-2">
+          <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Reporte PDF:</span>
+          <button onClick={() => generarReporte('mensual')} disabled={generando} className="btn-outline" style={{ padding: '5px 10px', fontSize: '12px' }}>
+            {generando ? <Loader2 size={13} className="animate-spin" /> : <FileDown size={13} />} Mensual
+          </button>
+          <button onClick={() => generarReporte('trimestral')} disabled={generando} className="btn-outline" style={{ padding: '5px 10px', fontSize: '12px' }}>
+            <FileDown size={13} /> Trimestral
+          </button>
+        </div>
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <Ind label="Visitas al tour" value={stats.tour} sub="aperturas de la ficha" icon={Eye} accent="#3b82f6" />
         <Ind label="Tiempo en tour" value={fmtTiempo(stats.tiempoMs)} sub={`${stats.visitas} sesiones`} icon={Timer} accent="#a855f7" isText />
@@ -165,4 +194,61 @@ function Fila({ icon: Icon, label, value }: { icon: React.ElementType; label: st
       <span className="truncate" style={{ color: 'var(--text-2)' }}>{value}</span>
     </div>
   )
+}
+
+// Genera un reporte imprimible (Guardar como PDF desde el navegador)
+function abrirReporteImprimible(
+  socio: Socio,
+  periodo: 'mensual' | 'trimestral',
+  desde: Date,
+  hasta: Date,
+  s: AnalyticsSocio,
+) {
+  const fmt = (d: Date) => d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const seg = Math.round(s.tiempoMs / 1000)
+  const tiempoTxt = seg < 60 ? `${seg} seg` : seg < 3600 ? `${Math.floor(seg / 60)} min ${seg % 60} seg` : `${Math.floor(seg / 3600)} h ${Math.floor((seg % 3600) / 60)} min`
+  const prom = s.visitas > 0 ? Math.round(s.tiempoMs / s.visitas / 1000) : 0
+  const filas = [
+    ['Visitas al tour virtual', String(s.tour)],
+    ['Sesiones con tiempo medido', String(s.visitas)],
+    ['Tiempo total de permanencia', tiempoTxt],
+    ['Permanencia promedio por sesión', `${prom} seg`],
+    ['Clicks a contacto (WhatsApp / email)', String(s.contacto)],
+    ['Clicks al sitio web', String(s.web)],
+    ['Clicks a redes sociales', String(s.redes)],
+  ]
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8">
+<title>Reporte ${periodo} — ${socio.razonSocial}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; color: #1c1917; padding: 48px; max-width: 800px; margin: 0 auto; }
+  .eyebrow { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #f15a24; }
+  h1 { font-size: 26px; margin: 6px 0 2px; }
+  .sub { color: #78716c; font-size: 14px; margin-bottom: 4px; }
+  .periodo { display: inline-block; background: #fff3ee; color: #d8461a; border: 1px solid #ffd3c0; border-radius: 999px; padding: 4px 14px; font-size: 12px; font-weight: 700; margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 28px; }
+  td { padding: 13px 16px; border-bottom: 1px solid #e7e5e4; font-size: 14px; }
+  td:last-child { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  tr:nth-child(even) { background: #fafaf9; }
+  .foot { margin-top: 40px; padding-top: 16px; border-top: 2px solid #1c1917; font-size: 11px; color: #a8a29e; display: flex; justify-content: space-between; }
+  @media print { body { padding: 24px; } .noprint { display: none; } }
+  .btn { display: inline-block; margin-top: 28px; background: #f15a24; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
+</style></head><body>
+  <div class="eyebrow">Reporte de estadísticas</div>
+  <h1>${socio.razonSocial}</h1>
+  <div class="sub">${CATEGORIAS[socio.categoria]} · Mendoza Bureau · El Faro 360</div>
+  <div class="periodo">Período ${periodo}: ${fmt(desde)} — ${fmt(hasta)}</div>
+  <table><tbody>
+    ${filas.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+  </tbody></table>
+  <div class="foot">
+    <span>Generado el ${fmt(new Date())}</span>
+    <span>Mendoza Bureau · Convention &amp; Visitors Bureau</span>
+  </div>
+  <button class="btn noprint" onclick="window.print()">Imprimir / Guardar como PDF</button>
+</body></html>`
+  const w = window.open('', '_blank')
+  if (!w) { alert('Permití las ventanas emergentes para generar el reporte.'); return }
+  w.document.write(html)
+  w.document.close()
 }

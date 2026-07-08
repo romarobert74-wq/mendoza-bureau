@@ -8,6 +8,7 @@ import type {
 import {
   CATEGORIAS_HOTEL, RANGO_PRECIO, SUBZONAS_MENDOZA, TIPOS_ALOJAMIENTO,
   HOTEL_VACIO, RESTAURANTE_VACIO, BODEGA_VACIA, ALOJAMIENTO_VACIO, SERVICIO_VACIO,
+  SUBCATEGORIAS_SERVICIO,
 } from '@/types'
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -41,6 +42,51 @@ function Txt({ label, value, onChange, placeholder, span2 }: { label: string; va
     <div className={span2 ? 'md:col-span-2' : ''}>
       <label className={lbl} style={lbl_c}>{label}</label>
       <input type="text" className="input" placeholder={placeholder ?? ''} value={value} onChange={e => onChange(e.target.value)} />
+    </div>
+  )
+}
+
+const IDIOMAS_COMUNES = ['Español', 'Inglés', 'Portugués', 'Francés', 'Italiano', 'Alemán']
+
+// Selector de idiomas: botones toggle + campo "Otros". El valor se guarda como
+// string separado por comas (compatible con lo ya cargado).
+function Idiomas({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const seleccionados = value.split(',').map(s => s.trim()).filter(Boolean)
+  const otros = seleccionados.filter(s => !IDIOMAS_COMUNES.some(c => c.toLowerCase() === s.toLowerCase()))
+  const otrosStr = otros.join(', ')
+
+  const toggle = (idioma: string) => {
+    const activo = seleccionados.some(s => s.toLowerCase() === idioma.toLowerCase())
+    const base = seleccionados.filter(s => s.toLowerCase() !== idioma.toLowerCase())
+    const nuevos = activo ? base : [...base, idioma]
+    onChange(nuevos.join(', '))
+  }
+
+  const setOtros = (txt: string) => {
+    const comunes = seleccionados.filter(s => IDIOMAS_COMUNES.some(c => c.toLowerCase() === s.toLowerCase()))
+    const extras = txt.split(',').map(s => s.trim()).filter(Boolean)
+    onChange([...comunes, ...extras].join(', '))
+  }
+
+  return (
+    <div className="md:col-span-2">
+      <label className={lbl} style={lbl_c}>{label}</label>
+      <div className="flex flex-wrap gap-2 mb-2">
+        {IDIOMAS_COMUNES.map(idioma => {
+          const activo = seleccionados.some(s => s.toLowerCase() === idioma.toLowerCase())
+          return (
+            <button key={idioma} type="button" onClick={() => toggle(idioma)}
+              className="px-3 py-1.5 rounded-lg text-sm font-medium transition"
+              style={activo
+                ? { background: 'rgba(241,90,36,0.16)', color: '#ff7a45', border: '1px solid rgba(241,90,36,0.4)' }
+                : { background: '#111827', color: '#94a3b8', border: '1px solid #1e293b' }}>
+              {idioma}
+            </button>
+          )
+        })}
+      </div>
+      <input type="text" className="input" placeholder="Otros idiomas (separados por coma)"
+        value={otrosStr} onChange={e => setOtros(e.target.value)} />
     </div>
   )
 }
@@ -144,7 +190,7 @@ export function HotelEditor({ data, onChange }: { data: HotelData; onChange: (d:
       <Sec title="Operación y contacto">
         <Txt label="Check-in" value={data.checkIn} onChange={v => s('checkIn', v)} placeholder="Ej: 14:00 hs" />
         <Txt label="Check-out" value={data.checkOut} onChange={v => s('checkOut', v)} placeholder="Ej: 11:00 hs" />
-        <Txt label="Idiomas de atención" value={data.idiomasAtencion} onChange={v => s('idiomasAtencion', v)} placeholder="Español, Inglés, Portugués" />
+        <Idiomas label="Idiomas de atención" value={data.idiomasAtencion} onChange={v => s('idiomasAtencion', v)} />
         <Txt label="Certificaciones / Sustentabilidad" value={data.certificaciones} onChange={v => s('certificaciones', v)} placeholder="ISO 14001, Green Globe..." span2 />
         <Txt label="Precio desde" value={data.precioDesde} onChange={v => s('precioDesde', v)} placeholder="Consultar / Desde $XXX" />
         <TextArea label="Observaciones" value={data.observaciones} onChange={v => s('observaciones', v)} placeholder="Información adicional relevante para grupos MICE..." />
@@ -197,7 +243,7 @@ export function RestauranteEditor({ data, onChange }: { data: RestauranteData; o
         <Txt label="Días de cierre" value={data.diasCierre} onChange={v => s('diasCierre', v)} placeholder="Ej: Lunes" />
         <Num label="Grupo mínimo (personas)" value={data.grupoMinimoPersonas} onChange={v => s('grupoMinimoPersonas', v)} />
         <Num label="Grupo máximo (personas)" value={data.grupoMaximoPersonas} onChange={v => s('grupoMaximoPersonas', v)} />
-        <Txt label="Idiomas de atención" value={data.idiomasAtencion} onChange={v => s('idiomasAtencion', v)} placeholder="Español, Inglés" />
+        <Idiomas label="Idiomas de atención" value={data.idiomasAtencion} onChange={v => s('idiomasAtencion', v)} />
         <div className="md:col-span-2">
           <Chk label="Requiere reserva previa" value={data.reservaRequerida} onChange={v => s('reservaRequerida', v)} />
         </div>
@@ -234,7 +280,7 @@ export function BodegaEditor({ data, onChange }: { data: BodegaData; onChange: (
         ]} />
         {data.tieneVisitasGuiadas && (
           <>
-            <Txt label="Idiomas de visita" value={data.idiomasVisita} onChange={v => s('idiomasVisita', v)} placeholder="Español, Inglés, Portugués" />
+            <Idiomas label="Idiomas de visita" value={data.idiomasVisita} onChange={v => s('idiomasVisita', v)} />
             <Txt label="Duración estimada" value={data.duracionVisita} onChange={v => s('duracionVisita', v)} placeholder="2 horas" />
             <Num label="Capacidad máx. grupo" value={data.capacidadGrupoVisita} onChange={v => s('capacidadGrupoVisita', v)} placeholder="40" />
           </>
@@ -300,7 +346,7 @@ export function AlojamientoEditor({ data, onChange }: { data: AlojamientoData; o
 
       <Sec title="Política y precios">
         <Num label="Estadía mínima (noches)" value={data.estanciaMinima} onChange={v => s('estanciaMinima', v)} placeholder="2" />
-        <Txt label="Idiomas de atención" value={data.idiomasAtencion} onChange={v => s('idiomasAtencion', v)} placeholder="Español, Inglés" />
+        <Idiomas label="Idiomas de atención" value={data.idiomasAtencion} onChange={v => s('idiomasAtencion', v)} />
         <Txt label="Horario check-in" value={data.horarioCheckin} onChange={v => s('horarioCheckin', v)} placeholder="Ej: 14:00 hs" />
         <Txt label="Horario check-out" value={data.horarioCheckout} onChange={v => s('horarioCheckout', v)} placeholder="Ej: 10:00 hs" />
         <Txt label="Precio desde" value={data.precioDesde} onChange={v => s('precioDesde', v)} placeholder="Consultar / $X la noche" />
@@ -314,8 +360,41 @@ export function AlojamientoEditor({ data, onChange }: { data: AlojamientoData; o
 export function ServicioEditor({ data, onChange }: { data: ServicioData; onChange: (d: ServicioData) => void }) {
   const s = <K extends keyof ServicioData>(k: K, v: ServicioData[K]) => onChange({ ...data, [k]: v })
 
+  const subs = data.subcategorias ?? []
+  const toggleSub = (sub: string) => {
+    const activo = subs.includes(sub)
+    s('subcategorias', activo ? subs.filter(x => x !== sub) : [...subs, sub])
+  }
+  const otrasSub = subs.filter(x => !SUBCATEGORIAS_SERVICIO.includes(x))
+  const setOtrasSub = (txt: string) => {
+    const predef = subs.filter(x => SUBCATEGORIAS_SERVICIO.includes(x))
+    const extras = txt.split(',').map(x => x.trim()).filter(Boolean)
+    s('subcategorias', [...predef, ...extras])
+  }
+
   return (
     <div className="space-y-6">
+      <Sec title="Rubros del servicio" sub="Seleccioná uno o más rubros que ofrecés">
+        <div className="md:col-span-2">
+          <div className="flex flex-wrap gap-2 mb-2">
+            {SUBCATEGORIAS_SERVICIO.map(sub => {
+              const activo = subs.includes(sub)
+              return (
+                <button key={sub} type="button" onClick={() => toggleSub(sub)}
+                  className="px-3 py-1.5 rounded-lg text-sm font-medium transition"
+                  style={activo
+                    ? { background: 'rgba(241,90,36,0.16)', color: '#ff7a45', border: '1px solid rgba(241,90,36,0.4)' }
+                    : { background: '#111827', color: '#94a3b8', border: '1px solid #1e293b' }}>
+                  {sub}
+                </button>
+              )
+            })}
+          </div>
+          <input type="text" className="input" placeholder="Otros rubros (separados por coma)"
+            value={otrasSub.join(', ')} onChange={e => setOtrasSub(e.target.value)} />
+        </div>
+      </Sec>
+
       <Sec title="Descripción del servicio">
         <Txt label="Tipos de servicio ofrecidos" value={data.tiposServicio} onChange={v => s('tiposServicio', v)} placeholder="Transfers, guías turísticos, producción de eventos, catering..." span2 />
         <Txt label="Especialización MICE" value={data.especializacionMICE} onChange={v => s('especializacionMICE', v)} placeholder="Incentivos, gala dinners, team building, product launches..." span2 />
@@ -335,7 +414,7 @@ export function ServicioEditor({ data, onChange }: { data: ServicioData; onChang
 
       <Sec title="Cobertura y certificaciones">
         <Txt label="Cobertura geográfica" value={data.coberturaGeografica} onChange={v => s('coberturaGeografica', v)} placeholder="Gran Mendoza, Valle de Uco, regional, nacional" span2 />
-        <Txt label="Idiomas de servicio" value={data.idiomasServicio} onChange={v => s('idiomasServicio', v)} placeholder="Español, Inglés, Portugués, Francés" />
+        <Idiomas label="Idiomas de servicio" value={data.idiomasServicio} onChange={v => s('idiomasServicio', v)} />
         <Txt label="Certificaciones / Habilitaciones" value={data.certificaciones} onChange={v => s('certificaciones', v)} placeholder="Habilitación SECTUR, IATA, ISO..." />
       </Sec>
 

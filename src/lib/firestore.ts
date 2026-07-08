@@ -284,3 +284,26 @@ export async function getAnalyticsResumen(): Promise<AnalyticsResumen> {
 
   return { porSocio, total }
 }
+
+// Estadísticas de un socio dentro de un rango de fechas (para reportes mensuales/trimestrales)
+export async function getAnalyticsSocioPeriodo(
+  socioId: string,
+  desde: Date,
+  hasta: Date,
+): Promise<AnalyticsSocio> {
+  const q = query(collection(db, 'analytics'), where('socioId', '==', socioId))
+  const snap = await getDocs(q)
+  const acc = EVENTO_VACIO()
+  snap.docs.forEach(d => {
+    const data = d.data() as { tipo?: string; ms?: number; timestamp?: { toDate?: () => Date } }
+    const ts = data.timestamp?.toDate?.()
+    if (!ts || ts < desde || ts > hasta) return
+    if (data.tipo === 'webframe_tiempo') {
+      acc.tiempoMs += typeof data.ms === 'number' ? data.ms : 0
+      acc.visitas += 1
+    } else if (data.tipo === 'tour' || data.tipo === 'contacto' || data.tipo === 'web' || data.tipo === 'redes') {
+      acc[data.tipo] += 1
+    }
+  })
+  return acc
+}

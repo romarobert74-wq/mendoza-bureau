@@ -67,8 +67,9 @@ function ImageUploadField({ label, hint, value, onChange, storageId, aspect }: {
     if (!file.type.startsWith('image/')) return
     setUploading(true)
     try {
-      const ext = file.name.split('.').pop()
-      const url = await uploadImage(file, `form/${storageId}/${aspect}.${ext}`, setProgress)
+      const url = aspect === 'logo'
+        ? await uploadImage(file, undefined, setProgress, { preserveAlpha: true, maxPx: 500 })
+        : await uploadImage(file, undefined, setProgress, { maxPx: 1400, quality: 0.82 })
       onChange(url)
     } catch {
       alert('Error al subir la imagen. Intentá de nuevo.')

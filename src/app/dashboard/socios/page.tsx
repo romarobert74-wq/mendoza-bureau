@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { getSocios, eliminarSocio, getAnalyticsResumen } from '@/lib/firestore'
-import type { AnalyticsResumen } from '@/lib/firestore'
+import type { AnalyticsResumen, AnalyticsSocio } from '@/lib/firestore'
 import { useAuth } from '@/context/AuthContext'
 import { CATEGORIAS, CATEGORIA_COLOR } from '@/types'
 import type { Socio, CategoriaSocio } from '@/types'
@@ -40,6 +40,7 @@ export default function SociosPage() {
   const [analytics, setAnalytics] = useState<AnalyticsResumen | null>(null)
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('')
+  const [catFiltro, setCatFiltro] = useState<CategoriaSocio | 'todas'>('todas')
   const [orden, setOrden] = useState<{ col: Columna; dir: Direccion }>({ col: 'nombre', dir: 'asc' })
 
   const ordenarPor = (col: Columna) => {
@@ -67,10 +68,29 @@ export default function SociosPage() {
     }
   }
 
+  // Totales de interacción para la categoría seleccionada (o todas)
+  const totalesCategoria = (() => {
+    const acc: AnalyticsSocio = { tour: 0, contacto: 0, web: 0, redes: 0, visitas: 0, tiempoMs: 0 }
+    if (!analytics) return acc
+    for (const soc of socios) {
+      if (catFiltro !== 'todas' && soc.categoria !== catFiltro) continue
+      const a = analytics.porSocio[soc.id]
+      if (!a) continue
+      acc.tour += a.tour; acc.contacto += a.contacto; acc.web += a.web
+      acc.redes += a.redes; acc.visitas += a.visitas; acc.tiempoMs += a.tiempoMs
+    }
+    return acc
+  })()
+
+  // Categorías que tienen al menos un socio (para los chips de filtro)
+  const categoriasPresentes = (Object.keys(CATEGORIAS) as CategoriaSocio[])
+    .filter(cat => socios.some(s => s.categoria === cat))
+
   const filtrados = socios
     .filter(s =>
-      s.razonSocial.toLowerCase().includes(filtro.toLowerCase()) ||
-      s.etiqueta.toLowerCase().includes(filtro.toLowerCase())
+      (catFiltro === 'todas' || s.categoria === catFiltro) &&
+      (s.razonSocial.toLowerCase().includes(filtro.toLowerCase()) ||
+       s.etiqueta.toLowerCase().includes(filtro.toLowerCase()))
     )
     .sort((a, b) => {
       const dir = orden.dir === 'asc' ? 1 : -1
@@ -190,14 +210,38 @@ export default function SociosPage() {
         </div>
       </div>
 
-      {/* Indicadores de interacción */}
+      {/* Indicadores de interacción — filtrables por categoría */}
       {analytics && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <IndicadorCard label="Visitas a tours" value={analytics.total.tour} sub="aperturas de webframe" icon={Eye} accent="#3b82f6" />
-          <IndicadorCard label="Clicks de contacto" value={analytics.total.contacto} sub="WhatsApp / email" icon={MousePointerClick} accent="#25d366" />
-          <IndicadorCard label="Clicks a web" value={analytics.total.web} sub="sitio del socio" icon={GlobeIcon} accent="#38bdf8" />
-          <IndicadorCard label="Tiempo en tour" value={fmtTiempo(analytics.total.tiempoMs)} sub={`${analytics.total.visitas} sesiones`} icon={Timer} accent="#a855f7" isText />
-        </div>
+        <>
+          <div className="flex flex-wrap gap-2 mb-3">
+            <button onClick={() => setCatFiltro('todas')}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+              style={catFiltro === 'todas'
+                ? { background: 'rgba(241,90,36,0.16)', color: 'var(--orange-2)', border: '1px solid rgba(241,90,36,0.4)' }
+                : { background: 'var(--bg-input)', color: 'var(--text-muted)', border: '1px solid var(--border-2)' }}>
+              Todas
+            </button>
+            {categoriasPresentes.map(cat => {
+              const activo = catFiltro === cat
+              const color = CATEGORIA_COLOR[cat]
+              return (
+                <button key={cat} onClick={() => setCatFiltro(cat)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+                  style={activo
+                    ? { background: `${color}22`, color, border: `1px solid ${color}66` }
+                    : { background: 'var(--bg-input)', color: 'var(--text-muted)', border: '1px solid var(--border-2)' }}>
+                  {CATEGORIAS[cat]}
+                </button>
+              )
+            })}
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <IndicadorCard label="Visitas a tours" value={totalesCategoria.tour} sub={catFiltro === 'todas' ? 'todas las categorías' : CATEGORIAS[catFiltro]} icon={Eye} accent="#3b82f6" />
+            <IndicadorCard label="Clicks de contacto" value={totalesCategoria.contacto} sub="WhatsApp / email" icon={MousePointerClick} accent="#25d366" />
+            <IndicadorCard label="Clicks a web" value={totalesCategoria.web} sub="sitio del socio" icon={GlobeIcon} accent="#38bdf8" />
+            <IndicadorCard label="Tiempo en tour" value={fmtTiempo(totalesCategoria.tiempoMs)} sub={`${totalesCategoria.visitas} sesiones`} icon={Timer} accent="#a855f7" isText />
+          </div>
+        </>
       )}
 
       {/* Search */}

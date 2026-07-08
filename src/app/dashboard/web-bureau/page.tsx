@@ -291,8 +291,14 @@ function TabInicio() {
               </label>
             </div>
             {cfg.logoUrl && (
-              <div className="flex-shrink-0 w-20 h-14 bg-gray-800 rounded-lg flex items-center justify-center p-2">
-                <img src={cfg.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
+              <div className="flex-shrink-0 flex flex-col items-center gap-1">
+                <div className="w-20 h-14 bg-gray-800 rounded-lg flex items-center justify-center p-2">
+                  <img src={cfg.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
+                </div>
+                <button type="button" onClick={() => setCfg(c => ({ ...c, logoUrl: '' }))}
+                  className="text-xs transition hover:text-red-400" style={{ color: 'var(--text-muted)' }}>
+                  Quitar
+                </button>
               </div>
             )}
           </div>

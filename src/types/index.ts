@@ -422,6 +422,7 @@ export const TIPOS_ALOJAMIENTO: Record<TipoAlojamiento, string> = {
 
 // ── Servicio ──────────────────────────────────────────────────────────────────
 export interface ServicioData {
+  subcategorias: string[]           // "Organización de eventos", "Transporte", etc.
   tiposServicio: string             // "Transfers, guías, producción de eventos"
   especializacionMICE: string       // "Incentivos, gala dinners, team building"
   añosOperacion: number | null
@@ -447,7 +448,19 @@ export interface ServicioData {
   observaciones: string
 }
 
+export const SUBCATEGORIAS_SERVICIO = [
+  'Organización de eventos',
+  'Sonido e iluminación',
+  'Transporte',
+  'Desarrollo de software',
+  'Catering',
+  'Producción audiovisual',
+  'Guías turísticos',
+  'Fotografía y filmación',
+]
+
 export const SERVICIO_VACIO = (): ServicioData => ({
+  subcategorias: [],
   tiposServicio: '',
   especializacionMICE: '',
   añosOperacion: null,

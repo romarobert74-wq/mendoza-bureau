@@ -82,8 +82,7 @@ export default function ConfiguracionPage() {
     if (!file.type.startsWith('image/')) { toast.error('Debe ser una imagen'); return }
     setSubiendoLogo(true)
     try {
-      const ext = file.name.split('.').pop()
-      const url = await uploadImage(file, `sistema/logo-bureau.${ext}`)
+      const url = await uploadImage(file, undefined, undefined, { preserveAlpha: true, maxPx: 500 })
       setLogoUrl(url)
       await setConfigSistema({ departamentos, categoriasExtra, logoUrl: url, logoElFaroUrl })
       toast.success('Logo actualizado')
@@ -101,8 +100,7 @@ export default function ConfiguracionPage() {
     if (!file.type.startsWith('image/')) { toast.error('Debe ser una imagen'); return }
     setSubiendoLogoFaro(true)
     try {
-      const ext = file.name.split('.').pop()
-      const url = await uploadImage(file, `sistema/logo-elfaro.${ext}`)
+      const url = await uploadImage(file, undefined, undefined, { preserveAlpha: true, maxPx: 500 })
       setLogoElFaroUrl(url)
       await setConfigSistema({ departamentos, categoriasExtra, logoUrl, logoElFaroUrl: url })
       toast.success('Logo actualizado')
