@@ -41,11 +41,16 @@ export default function VerSocioPage() {
     if (!socio) return
     setGenerando(true)
     try {
+      const meses = periodo === 'mensual' ? 1 : 3
       const hasta = new Date()
-      const desde = new Date()
-      desde.setMonth(desde.getMonth() - (periodo === 'mensual' ? 1 : 3))
-      const p = await getAnalyticsSocioPeriodo(id, desde, hasta)
-      abrirReporteImprimible(socio, periodo, desde, hasta, p)
+      const desde = new Date(); desde.setMonth(desde.getMonth() - meses)
+      // Período anterior equivalente (para comparar conversión)
+      const desdePrev = new Date(desde); desdePrev.setMonth(desdePrev.getMonth() - meses)
+      const [actual, anterior] = await Promise.all([
+        getAnalyticsSocioPeriodo(id, desde, hasta),
+        getAnalyticsSocioPeriodo(id, desdePrev, desde),
+      ])
+      abrirReporteImprimible(socio, periodo, desde, hasta, actual, anterior)
     } catch {
       toast.error('Error al generar el reporte')
     } finally {
@@ -203,44 +208,159 @@ function abrirReporteImprimible(
   desde: Date,
   hasta: Date,
   s: AnalyticsSocio,
+  prev: AnalyticsSocio,
 ) {
   const fmt = (d: Date) => d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
   const seg = Math.round(s.tiempoMs / 1000)
-  const tiempoTxt = seg < 60 ? `${seg} seg` : seg < 3600 ? `${Math.floor(seg / 60)} min ${seg % 60} seg` : `${Math.floor(seg / 3600)} h ${Math.floor((seg % 3600) / 60)} min`
-  const prom = s.visitas > 0 ? Math.round(s.tiempoMs / s.visitas / 1000) : 0
-  const filas = [
-    ['Visitas al tour virtual', String(s.tour)],
-    ['Sesiones con tiempo medido', String(s.visitas)],
-    ['Tiempo total de permanencia', tiempoTxt],
-    ['Permanencia promedio por sesión', `${prom} seg`],
-    ['Clicks a contacto (WhatsApp / email)', String(s.contacto)],
-    ['Clicks al sitio web', String(s.web)],
-    ['Clicks a redes sociales', String(s.redes)],
+  const tiempoTxt = seg < 60 ? `${seg}s` : seg < 3600 ? `${Math.floor(seg / 60)}m ${seg % 60}s` : `${Math.floor(seg / 3600)}h ${Math.floor((seg % 3600) / 60)}m`
+  const promSeg = s.visitas > 0 ? Math.round(s.tiempoMs / s.visitas / 1000) : 0
+
+  // Conversión de leads = interacciones de contacto / visitas al tour
+  const leads = s.contacto + s.web + s.redes
+  const leadsPrev = prev.contacto + prev.web + prev.redes
+  const conv = s.tour > 0 ? (leads / s.tour) * 100 : 0
+  const convPrev = prev.tour > 0 ? (leadsPrev / prev.tour) * 100 : 0
+
+  const delta = (act: number, ant: number) => {
+    if (ant === 0) return act > 0 ? { txt: 'nuevo', up: true } : { txt: '—', up: null as boolean | null }
+    const pct = Math.round(((act - ant) / ant) * 100)
+    return { txt: `${pct > 0 ? '+' : ''}${pct}%`, up: pct >= 0 }
+  }
+
+  const kpis = [
+    { label: 'Visitas al tour', val: s.tour, ant: prev.tour, color: '#3b82f6' },
+    { label: 'Leads (contactos)', val: leads, ant: leadsPrev, color: '#22c55e' },
+    { label: 'Conversión', val: `${conv.toFixed(1)}%`, ant: convPrev, raw: conv, color: '#f15a24', esConv: true },
+    { label: 'Tiempo promedio', val: `${promSeg}s`, ant: 0, color: '#a855f7', noDelta: true },
   ]
+
+  // Barras comparativas actual vs anterior
+  const barras = [
+    { label: 'Visitas', a: s.tour, b: prev.tour },
+    { label: 'Contacto', a: s.contacto, b: prev.contacto },
+    { label: 'Web', a: s.web, b: prev.web },
+    { label: 'Redes', a: s.redes, b: prev.redes },
+  ]
+  const maxBar = Math.max(1, ...barras.flatMap(x => [x.a, x.b]))
+  const barW = 150
+
+  const kpiHtml = kpis.map(k => {
+    const d = k.noDelta ? null : delta(k.esConv ? (k.raw as number) : (k.val as number), k.ant)
+    const deltaHtml = d && d.up !== null
+      ? `<span class="delta ${d.up ? 'up' : 'down'}">${d.up ? '▲' : '▼'} ${d.txt}</span>`
+      : (d ? `<span class="delta flat">${d.txt}</span>` : '')
+    return `<div class="kpi" style="border-top:3px solid ${k.color}">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val">${k.val}</div>
+      <div class="kpi-sub">vs período anterior ${deltaHtml}</div>
+    </div>`
+  }).join('')
+
+  const barrasHtml = barras.map(x => {
+    const wa = Math.round((x.a / maxBar) * barW)
+    const wb = Math.round((x.b / maxBar) * barW)
+    return `<div class="bar-row">
+      <div class="bar-label">${x.label}</div>
+      <div class="bar-track">
+        <div class="bar bar-a" style="width:${wa}px"></div>
+        <span class="bar-num">${x.a}</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar bar-b" style="width:${wb}px"></div>
+        <span class="bar-num muted">${x.b}</span>
+      </div>
+    </div>`
+  }).join('')
+
+  // Anillo de conversión (SVG)
+  const r = 52, circ = 2 * Math.PI * r
+  const convClamp = Math.min(conv, 100)
+  const dash = (convClamp / 100) * circ
+
   const html = `<!doctype html><html lang="es"><head><meta charset="utf-8">
 <title>Reporte ${periodo} — ${socio.razonSocial}</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: system-ui, -apple-system, sans-serif; color: #1c1917; padding: 48px; max-width: 800px; margin: 0 auto; }
+  body { font-family: system-ui, -apple-system, sans-serif; color: #1c1917; padding: 44px; max-width: 820px; margin: 0 auto; }
+  .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #f15a24; padding-bottom: 18px; }
   .eyebrow { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #f15a24; }
   h1 { font-size: 26px; margin: 6px 0 2px; }
-  .sub { color: #78716c; font-size: 14px; margin-bottom: 4px; }
-  .periodo { display: inline-block; background: #fff3ee; color: #d8461a; border: 1px solid #ffd3c0; border-radius: 999px; padding: 4px 14px; font-size: 12px; font-weight: 700; margin-top: 12px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 28px; }
-  td { padding: 13px 16px; border-bottom: 1px solid #e7e5e4; font-size: 14px; }
-  td:last-child { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
-  tr:nth-child(even) { background: #fafaf9; }
-  .foot { margin-top: 40px; padding-top: 16px; border-top: 2px solid #1c1917; font-size: 11px; color: #a8a29e; display: flex; justify-content: space-between; }
-  @media print { body { padding: 24px; } .noprint { display: none; } }
-  .btn { display: inline-block; margin-top: 28px; background: #f15a24; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .sub { color: #78716c; font-size: 13px; }
+  .periodo { text-align: right; font-size: 12px; color: #78716c; }
+  .periodo b { display: block; font-size: 14px; color: #1c1917; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 26px 0; }
+  .kpi { background: #fafaf9; border: 1px solid #e7e5e4; border-radius: 12px; padding: 14px; }
+  .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #78716c; font-weight: 700; }
+  .kpi-val { font-size: 26px; font-weight: 800; margin: 4px 0; font-variant-numeric: tabular-nums; }
+  .kpi-sub { font-size: 10px; color: #a8a29e; }
+  .delta { font-weight: 800; }
+  .delta.up { color: #16a34a; } .delta.down { color: #dc2626; } .delta.flat { color: #a8a29e; }
+  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: #44403c; margin: 26px 0 14px; }
+  .panel { display: flex; gap: 28px; align-items: center; }
+  .bars { flex: 1; }
+  .bar-row { display: grid; grid-template-columns: 70px 1fr 1fr; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bar-label { font-size: 12px; font-weight: 600; color: #44403c; }
+  .bar-track { display: flex; align-items: center; gap: 8px; }
+  .bar { height: 16px; border-radius: 4px; }
+  .bar-a { background: #f15a24; } .bar-b { background: #d6d3d1; }
+  .bar-num { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .bar-num.muted { color: #a8a29e; }
+  .legend { display: flex; gap: 16px; font-size: 11px; color: #78716c; margin-top: 6px; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .dot { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+  .ring-wrap { text-align: center; }
+  .ring-cap { font-size: 11px; color: #78716c; margin-top: 4px; max-width: 130px; }
+  .detalle { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .detalle td { padding: 10px 14px; border-bottom: 1px solid #e7e5e4; font-size: 13px; }
+  .detalle td:last-child { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .foot { margin-top: 36px; padding-top: 14px; border-top: 2px solid #1c1917; font-size: 11px; color: #a8a29e; display: flex; justify-content: space-between; }
+  @media print { body { padding: 20px; } .noprint { display: none; } }
+  .btn { display: inline-block; margin-top: 26px; background: #f15a24; color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 14px; font-weight: 600; cursor: pointer; }
 </style></head><body>
-  <div class="eyebrow">Reporte de estadísticas</div>
-  <h1>${socio.razonSocial}</h1>
-  <div class="sub">${CATEGORIAS[socio.categoria]} · Mendoza Bureau · El Faro 360</div>
-  <div class="periodo">Período ${periodo}: ${fmt(desde)} — ${fmt(hasta)}</div>
-  <table><tbody>
-    ${filas.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+  <div class="head">
+    <div>
+      <div class="eyebrow">Reporte de conversión</div>
+      <h1>${socio.razonSocial}</h1>
+      <div class="sub">${CATEGORIAS[socio.categoria]} · Mendoza Bureau · El Faro 360</div>
+    </div>
+    <div class="periodo">Período ${periodo}<b>${fmt(desde)} — ${fmt(hasta)}</b></div>
+  </div>
+
+  <div class="kpis">${kpiHtml}</div>
+
+  <h2>Actual vs período anterior</h2>
+  <div class="panel">
+    <div class="bars">
+      ${barrasHtml}
+      <div class="legend">
+        <span><i class="dot" style="background:#f15a24"></i> Período actual</span>
+        <span><i class="dot" style="background:#d6d3d1"></i> Período anterior</span>
+      </div>
+    </div>
+    <div class="ring-wrap">
+      <svg width="130" height="130" viewBox="0 0 130 130">
+        <circle cx="65" cy="65" r="${r}" fill="none" stroke="#e7e5e4" stroke-width="13"/>
+        <circle cx="65" cy="65" r="${r}" fill="none" stroke="#f15a24" stroke-width="13" stroke-linecap="round"
+          stroke-dasharray="${dash} ${circ}" transform="rotate(-90 65 65)"/>
+        <text x="65" y="62" text-anchor="middle" font-size="26" font-weight="800" fill="#1c1917">${conv.toFixed(0)}%</text>
+        <text x="65" y="80" text-anchor="middle" font-size="10" fill="#78716c">conversión</text>
+      </svg>
+      <div class="ring-cap">Leads generados sobre visitas al tour</div>
+    </div>
+  </div>
+
+  <h2>Detalle del período</h2>
+  <table class="detalle"><tbody>
+    <tr><td>Visitas al tour virtual</td><td>${s.tour}</td></tr>
+    <tr><td>Sesiones con tiempo medido</td><td>${s.visitas}</td></tr>
+    <tr><td>Tiempo total de permanencia</td><td>${tiempoTxt}</td></tr>
+    <tr><td>Permanencia promedio por sesión</td><td>${promSeg}s</td></tr>
+    <tr><td>Clicks a contacto (WhatsApp / email)</td><td>${s.contacto}</td></tr>
+    <tr><td>Clicks al sitio web</td><td>${s.web}</td></tr>
+    <tr><td>Clicks a redes sociales</td><td>${s.redes}</td></tr>
+    <tr><td><b>Total de leads</b></td><td><b>${leads}</b></td></tr>
   </tbody></table>
+
   <div class="foot">
     <span>Generado el ${fmt(new Date())}</span>
     <span>Mendoza Bureau · Convention &amp; Visitors Bureau</span>

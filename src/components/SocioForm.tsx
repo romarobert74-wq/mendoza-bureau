@@ -114,8 +114,15 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
   const [servicioData, setServicioData] = useState<ServicioData>(defaultValues?.servicioData ?? SERVICIO_VACIO())
 
   const doSubmit = async (data: SocioFormData) => {
+    // Los inputs numéricos vacíos llegan como NaN → Firestore no los acepta
+    const limpiarRating = (v: number | null | undefined) =>
+      typeof v === 'number' && !isNaN(v) ? v : null
     await onSubmit({
       ...data,
+      googleRating: limpiarRating(data.googleRating),
+      tripadvisorRating: limpiarRating(data.tripadvisorRating),
+      googleUrl: data.googleUrl ?? '',
+      tripadvisorUrl: data.tripadvisorUrl ?? '',
       salones,
       hotelData,
       restauranteData,
@@ -202,26 +209,6 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
         </div>
       </Section>
 
-      {/* ── Ficha técnica según categoría ── */}
-      <CategoryEditor
-        categoria={categoria as CategoriaSocio}
-        hotelData={hotelData}
-        restauranteData={restauranteData}
-        bodegaData={bodegaData}
-        alojamientoData={alojamientoData}
-        servicioData={servicioData}
-        onChange={updates => {
-          if (updates.hotelData) setHotelData(updates.hotelData)
-          if (updates.restauranteData) setRestauranteData(updates.restauranteData)
-          if (updates.bodegaData) setBodegaData(updates.bodegaData)
-          if (updates.alojamientoData) setAlojamientoData(updates.alojamientoData)
-          if (updates.servicioData) setServicioData(updates.servicioData)
-        }}
-      />
-
-      {/* ── Salones de eventos — disponible para cualquier categoría ── */}
-      <SalonesEditor salones={salones} onChange={setSalones} />
-
       {/* ── Contacto ── */}
       <Section title="Contacto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -243,6 +230,48 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
           </div>
         </div>
       </Section>
+
+      {/* ── Reseñas ── */}
+      <Section title="Reseñas" sub="Puntaje y link a las plataformas (se muestran en la ficha del tour)">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className={lbl} style={lbl_color}>Puntaje Google (0 a 5)</label>
+            <input {...register('googleRating', { valueAsNumber: true })} type="number" step="0.1" min="0" max="5" className="input" placeholder="Ej: 4.5" />
+          </div>
+          <div>
+            <label className={lbl} style={lbl_color}>Link a reseñas de Google</label>
+            <input {...register('googleUrl')} className="input" placeholder="https://g.page/... o maps..." />
+          </div>
+          <div>
+            <label className={lbl} style={lbl_color}>Puntaje TripAdvisor (0 a 5)</label>
+            <input {...register('tripadvisorRating', { valueAsNumber: true })} type="number" step="0.1" min="0" max="5" className="input" placeholder="Ej: 4.0" />
+          </div>
+          <div>
+            <label className={lbl} style={lbl_color}>Link a TripAdvisor</label>
+            <input {...register('tripadvisorUrl')} className="input" placeholder="https://tripadvisor.com/..." />
+          </div>
+        </div>
+      </Section>
+
+      {/* ── Ficha técnica según categoría ── */}
+      <CategoryEditor
+        categoria={categoria as CategoriaSocio}
+        hotelData={hotelData}
+        restauranteData={restauranteData}
+        bodegaData={bodegaData}
+        alojamientoData={alojamientoData}
+        servicioData={servicioData}
+        onChange={updates => {
+          if (updates.hotelData) setHotelData(updates.hotelData)
+          if (updates.restauranteData) setRestauranteData(updates.restauranteData)
+          if (updates.bodegaData) setBodegaData(updates.bodegaData)
+          if (updates.alojamientoData) setAlojamientoData(updates.alojamientoData)
+          if (updates.servicioData) setServicioData(updates.servicioData)
+        }}
+      />
+
+      {/* ── Salones de eventos — disponible para cualquier categoría ── */}
+      <SalonesEditor salones={salones} onChange={setSalones} />
 
       {/* ── URLs internas — solo el_faro ── */}
       {isElFaro && (

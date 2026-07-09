@@ -505,6 +505,11 @@ export interface Socio {
   logoUrl: string
   activo: boolean
   ubicacionUrl: string
+  // Reseñas (puntaje cargado manualmente + link a la plataforma real)
+  googleRating?: number | null
+  googleUrl?: string
+  tripadvisorRating?: number | null
+  tripadvisorUrl?: string
   urlInternaTour: string
   urlInternaVuelta: string
   urlDrive: string

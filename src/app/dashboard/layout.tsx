@@ -89,17 +89,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }}>
         {/* Logo */}
         <div className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid var(--border)' }}>
-          <div className="flex items-center gap-2 mb-3">
+          <div className="mb-3">
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-contain shrink-0 p-1"
-                style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)', filter: logoFilter }} />
+              <img src={logoUrl} alt="Mendoza Bureau" className="w-full object-contain"
+                style={{ maxHeight: '56px', filter: logoFilter }} />
             ) : (
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg,#f15a24,#ff7a45)', border: '1px solid #ff7a45', boxShadow: '0 0 14px rgba(241,90,36,0.4)' }}>
-                <span className="text-white text-xs font-black">MB</span>
+              <div className="flex items-center gap-2">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg,#f15a24,#ff7a45)', border: '1px solid #ff7a45', boxShadow: '0 0 14px rgba(241,90,36,0.4)' }}>
+                  <span className="text-white text-sm font-black">MB</span>
+                </div>
+                <span className="font-bold text-base tracking-wide" style={{ color: 'var(--text)' }}>Mendoza Bureau</span>
               </div>
             )}
-            <span className="font-bold text-sm tracking-wide" style={{ color: 'var(--text)' }}>Mendoza Bureau</span>
           </div>
           <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{usuario.email}</p>
           <span className="badge badge-orange mt-2">{ROL_LABEL[usuario.rol]}</span>

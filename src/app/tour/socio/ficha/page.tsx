@@ -4,13 +4,15 @@ import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { getFotosSocio } from '@/lib/firestore'
+import type { FotoSocio } from '@/lib/firestore'
 import type { Socio, SalonIndividual } from '@/types'
 import {
   CATEGORIAS, TIPOS_SALON, TIPOS_CATERING,
   CATEGORIAS_HOTEL, RANGO_PRECIO, SUBZONAS_MENDOZA, TIPOS_ALOJAMIENTO,
 } from '@/types'
-import { Check, ChevronDown, ChevronUp, Star, MapPin, Globe, Phone, Mail, Instagram } from 'lucide-react'
-import { useWebframeTracking } from '@/lib/analytics'
+import { Check, ChevronDown, ChevronUp, Star, MapPin, Globe, Phone, Mail, Instagram, ChevronRight } from 'lucide-react'
+import { useWebframeTracking, trackEvento } from '@/lib/analytics'
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
@@ -494,6 +496,8 @@ function FichaPage() {
   const salonIdx = params.get('salon')
 
   const [socio, setSocio] = useState<Socio | null>(null)
+  const [fotos, setFotos] = useState<FotoSocio[]>([])
+  const [lightbox, setLightbox] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   // Analytics: cuenta la visita al tour del socio y mide el tiempo de permanencia
@@ -504,6 +508,7 @@ function FichaPage() {
     document.body.style.background = 'transparent'
     document.documentElement.style.background = 'transparent'
     if (!id) { setLoading(false); return }
+    getFotosSocio(id).then(setFotos).catch(() => {})
     getDoc(doc(db, 'socios', id)).then(snap => {
       if (snap.exists()) setSocio({ id: snap.id, ...snap.data() } as Socio)
       setLoading(false)
@@ -638,46 +643,62 @@ function FichaPage() {
           </AccordionCard>
         )}
 
+        {/* ── Acordeón: Imágenes ── */}
+        {fotos.length > 0 && (
+          <AccordionCard emoji="🖼️" title="Imágenes" badge={`${fotos.length}`} defaultOpen={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', paddingTop: '12px' }}>
+              {fotos.map(f => (
+                <button key={f.id} type="button" onClick={() => setLightbox(f.url)}
+                  style={{ padding: 0, border: 'none', cursor: 'pointer', aspectRatio: '1', borderRadius: '10px', overflow: 'hidden', background: T.glass }}>
+                  <img src={f.url} alt={f.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </button>
+              ))}
+            </div>
+          </AccordionCard>
+        )}
+
+        {/* ── Reseñas ── */}
+        {(socio.googleRating || socio.tripadvisorRating || socio.googleUrl || socio.tripadvisorUrl) && (
+          <AccordionCard emoji="⭐" title="Reseñas" defaultOpen={true}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '12px' }}>
+              {(socio.googleRating || socio.googleUrl) && (
+                <ReseñaFila plataforma="Google" color="#f59e0b" rating={socio.googleRating ?? null} url={socio.googleUrl} />
+              )}
+              {(socio.tripadvisorRating || socio.tripadvisorUrl) && (
+                <ReseñaFila plataforma="TripAdvisor" color="#22c55e" rating={socio.tripadvisorRating ?? null} url={socio.tripadvisorUrl} />
+              )}
+            </div>
+          </AccordionCard>
+        )}
+
         {/* ── Acordeón: Contacto ── */}
         {(socio.contacto?.whatsapp || socio.contacto?.email || socio.contacto?.web || socio.contacto?.redes || socio.ubicacionUrl) && (
           <AccordionCard emoji="📞" title="Contacto" defaultOpen={true}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '12px' }}>
               {socio.contacto?.whatsapp && (
-                <a href={`https://wa.me/${socio.contacto.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola! Quisiera consultar sobre ${socio.razonSocial}.`)}`}
-                  target="_blank" rel="noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '10px', padding: '12px 14px', color: '#4ade80', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
-                  <Phone size={15} style={{ flexShrink: 0 }} />
-                  <span>WhatsApp · {socio.contacto.whatsapp}</span>
-                </a>
+                <ContactoBtn
+                  href={`https://wa.me/${socio.contacto.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola! Quisiera consultar sobre ${socio.razonSocial}.`)}`}
+                  onClick={() => id && trackEvento(id, 'contacto')}
+                  icon={<Phone size={20} />} color="#22c55e" titulo="WhatsApp" sub={socio.contacto.whatsapp} />
               )}
               {socio.contacto?.email && (
-                <a href={`mailto:${socio.contacto.email}?subject=Consulta ${socio.razonSocial}`}
-                  style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: '10px', padding: '12px 14px', color: '#60a5fa', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
-                  <Mail size={15} style={{ flexShrink: 0 }} />
-                  <span>{socio.contacto.email}</span>
-                </a>
+                <ContactoBtn href={`mailto:${socio.contacto.email}?subject=Consulta ${socio.razonSocial}`}
+                  onClick={() => id && trackEvento(id, 'contacto')}
+                  icon={<Mail size={20} />} color="#3b82f6" titulo="Email" sub={socio.contacto.email} />
               )}
               {socio.contacto?.web && (
-                <a href={socio.contacto.web} target="_blank" rel="noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', gap: '10px', background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '12px 14px', color: T.muted, fontSize: '13px', fontWeight: 500, textDecoration: 'none' }}>
-                  <Globe size={15} style={{ flexShrink: 0 }} />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{socio.contacto.web}</span>
-                </a>
+                <ContactoBtn href={socio.contacto.web.startsWith('http') ? socio.contacto.web : `https://${socio.contacto.web}`}
+                  onClick={() => id && trackEvento(id, 'web')}
+                  icon={<Globe size={20} />} color="#0ea5e9" titulo="Sitio web" sub={socio.contacto.web} />
               )}
               {socio.contacto?.redes && (
-                <a href={socio.contacto.redes.startsWith('http') ? socio.contacto.redes : `https://instagram.com/${socio.contacto.redes.replace('@', '')}`}
-                  target="_blank" rel="noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', gap: '10px', background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '12px 14px', color: T.muted, fontSize: '13px', fontWeight: 500, textDecoration: 'none' }}>
-                  <Instagram size={15} style={{ flexShrink: 0 }} />
-                  <span>{socio.contacto.redes}</span>
-                </a>
+                <ContactoBtn href={socio.contacto.redes.startsWith('http') ? socio.contacto.redes : `https://instagram.com/${socio.contacto.redes.replace('@', '')}`}
+                  onClick={() => id && trackEvento(id, 'redes')}
+                  icon={<Instagram size={20} />} color="#ec4899" titulo="Redes sociales" sub={socio.contacto.redes} />
               )}
               {socio.ubicacionUrl && (
-                <a href={socio.ubicacionUrl} target="_blank" rel="noreferrer"
-                  style={{ display: 'flex', alignItems: 'center', gap: '10px', background: T.glass, border: `1px solid ${T.border}`, borderRadius: '10px', padding: '12px 14px', color: T.muted, fontSize: '13px', fontWeight: 500, textDecoration: 'none' }}>
-                  <MapPin size={15} style={{ flexShrink: 0 }} />
-                  <span>Ver en Google Maps</span>
-                </a>
+                <ContactoBtn href={socio.ubicacionUrl}
+                  icon={<MapPin size={20} />} color="#f15a24" titulo="Ubicación" sub="Ver en Google Maps" />
               )}
             </div>
           </AccordionCard>
@@ -687,8 +708,61 @@ function FichaPage() {
           Mendoza Bureau · Convention & Visitors Bureau
         </p>
       </div>
+
+      {/* Lightbox de imágenes */}
+      {lightbox && (
+        <div onClick={() => setLightbox(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '24px', cursor: 'zoom-out' }}>
+          <img src={lightbox} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '12px' }} />
+        </div>
+      )}
     </div>
   )
+}
+
+// Botón de contacto grande, ancho completo, con ícono
+function ContactoBtn({ href, onClick, icon, color, titulo, sub }: {
+  href: string; onClick?: () => void; icon: React.ReactNode; color: string; titulo: string; sub: string
+}) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer" onClick={onClick}
+      style={{ display: 'flex', alignItems: 'center', gap: '13px', background: `${color}14`, border: `1px solid ${color}3a`, borderRadius: '13px', padding: '14px 16px', textDecoration: 'none' }}>
+      <div style={{ width: 40, height: 40, borderRadius: '10px', background: `${color}26`, display: 'flex', alignItems: 'center', justifyContent: 'center', color, flexShrink: 0 }}>
+        {icon}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.45)', fontWeight: 700 }}>{titulo}</div>
+        <div style={{ fontSize: '14px', color: '#f1f5f9', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub}</div>
+      </div>
+      <ChevronRight size={18} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+    </a>
+  )
+}
+
+// Fila de reseña: estrellas + puntaje + botón a la plataforma
+function ReseñaFila({ plataforma, color, rating, url }: {
+  plataforma: string; color: string; rating: number | null; url?: string
+}) {
+  const contenido = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '13px', background: `${color}14`, border: `1px solid ${color}3a`, borderRadius: '13px', padding: '14px 16px' }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.45)', fontWeight: 700, marginBottom: '3px' }}>{plataforma}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', gap: '1px' }}>
+            {[1, 2, 3, 4, 5].map(n => (
+              <Star key={n} size={14}
+                style={{ color, fill: rating && rating >= n - 0.5 ? color : 'transparent', opacity: rating && rating >= n - 0.5 ? 1 : 0.3 }} />
+            ))}
+          </div>
+          {rating != null && <span style={{ fontSize: '13px', color: '#f1f5f9', fontWeight: 700 }}>{rating.toFixed(1)}</span>}
+        </div>
+      </div>
+      {url && <ChevronRight size={18} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />}
+    </div>
+  )
+  return url
+    ? <a href={url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>{contenido}</a>
+    : contenido
 }
 
 export default function TourFichaPage() {
