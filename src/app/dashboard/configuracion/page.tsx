@@ -5,6 +5,7 @@ import { getConfigSistema, setConfigSistema, getConfigMigracion, setConfigMigrac
 import type { ItemLista } from '@/lib/firestore'
 import { uploadImage } from '@/lib/storage'
 import { CATEGORIAS, SUBZONAS_MENDOZA } from '@/types'
+import { DocumentacionSection } from '@/components/DocumentacionSection'
 import { useTheme } from '@/context/ThemeContext'
 import toast from 'react-hot-toast'
 import {
@@ -291,6 +292,9 @@ export default function ConfiguracionPage() {
             <button onClick={addCat} className="btn-outline shrink-0"><Plus size={15} /> Agregar</button>
           </div>
         </section>
+
+        {/* Documentación: exportable, URLs, links y manuales */}
+        <DocumentacionSection />
 
         {/* Migración a infraestructura propia */}
         <MigracionSection
