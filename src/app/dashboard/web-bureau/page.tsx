@@ -148,8 +148,34 @@ function TabInicio() {
         <Field label="Subtítulo">
           <input className={INPUT} value={cfg.heroSubtitulo} onChange={e => setCfg(c => ({ ...c, heroSubtitulo: e.target.value }))} />
         </Field>
-        <Field label="Imagen de fondo (URL)">
-          <input className={INPUT} placeholder="https://..." value={cfg.heroImagen} onChange={e => setCfg(c => ({ ...c, heroImagen: e.target.value }))} />
+        <Field label="Imagen de fondo (subir o pegar URL)">
+          <div className="flex gap-3 items-start">
+            <div className="flex-1 space-y-2">
+              <input className={INPUT} placeholder="https://... (o subí una imagen)"
+                value={cfg.heroImagen.startsWith('data:') ? '' : cfg.heroImagen}
+                onChange={e => setCfg(c => ({ ...c, heroImagen: e.target.value }))} />
+              <label className="inline-flex items-center gap-2 cursor-pointer px-3 py-1.5 bg-[var(--bg-input)] hover:bg-[var(--bg-hover)] rounded-lg text-xs font-medium transition">
+                Subir imagen
+                <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                  const f = e.target.files?.[0]; if (!f) return
+                  const b64 = await resizeImage(f, 1600)
+                  setCfg(c => ({ ...c, heroImagen: b64 }))
+                }} />
+              </label>
+              <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Recomendado: 1920 × 1080 px (16:9), horizontal, JPG. Mín. 1600 px de ancho.</p>
+            </div>
+            {cfg.heroImagen && (
+              <div className="flex-shrink-0 flex flex-col items-center gap-1">
+                <div className="w-28 h-16 bg-gray-800 rounded-lg overflow-hidden">
+                  <img src={cfg.heroImagen} alt="Fondo" className="w-full h-full object-cover" />
+                </div>
+                <button type="button" onClick={() => setCfg(c => ({ ...c, heroImagen: '' }))}
+                  className="text-xs transition hover:text-red-400" style={{ color: 'var(--text-muted)' }}>
+                  Quitar
+                </button>
+              </div>
+            )}
+          </div>
         </Field>
       </div>
 
