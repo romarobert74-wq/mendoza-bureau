@@ -3,6 +3,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  getCountFromServer,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -306,4 +307,140 @@ export async function getAnalyticsSocioPeriodo(
     }
   })
   return acc
+}
+
+// ── Backups (copias de seguridad) ────────────────────────────────────────
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+export interface BackupData {
+  version: number
+  fecha: string
+  colecciones: Record<string, any[]>
+}
+
+export interface SnapshotNube {
+  id: string
+  fecha: string
+  resumen: Record<string, number>
+  nota?: string
+}
+
+// Colecciones "planas" (docs directos, sin subcolecciones)
+const COLECCIONES_PLANAS = [
+  'usuarios',
+  'configuracion',
+  'web_bureau',
+  'web_bureau_prensa',
+  'web_bureau_observatorio',
+]
+
+// Genera un backup COMPLETO (incluye imágenes en base64). Para descarga local.
+export async function generarBackupCompleto(incluirAnalytics = true): Promise<BackupData> {
+  const colecciones: Record<string, any[]> = {}
+
+  // socios + subcolección fotos
+  const sociosSnap = await getDocs(collection(db, 'socios'))
+  const socios: any[] = []
+  for (const d of sociosSnap.docs) {
+    const fotosSnap = await getDocs(collection(db, 'socios', d.id, 'fotos'))
+    socios.push({ id: d.id, ...d.data(), _fotos: fotosSnap.docs.map(f => ({ id: f.id, ...f.data() })) })
+  }
+  colecciones.socios = socios
+
+  for (const c of COLECCIONES_PLANAS) {
+    const snap = await getDocs(collection(db, c))
+    colecciones[c] = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  }
+
+  if (incluirAnalytics) {
+    const snap = await getDocs(collection(db, 'analytics'))
+    colecciones.analytics = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  }
+
+  return { version: 1, fecha: new Date().toISOString(), colecciones }
+}
+
+// Cuenta registros por colección (para el resumen en pantalla)
+export function contarBackup(b: BackupData): Record<string, number> {
+  const r: Record<string, number> = {}
+  for (const [k, v] of Object.entries(b.colecciones)) r[k] = v.length
+  return r
+}
+
+// Restaura un backup (merge: agrega/actualiza, nunca borra registros extra)
+export async function restaurarBackup(data: BackupData): Promise<void> {
+  for (const s of data.colecciones.socios ?? []) {
+    const { id, _fotos, ...rest } = s
+    if (!id) continue
+    await setDoc(doc(db, 'socios', id), rest, { merge: true })
+    for (const f of _fotos ?? []) {
+      const { id: fid, ...frest } = f
+      if (fid) await setDoc(doc(db, 'socios', id, 'fotos', fid), frest, { merge: true })
+    }
+  }
+  for (const c of COLECCIONES_PLANAS) {
+    for (const d of data.colecciones[c] ?? []) {
+      const { id, ...rest } = d
+      if (id) await setDoc(doc(db, c, id), rest, { merge: true })
+    }
+  }
+}
+
+// Quita campos pesados (base64) para que el snapshot entre en un doc (<1MB)
+function sinImagenes(o: any): any {
+  const c = { ...o }
+  delete c.fotoPortada; delete c.logoUrl; delete c._fotos
+  delete c.heroImagen; delete c.documentos; delete c.contenido
+  if (Array.isArray(c.directiva)) c.directiva = c.directiva.map((m: any) => ({ ...m, foto: '' }))
+  return c
+}
+
+// Guarda un snapshot LIGERO (solo texto, sin imágenes) en la nube (Firestore).
+export async function guardarSnapshotNube(nota?: string): Promise<void> {
+  const full = await generarBackupCompleto(false)
+  const datos: Record<string, any[]> = {}
+  for (const [k, v] of Object.entries(full.colecciones)) datos[k] = v.map(sinImagenes)
+  const resumen = contarBackup(full)
+  const id = new Date().toISOString().replace(/[:.]/g, '-')
+  await setDoc(doc(db, 'backups', id), {
+    fecha: new Date().toISOString(),
+    resumen,
+    nota: nota ?? '',
+    datos,
+  })
+}
+
+export async function listarSnapshots(): Promise<SnapshotNube[]> {
+  const snap = await getDocs(collection(db, 'backups'))
+  return snap.docs
+    .map(d => {
+      const x = d.data()
+      return { id: d.id, fecha: x.fecha as string, resumen: (x.resumen ?? {}) as Record<string, number>, nota: x.nota as string }
+    })
+    .sort((a, b) => (a.fecha < b.fecha ? 1 : -1))
+}
+
+export async function getSnapshotData(id: string): Promise<BackupData | null> {
+  const snap = await getDoc(doc(db, 'backups', id))
+  if (!snap.exists()) return null
+  const x = snap.data()
+  return { version: 1, fecha: x.fecha as string, colecciones: (x.datos ?? {}) as Record<string, any[]> }
+}
+
+export async function eliminarSnapshot(id: string): Promise<void> {
+  await deleteDoc(doc(db, 'backups', id))
+}
+
+// Conteo liviano de registros (sin descargar los documentos)
+export async function contarRegistros(): Promise<Record<string, number>> {
+  const cols = ['socios', 'usuarios', 'configuracion', 'web_bureau', 'web_bureau_prensa', 'web_bureau_observatorio', 'analytics']
+  const r: Record<string, number> = {}
+  await Promise.all(cols.map(async c => {
+    try {
+      const snap = await getCountFromServer(collection(db, c))
+      r[c] = snap.data().count
+    } catch { r[c] = 0 }
+  }))
+  return r
 }

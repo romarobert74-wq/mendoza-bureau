@@ -90,5 +90,10 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow update, delete: if isElFaro();
     }
+
+    // Copias de seguridad: solo el superadmin
+    match /backups/{docId} {
+      allow read, write: if isElFaro();
+    }
   }
 }
