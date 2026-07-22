@@ -3,7 +3,24 @@
 import { useEffect, useState, useMemo } from 'react'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Search, Layers, ArrowDownUp } from 'lucide-react'
+import { Search, Layers, ArrowDownUp, MessageCircle, Globe, Navigation } from 'lucide-react'
+
+// Botón chico de acción directa en la tarjeta
+function MiniAccion({ label, color, onClick, children }: {
+  label: string; color: string; onClick: () => void; children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-semibold transition"
+      style={{ background: `${color}22`, color, border: `1px solid ${color}44` }}
+    >
+      {children}
+    </button>
+  )
+}
 
 interface Socio {
   id: string
@@ -14,6 +31,7 @@ interface Socio {
   infoGeneral: string
   urlInternaTour: string
   urlInternaVuelta: string
+  contacto?: { whatsapp?: string; web?: string; email?: string; redes?: string } | null
 }
 
 // Cuántas tarjetas se pintan de entrada; el resto aparece enseguida (no bloquea)
@@ -29,6 +47,22 @@ const CATEGORIAS = [
   { key: 'otro', label: 'Otros' },
 ]
 
+// Etiqueta corta (singular) para el chip de la tarjeta
+const CAT_LABEL_CORTA: Record<string, string> = {
+  bodega: 'Bodega', restaurante: 'Restaurante', hotel: 'Hotel',
+  alojamiento: 'Alojamiento', servicio: 'Servicio', otro: 'Otro',
+}
+
+// Sinónimos para buscar por rubro (ej: "vino" → bodegas)
+const CAT_SINONIMOS: Record<string, string[]> = {
+  bodega: ['vino', 'vinos', 'bodega', 'bodegas', 'wine', 'enoturismo', 'vinedo', 'viñedo'],
+  restaurante: ['comida', 'comer', 'restaurante', 'restaurant', 'gastronomia', 'gastronomía', 'cena', 'almuerzo'],
+  hotel: ['hotel', 'hoteles', 'hospedaje', 'alojarse'],
+  alojamiento: ['alojamiento', 'cabaña', 'cabana', 'hostel', 'posada', 'departamento', 'airbnb'],
+  servicio: ['servicio', 'servicios', 'transporte', 'turismo', 'excursion', 'excursión'],
+  otro: ['otro', 'otros'],
+}
+
 const CAT_COLORS: Record<string, string> = {
   bodega: '#A855F7',
   restaurante: '#F59E0B',
@@ -43,6 +77,48 @@ const MAX_OPACITY = 0.97
 const CACHE_KEY = 'tour_socios_cache'
 const CACHE_TTL = 5 * 60 * 1000
 
+// Mendoza capital (para el clima del día)
+const MDZ_LAT = -32.8895
+const MDZ_LON = -68.8458
+
+// Código WMO → emoji + texto (open-meteo)
+function climaDesc(code: number): { icon: string; txt: string } {
+  if (code === 0) return { icon: '☀️', txt: 'Despejado' }
+  if (code <= 2) return { icon: '🌤️', txt: 'Parcialmente nublado' }
+  if (code === 3) return { icon: '☁️', txt: 'Nublado' }
+  if (code <= 48) return { icon: '🌫️', txt: 'Niebla' }
+  if (code <= 67) return { icon: '🌧️', txt: 'Lluvia' }
+  if (code <= 77) return { icon: '❄️', txt: 'Nieve' }
+  if (code <= 82) return { icon: '🌦️', txt: 'Chaparrones' }
+  if (code <= 99) return { icon: '⛈️', txt: 'Tormenta' }
+  return { icon: '🌡️', txt: '' }
+}
+
+// Temporada según el mes (hemisferio sur)
+function temporadaActual(): string {
+  const m = new Date().getMonth() // 0-11
+  if (m === 2 || m === 3) return '🍇 Vendimia — temporada alta'
+  if (m === 11 || m <= 1) return '☀️ Verano — temporada alta'
+  if (m >= 8 && m <= 10) return '🌸 Primavera — clima ideal'
+  return '🍂 Otoño/Invierno — temporada tranquila'
+}
+
+// Resalta el texto que coincide con la búsqueda
+function resaltar(texto: string, q: string) {
+  if (!q) return texto
+  const i = texto.toLowerCase().indexOf(q.toLowerCase())
+  if (i < 0) return texto
+  return (
+    <>
+      {texto.slice(0, i)}
+      <mark style={{ background: 'rgba(255,220,120,0.35)', color: '#fff', borderRadius: 3, padding: '0 1px' }}>
+        {texto.slice(i, i + q.length)}
+      </mark>
+      {texto.slice(i + q.length)}
+    </>
+  )
+}
+
 export default function TourMenuPage() {
   const [socios, setSocios] = useState<Socio[]>([])
   const [loading, setLoading] = useState(true)
@@ -55,6 +131,9 @@ export default function TourMenuPage() {
   const [logoUrl, setLogoUrl] = useState('')
   // Socio resaltado desde el panorama (hotspot con hover en 3DVista)
   const [resaltado, setResaltado] = useState<string | null>(null)
+  const [hoverId, setHoverId] = useState<string | null>(null)   // hover local en la lista
+  const [clima, setClima] = useState<{ temp: number; code: number } | null>(null)
+  const [infoExtra, setInfoExtra] = useState<{ horarios?: string; eventos?: string[] } | null>(null)
 
   useEffect(() => {
     document.body.style.background = 'transparent'
@@ -118,7 +197,26 @@ export default function TourMenuPage() {
         const snap = await getDoc(doc(db, 'configuracion', 'sistema'))
         if (snap.exists() && snap.data().logoUrl) setLogoUrl(snap.data().logoUrl as string)
       } catch {}
+      // Info editable del tour (horarios/eventos), opcional
+      try {
+        const snap = await getDoc(doc(db, 'configuracion', 'tour_info'))
+        if (snap.exists()) setInfoExtra(snap.data() as { horarios?: string; eventos?: string[] })
+      } catch {}
     })
+  }, [])
+
+  // Clima del día en Mendoza (open-meteo, sin API key). Falla en silencio.
+  useEffect(() => {
+    const ctrl = new AbortController()
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${MDZ_LAT}&longitude=${MDZ_LON}&current=temperature_2m,weather_code&timezone=America%2FArgentina%2FMendoza`,
+      { signal: ctrl.signal })
+      .then(r => r.json())
+      .then(d => {
+        const c = d?.current
+        if (c) setClima({ temp: Math.round(c.temperature_2m), code: c.weather_code })
+      })
+      .catch(() => {})
+    return () => ctrl.abort()
   }, [])
 
   // Cantidad de socios por categoría (para los contadores en los chips)
@@ -158,14 +256,21 @@ export default function TourMenuPage() {
   useEffect(() => { emitir({ type: 'filtro', categoria: filtro }) }, [filtro])
 
   const filtrados = useMemo(() => {
+    const q = busqueda.trim().toLowerCase()
+    // ¿la búsqueda apunta a un rubro? (ej: "vino" → bodega)
+    const rubros = q
+      ? Object.entries(CAT_SINONIMOS)
+          .filter(([, syns]) => syns.some(w => w.includes(q) || q.includes(w)))
+          .map(([k]) => k)
+      : []
     const lista = socios.filter(s => {
       const coincideCategoria = filtro === 'todos' || s.categoria === filtro
-      const q = busqueda.toLowerCase()
       const coincideBusqueda =
         q === '' ||
         s.razonSocial?.toLowerCase().includes(q) ||
         s.etiqueta?.toLowerCase().includes(q) ||
-        s.direccion?.toLowerCase().includes(q)
+        s.direccion?.toLowerCase().includes(q) ||
+        rubros.includes(s.categoria)
       return coincideCategoria && coincideBusqueda
     })
     const cmp = (a: Socio, b: Socio) =>
@@ -193,6 +298,11 @@ export default function TourMenuPage() {
     if (!socio.urlInternaTour) return
     try { window.top!.location.href = socio.urlInternaTour }
     catch { window.location.href = socio.urlInternaTour }
+  }
+
+  // Abre un enlace externo (WhatsApp / web / mapa) fuera del iframe del tour
+  const abrir = (url: string) => {
+    try { window.top!.open(url, '_blank') } catch { window.open(url, '_blank') }
   }
 
   const bg = `rgba(15, 15, 25, ${opacity})`
@@ -376,45 +486,73 @@ export default function TourMenuPage() {
               ) : (
                 mostrados.map(socio => {
                   const cat = CAT_COLORS[socio.categoria] ?? '#9CA3AF'
-                  const hl = resaltado === socio.categoria     // resaltado desde el hotspot
+                  // iluminada si el hotspot resalta su categoría o si tiene hover local
+                  const hl = resaltado === socio.categoria || hoverId === socio.id
+                  const c = socio.contacto || {}
+                  const subtitulo = socio.infoGeneral || socio.direccion || ''
                   return (
                   <div
                     key={socio.id}
-                    onMouseEnter={() => emitir({ type: 'hover', categoria: socio.categoria, id: socio.id })}
-                    onMouseLeave={() => emitir({ type: 'hover-out' })}
-                    className="rounded-xl p-3 flex items-center justify-between gap-3 transition-all"
+                    onMouseEnter={() => { setHoverId(socio.id); emitir({ type: 'hover', categoria: socio.categoria, id: socio.id }) }}
+                    onMouseLeave={() => { setHoverId(null); emitir({ type: 'hover-out' }) }}
+                    className="rounded-xl p-2.5 transition-all"
                     style={{
-                      background: hl ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)',
+                      background: hl ? `${cat}22` : 'rgba(255,255,255,0.07)',
                       border: `1px solid ${hl ? cat : 'rgba(255,255,255,0.13)'}`,
-                      boxShadow: hl ? `0 0 0 1px ${cat}, 0 4px 14px rgba(0,0,0,0.25)` : 'none',
+                      boxShadow: hl ? `0 0 0 1px ${cat}55, 0 4px 16px rgba(0,0,0,0.28)` : 'none',
                     }}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ background: cat }}
-                      />
-                      <div className="min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        {/* Chip de categoría con color */}
+                        <span
+                          className="inline-block text-[9px] font-bold uppercase tracking-wide rounded px-1.5 py-[1px] mb-1"
+                          style={{ background: `${cat}2e`, color: cat, border: `1px solid ${cat}55` }}
+                        >
+                          {CAT_LABEL_CORTA[socio.categoria] ?? socio.categoria}
+                        </span>
                         <p className="text-white text-[13px] font-semibold leading-tight truncate">
-                          {socio.razonSocial}
+                          {resaltar(socio.razonSocial, busqueda)}
                         </p>
                         <p className="text-white/50 text-[11px] truncate mt-0.5">
-                          {socio.infoGeneral
-                            ? socio.infoGeneral.substring(0, 42) + (socio.infoGeneral.length > 42 ? '…' : '')
-                            : socio.direccion}
+                          {subtitulo.length > 46 ? subtitulo.slice(0, 46) + '…' : subtitulo}
                         </p>
                       </div>
+                      {socio.urlInternaTour ? (
+                        <button
+                          onClick={() => handleVerSocio(socio)}
+                          className="text-white text-[11px] font-bold whitespace-nowrap flex-shrink-0 px-2.5 py-1 rounded-lg transition self-start"
+                          style={{ background: hl ? cat : 'rgba(255,255,255,0.15)', border: `1px solid ${hl ? cat : 'rgba(255,255,255,0.2)'}` }}
+                        >
+                          Ver →
+                        </button>
+                      ) : (
+                        <span className="text-white/25 text-[10px] flex-shrink-0">Sin tour</span>
+                      )}
                     </div>
-                    {socio.urlInternaTour ? (
-                      <button
-                        onClick={() => handleVerSocio(socio)}
-                        className="text-white text-[11px] font-bold whitespace-nowrap flex-shrink-0 px-2.5 py-1 rounded-lg transition"
-                        style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)' }}
-                      >
-                        Ver →
-                      </button>
-                    ) : (
-                      <span className="text-white/25 text-[10px] flex-shrink-0">Sin tour</span>
+
+                    {/* Mini-acciones directas */}
+                    {(c.whatsapp || c.web || socio.direccion) && (
+                      <div className="flex items-center gap-1.5 mt-2">
+                        {c.whatsapp && (
+                          <MiniAccion label="WhatsApp" color="#25D366"
+                            onClick={() => abrir(`https://wa.me/${(c.whatsapp || '').replace(/[^0-9]/g, '')}`)}>
+                            <MessageCircle size={12} />
+                          </MiniAccion>
+                        )}
+                        {c.web && (
+                          <MiniAccion label="Web" color="#60A5FA"
+                            onClick={() => abrir(c.web!.startsWith('http') ? c.web! : `https://${c.web}`)}>
+                            <Globe size={12} />
+                          </MiniAccion>
+                        )}
+                        {socio.direccion && (
+                          <MiniAccion label="Cómo llego" color="#F59E0B"
+                            onClick={() => abrir(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(socio.direccion + ', Mendoza')}`)}>
+                            <Navigation size={12} />
+                          </MiniAccion>
+                        )}
+                      </div>
                     )}
                   </div>
                   )
@@ -424,6 +562,49 @@ export default function TourMenuPage() {
           </>
         ) : (
           <div className="px-5 py-4 overflow-y-auto flex-1 text-white space-y-4">
+            {/* Clima del día + temporada */}
+            <div className="flex items-stretch gap-2">
+              <div className="flex-1 rounded-xl px-3 py-2.5 flex items-center gap-2.5"
+                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)' }}>
+                <span className="text-2xl leading-none">{clima ? climaDesc(clima.code).icon : '🌡️'}</span>
+                <div>
+                  <p className="text-white font-bold text-[15px] leading-none">
+                    {clima ? `${clima.temp}°` : '—'}
+                    <span className="text-white/45 text-[11px] font-normal ml-1">Mendoza</span>
+                  </p>
+                  <p className="text-white/55 text-[10px] mt-0.5">
+                    {clima ? climaDesc(clima.code).txt : 'Cargando clima…'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-xl px-3 py-2 text-[12px] text-white/80"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              {temporadaActual()}
+            </div>
+
+            {/* Eventos (editables desde configuración/tour_info) */}
+            {infoExtra?.eventos && infoExtra.eventos.length > 0 && (
+              <div>
+                <p className="text-white/45 text-[10px] font-bold uppercase tracking-wide mb-1.5">🎟️ Qué pasa en Mendoza</p>
+                <div className="space-y-1.5">
+                  {infoExtra.eventos.map((ev, i) => (
+                    <div key={i} className="text-[12px] text-white/75 rounded-lg px-3 py-2"
+                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                      {ev}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {infoExtra?.horarios && (
+              <div className="text-[12px] text-white/70">
+                <span className="text-white/45 text-[10px] font-bold uppercase tracking-wide">🕒 Horarios</span>
+                <p className="mt-1 leading-relaxed whitespace-pre-line">{infoExtra.horarios}</p>
+              </div>
+            )}
+
             <div>
               <h3 className="font-bold text-sm mb-1.5">Mendoza Bureau</h3>
               <p className="text-white/65 text-[12px] leading-relaxed">
