@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { Search, Layers } from 'lucide-react'
 
@@ -12,12 +11,12 @@ interface Socio {
   categoria: string
   direccion: string
   infoGeneral: string
-  fotoPortada: string
-  activo: boolean
-  contacto: { whatsapp: string; email: string; web: string; redes: string }
   urlInternaTour: string
   urlInternaVuelta: string
 }
+
+// Cuántas tarjetas se pintan de entrada; el resto aparece enseguida (no bloquea)
+const PRIMERA_TANDA = 10
 
 const CATEGORIAS = [
   { key: 'todos', label: 'Todos' },
@@ -46,6 +45,7 @@ const CACHE_TTL = 5 * 60 * 1000
 export default function TourMenuPage() {
   const [socios, setSocios] = useState<Socio[]>([])
   const [loading, setLoading] = useState(true)
+  const [visibles, setVisibles] = useState(PRIMERA_TANDA)   // render progresivo
   const [filtro, setFiltro] = useState('todos')
   const [busqueda, setBusqueda] = useState('')
   const [tab, setTab] = useState<'lugares' | 'informacion'>('lugares')
@@ -58,37 +58,36 @@ export default function TourMenuPage() {
   }, [])
 
   useEffect(() => {
+    let cancelado = false
     const cargar = async () => {
-      // Intentar cache primero para carga instantánea
+      // 1) Cache local para pintado instantáneo (aunque después revalidamos)
       try {
         const cached = localStorage.getItem(CACHE_KEY)
         if (cached) {
           const { data, ts } = JSON.parse(cached)
-          if (Date.now() - ts < CACHE_TTL) {
+          if (Array.isArray(data) && Date.now() - ts < CACHE_TTL) {
             setSocios(data)
             setLoading(false)
-            return
           }
         }
       } catch {}
 
+      // 2) Endpoint liviano (solo texto, sin fotos base64) + caché en el edge.
       try {
-        const q = query(collection(db, 'socios'), orderBy('razonSocial', 'asc'))
-        const snap = await getDocs(q)
-        const data = snap.docs
-          .map(d => ({ id: d.id, ...d.data() } as Socio))
-          .filter(s => s.activo !== false)
+        const res = await fetch('/api/socios-menu')
+        if (!res.ok) throw new Error('bad status')
+        const data = (await res.json()) as Socio[]
+        if (cancelado) return
         setSocios(data)
-        try {
-          localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() }))
-        } catch {}
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() })) } catch {}
       } catch (err) {
         console.error('Error cargando socios:', err)
       } finally {
-        setLoading(false)
+        if (!cancelado) setLoading(false)
       }
     }
     cargar()
+    return () => { cancelado = true }
   }, [])
 
   // Logo del Bureau (configurado en el panel). Falla en silencio si no hay acceso.
@@ -117,6 +116,18 @@ export default function TourMenuPage() {
       return coincideCategoria && coincideBusqueda
     })
   }, [socios, filtro, busqueda])
+
+  // Render progresivo: pinta la primera tanda al toque y el resto en el próximo
+  // frame, para que el panel aparezca sin esperar a dibujar las 50 tarjetas.
+  useEffect(() => { setVisibles(PRIMERA_TANDA) }, [filtro, busqueda])
+  useEffect(() => {
+    if (filtrados.length > visibles) {
+      const t = requestAnimationFrame(() => setVisibles(filtrados.length))
+      return () => cancelAnimationFrame(t)
+    }
+  }, [filtrados.length, visibles])
+
+  const mostrados = filtrados.slice(0, visibles)
 
   const handleVerSocio = (socio: Socio) => {
     if (!socio.urlInternaTour) return
@@ -268,7 +279,7 @@ export default function TourMenuPage() {
                     : 'No hay lugares en esta categoría'}
                 </p>
               ) : (
-                filtrados.map(socio => (
+                mostrados.map(socio => (
                   <div
                     key={socio.id}
                     className="rounded-xl p-3 flex items-center justify-between gap-3"

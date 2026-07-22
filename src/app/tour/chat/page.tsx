@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { collection, getDocs, orderBy, query, doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { Send, Utensils, Hotel, Wrench, Package, Wine } from 'lucide-react'
 
@@ -141,10 +141,12 @@ export default function TourChatPage() {
       } catch {}
       if (sociosData.length === 0) {
         try {
-          const q = query(collection(db, 'socios'), orderBy('razonSocial', 'asc'))
-          const snap = await getDocs(q)
-          sociosData = snap.docs.map(d => ({ id: d.id, ...d.data() } as Socio)).filter(s => s.activo !== false)
-          try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data: sociosData, ts: Date.now() })) } catch {}
+          // Endpoint liviano: solo texto (sin fotoPortada base64), cacheado en el edge
+          const res = await fetch('/api/socios-menu')
+          if (res.ok) {
+            sociosData = (await res.json()) as Socio[]
+            try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data: sociosData, ts: Date.now() })) } catch {}
+          }
         } catch {}
       }
       setSocios(sociosData)
