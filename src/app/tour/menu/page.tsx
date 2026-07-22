@@ -3,23 +3,19 @@
 import { useEffect, useState, useMemo } from 'react'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Search, Layers, ArrowDownUp, MessageCircle, Globe, Navigation } from 'lucide-react'
+import { Search, Layers, ArrowDownUp } from 'lucide-react'
 
-// Botón chico de acción directa en la tarjeta
-function MiniAccion({ label, color, onClick, children }: {
-  label: string; color: string; onClick: () => void; children: React.ReactNode
-}) {
+// Cuadro estilo dashboard para la pestaña Información
+function DashCard({ children }: { children: React.ReactNode }) {
   return (
-    <button
-      onClick={onClick}
-      title={label}
-      aria-label={label}
-      className="flex items-center gap-1 rounded-md px-1.5 py-1 text-[10px] font-semibold transition"
-      style={{ background: `${color}22`, color, border: `1px solid ${color}44` }}
-    >
+    <div className="rounded-xl px-3 py-2.5 flex flex-col justify-between gap-1.5 min-h-[64px]"
+      style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)' }}>
       {children}
-    </button>
+    </div>
   )
+}
+function DashLabel({ children }: { children: React.ReactNode }) {
+  return <p className="text-white/40 text-[9px] font-bold uppercase tracking-wide">{children}</p>
 }
 
 interface Socio {
@@ -300,10 +296,6 @@ export default function TourMenuPage() {
     catch { window.location.href = socio.urlInternaTour }
   }
 
-  // Abre un enlace externo (WhatsApp / web / mapa) fuera del iframe del tour
-  const abrir = (url: string) => {
-    try { window.top!.open(url, '_blank') } catch { window.open(url, '_blank') }
-  }
 
   const bg = `rgba(15, 15, 25, ${opacity})`
   const borderColor = `rgba(255,255,255,${Math.min(opacity + 0.15, 0.4)})`
@@ -399,9 +391,9 @@ export default function TourMenuPage() {
               </div>
             </div>
 
-            {/* Filtros con contador por categoría */}
+            {/* Filtros con contador por categoría (compactos) */}
             {categoriasConSocios.length > 1 && (
-              <div className="px-4 pb-2 flex gap-1.5 flex-wrap">
+              <div className="px-4 pb-2 flex gap-1 flex-wrap">
                 {categoriasConSocios.map(cat => {
                   const active = filtro === cat.key
                   const n = conteos[cat.key] ?? 0
@@ -410,11 +402,11 @@ export default function TourMenuPage() {
                     <button
                       key={cat.key}
                       onClick={() => setFiltro(cat.key)}
-                      className="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1.5"
+                      className="pl-1.5 pr-1 py-0.5 rounded-full text-[10px] font-semibold transition-all flex items-center gap-1"
                       style={{
-                        background: active ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.10)',
-                        color: active ? '#111' : 'rgba(255,255,255,0.80)',
-                        border: active ? '1px solid transparent' : '1px solid rgba(255,255,255,0.22)',
+                        background: active ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.08)',
+                        color: active ? '#111' : 'rgba(255,255,255,0.75)',
+                        border: active ? '1px solid transparent' : '1px solid rgba(255,255,255,0.16)',
                       }}
                     >
                       {dot && !active && (
@@ -422,10 +414,10 @@ export default function TourMenuPage() {
                       )}
                       {cat.label}
                       <span
-                        className="text-[10px] font-bold rounded-full px-1.5 leading-[15px] min-w-[16px] text-center"
+                        className="text-[9px] font-bold rounded-full px-1 leading-[14px] min-w-[14px] text-center"
                         style={{
-                          background: active ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.14)',
-                          color: active ? '#111' : 'rgba(255,255,255,0.65)',
+                          background: active ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)',
+                          color: active ? '#111' : 'rgba(255,255,255,0.6)',
                         }}
                       >
                         {n}
@@ -488,7 +480,6 @@ export default function TourMenuPage() {
                   const cat = CAT_COLORS[socio.categoria] ?? '#9CA3AF'
                   // iluminada si el hotspot resalta su categoría o si tiene hover local
                   const hl = resaltado === socio.categoria || hoverId === socio.id
-                  const c = socio.contacto || {}
                   const subtitulo = socio.infoGeneral || socio.direccion || ''
                   return (
                   <div
@@ -521,39 +512,15 @@ export default function TourMenuPage() {
                       {socio.urlInternaTour ? (
                         <button
                           onClick={() => handleVerSocio(socio)}
-                          className="text-white text-[11px] font-bold whitespace-nowrap flex-shrink-0 px-2.5 py-1 rounded-lg transition self-start"
+                          className="text-white text-[11px] font-bold whitespace-nowrap flex-shrink-0 px-2.5 py-1 rounded-lg transition self-center"
                           style={{ background: hl ? cat : 'rgba(255,255,255,0.15)', border: `1px solid ${hl ? cat : 'rgba(255,255,255,0.2)'}` }}
                         >
-                          Ver →
+                          Tour →
                         </button>
                       ) : (
                         <span className="text-white/25 text-[10px] flex-shrink-0">Sin tour</span>
                       )}
                     </div>
-
-                    {/* Mini-acciones directas */}
-                    {(c.whatsapp || c.web || socio.direccion) && (
-                      <div className="flex items-center gap-1.5 mt-2">
-                        {c.whatsapp && (
-                          <MiniAccion label="WhatsApp" color="#25D366"
-                            onClick={() => abrir(`https://wa.me/${(c.whatsapp || '').replace(/[^0-9]/g, '')}`)}>
-                            <MessageCircle size={12} />
-                          </MiniAccion>
-                        )}
-                        {c.web && (
-                          <MiniAccion label="Web" color="#60A5FA"
-                            onClick={() => abrir(c.web!.startsWith('http') ? c.web! : `https://${c.web}`)}>
-                            <Globe size={12} />
-                          </MiniAccion>
-                        )}
-                        {socio.direccion && (
-                          <MiniAccion label="Cómo llego" color="#F59E0B"
-                            onClick={() => abrir(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(socio.direccion + ', Mendoza')}`)}>
-                            <Navigation size={12} />
-                          </MiniAccion>
-                        )}
-                      </div>
-                    )}
                   </div>
                   )
                 })
@@ -561,29 +528,44 @@ export default function TourMenuPage() {
             </div>
           </>
         ) : (
-          <div className="px-5 py-4 overflow-y-auto flex-1 text-white space-y-4">
-            {/* Clima del día + temporada */}
-            <div className="flex items-stretch gap-2">
-              <div className="flex-1 rounded-xl px-3 py-2.5 flex items-center gap-2.5"
-                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.13)' }}>
-                <span className="text-2xl leading-none">{clima ? climaDesc(clima.code).icon : '🌡️'}</span>
-                <div>
-                  <p className="text-white font-bold text-[15px] leading-none">
-                    {clima ? `${clima.temp}°` : '—'}
-                    <span className="text-white/45 text-[11px] font-normal ml-1">Mendoza</span>
-                  </p>
-                  <p className="text-white/55 text-[10px] mt-0.5">
-                    {clima ? climaDesc(clima.code).txt : 'Cargando clima…'}
-                  </p>
+          <div className="px-5 py-4 overflow-y-auto flex-1 text-white space-y-3">
+            {/* Dashboard de cuadros */}
+            <div className="grid grid-cols-2 gap-2">
+              {/* Clima */}
+              <DashCard>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl leading-none">{clima ? climaDesc(clima.code).icon : '🌡️'}</span>
+                  <div className="min-w-0">
+                    <p className="text-white font-bold text-[17px] leading-none">{clima ? `${clima.temp}°` : '—'}</p>
+                    <p className="text-white/55 text-[10px] mt-0.5 truncate">{clima ? climaDesc(clima.code).txt : 'Clima…'}</p>
+                  </div>
                 </div>
+                <DashLabel>Clima · Mendoza</DashLabel>
+              </DashCard>
+
+              {/* Próximos eventos */}
+              <DashCard>
+                <p className="text-white font-bold text-[17px] leading-none">
+                  {infoExtra?.eventos?.length ?? 0}
+                  <span className="text-white/45 text-[11px] font-normal ml-1">🎟️</span>
+                </p>
+                <DashLabel>Próximos eventos</DashLabel>
+              </DashCard>
+
+              {/* Temporada (ocupa las 2 columnas) */}
+              <div className="col-span-2">
+                <DashCard>
+                  <p className="text-[13px] text-white/90 font-semibold">{temporadaActual()}</p>
+                  <DashLabel>Temporada actual</DashLabel>
+                </DashCard>
               </div>
-            </div>
-            <div className="rounded-xl px-3 py-2 text-[12px] text-white/80"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-              {temporadaActual()}
+
+              {/* Datos útiles honestos (no estadísticas) */}
+              <DashCard><p className="text-white font-bold text-[15px] leading-none">750 m</p><DashLabel>Altitud</DashLabel></DashCard>
+              <DashCard><p className="text-white font-bold text-[15px] leading-none">GMT-3</p><DashLabel>Huso horario</DashLabel></DashCard>
             </div>
 
-            {/* Eventos (editables desde configuración/tour_info) */}
+            {/* Lista de eventos (editables desde configuración/tour_info) */}
             {infoExtra?.eventos && infoExtra.eventos.length > 0 && (
               <div>
                 <p className="text-white/45 text-[10px] font-bold uppercase tracking-wide mb-1.5">🎟️ Qué pasa en Mendoza</p>
