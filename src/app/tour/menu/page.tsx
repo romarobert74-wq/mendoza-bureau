@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Search, Layers, ArrowDownUp } from 'lucide-react'
+import { Search, Layers, ArrowDownUp, MessageCircle, Mail } from 'lucide-react'
 
 // Cuadro estilo dashboard para la pestaña Información
 function DashCard({ children }: { children: React.ReactNode }) {
@@ -90,6 +90,17 @@ function climaDesc(code: number): { icon: string; txt: string } {
   return { icon: '🌡️', txt: '' }
 }
 
+// Fuentes oficiales (no hay API en vivo; se enlaza la página oficial)
+const OFICIAL = {
+  agenda: 'https://www.mendoza.tur.ar/',
+  vuelos: 'https://www.aa2000.com.ar/mendoza',
+  pasos:  'https://www.argentina.gob.ar/seguridad/pasosinternacionales/detalle/ruta/29/Sistema-Cristo-Redentor',
+}
+// Eventos destacados (anuales/oficiales). Se pueden sobrescribir desde tour_info.eventos
+const EVENTOS_DEFAULT = [
+  'Marzo · Fiesta Nacional de la Vendimia — la celebración más importante de Mendoza',
+]
+
 // Temporada según el mes (hemisferio sur)
 function temporadaActual(): string {
   const m = new Date().getMonth() // 0-11
@@ -129,7 +140,7 @@ export default function TourMenuPage() {
   const [resaltado, setResaltado] = useState<string | null>(null)
   const [hoverId, setHoverId] = useState<string | null>(null)   // hover local en la lista
   const [clima, setClima] = useState<{ temp: number; code: number } | null>(null)
-  const [infoExtra, setInfoExtra] = useState<{ horarios?: string; eventos?: string[] } | null>(null)
+  const [infoExtra, setInfoExtra] = useState<{ horarios?: string; eventos?: string[]; vuelos?: string; pasos?: string } | null>(null)
 
   useEffect(() => {
     document.body.style.background = 'transparent'
@@ -196,7 +207,7 @@ export default function TourMenuPage() {
       // Info editable del tour (horarios/eventos), opcional
       try {
         const snap = await getDoc(doc(db, 'configuracion', 'tour_info'))
-        if (snap.exists()) setInfoExtra(snap.data() as { horarios?: string; eventos?: string[] })
+        if (snap.exists()) setInfoExtra(snap.data() as { horarios?: string; eventos?: string[]; vuelos?: string; pasos?: string })
       } catch {}
     })
   }, [])
@@ -294,6 +305,11 @@ export default function TourMenuPage() {
     if (!socio.urlInternaTour) return
     try { window.top!.location.href = socio.urlInternaTour }
     catch { window.location.href = socio.urlInternaTour }
+  }
+
+  // Abre un enlace externo (oficial / WhatsApp / mail) fuera del iframe del tour
+  const abrir = (url: string) => {
+    try { window.top!.open(url, '_blank') } catch { window.open(url, '_blank') }
   }
 
 
@@ -529,6 +545,9 @@ export default function TourMenuPage() {
           </>
         ) : (
           <div className="px-5 py-4 overflow-y-auto flex-1 text-white space-y-3">
+            {(() => {
+              const eventos = (infoExtra?.eventos && infoExtra.eventos.length > 0) ? infoExtra.eventos : EVENTOS_DEFAULT
+              return <>
             {/* Dashboard de cuadros */}
             <div className="grid grid-cols-2 gap-2">
               {/* Clima */}
@@ -543,14 +562,15 @@ export default function TourMenuPage() {
                 <DashLabel>Clima · Mendoza</DashLabel>
               </DashCard>
 
-              {/* Próximos eventos */}
-              <DashCard>
-                <p className="text-white font-bold text-[17px] leading-none">
-                  {infoExtra?.eventos?.length ?? 0}
-                  <span className="text-white/45 text-[11px] font-normal ml-1">🎟️</span>
-                </p>
-                <DashLabel>Próximos eventos</DashLabel>
-              </DashCard>
+              {/* Próximos eventos (abre la agenda oficial) */}
+              <button onClick={() => abrir(OFICIAL.agenda)} className="text-left">
+                <DashCard>
+                  <p className="text-white font-bold text-[17px] leading-none">
+                    {eventos.length}<span className="text-white/45 text-[11px] font-normal ml-1">🎟️</span>
+                  </p>
+                  <DashLabel>Eventos · ver agenda ↗</DashLabel>
+                </DashCard>
+              </button>
 
               {/* Temporada (ocupa las 2 columnas) */}
               <div className="col-span-2">
@@ -560,25 +580,41 @@ export default function TourMenuPage() {
                 </DashCard>
               </div>
 
-              {/* Datos útiles honestos (no estadísticas) */}
+              {/* Vuelos y pasos fronterizos (fuentes oficiales) */}
+              <button onClick={() => abrir(OFICIAL.vuelos)} className="text-left">
+                <DashCard>
+                  <p className="text-white font-bold text-[14px] leading-tight">✈️ Vuelos</p>
+                  <DashLabel>{infoExtra?.vuelos || 'Aeropuerto MDZ ↗'}</DashLabel>
+                </DashCard>
+              </button>
+              <button onClick={() => abrir(OFICIAL.pasos)} className="text-left">
+                <DashCard>
+                  <p className="text-white font-bold text-[14px] leading-tight">🏔️ Pasos</p>
+                  <DashLabel>{infoExtra?.pasos || 'Cristo Redentor ↗'}</DashLabel>
+                </DashCard>
+              </button>
+
+              {/* Datos útiles */}
               <DashCard><p className="text-white font-bold text-[15px] leading-none">750 m</p><DashLabel>Altitud</DashLabel></DashCard>
               <DashCard><p className="text-white font-bold text-[15px] leading-none">GMT-3</p><DashLabel>Huso horario</DashLabel></DashCard>
             </div>
 
-            {/* Lista de eventos (editables desde configuración/tour_info) */}
-            {infoExtra?.eventos && infoExtra.eventos.length > 0 && (
-              <div>
-                <p className="text-white/45 text-[10px] font-bold uppercase tracking-wide mb-1.5">🎟️ Qué pasa en Mendoza</p>
-                <div className="space-y-1.5">
-                  {infoExtra.eventos.map((ev, i) => (
-                    <div key={i} className="text-[12px] text-white/75 rounded-lg px-3 py-2"
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                      {ev}
-                    </div>
-                  ))}
-                </div>
+            {/* Lista de eventos destacados */}
+            <div>
+              <p className="text-white/45 text-[10px] font-bold uppercase tracking-wide mb-1.5">🎟️ Eventos destacados</p>
+              <div className="space-y-1.5">
+                {eventos.map((ev, i) => (
+                  <div key={i} className="text-[12px] text-white/75 rounded-lg px-3 py-2"
+                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    {ev}
+                  </div>
+                ))}
+                <button onClick={() => abrir(OFICIAL.agenda)}
+                  className="text-[11px] text-blue-300 hover:text-blue-200 underline">
+                  Ver agenda oficial de Mendoza ↗
+                </button>
               </div>
-            )}
+            </div>
 
             {infoExtra?.horarios && (
               <div className="text-[12px] text-white/70">
@@ -587,43 +623,34 @@ export default function TourMenuPage() {
               </div>
             )}
 
+            {/* Mendoza Bureau (descripción resumida) */}
             <div>
-              <h3 className="font-bold text-sm mb-1.5">Mendoza Bureau</h3>
+              <h3 className="font-bold text-sm mb-1">Mendoza Bureau</h3>
               <p className="text-white/65 text-[12px] leading-relaxed">
-                Somos una asociación que agrupa a los principales socios corporativos
-                de Mendoza, ofreciendo experiencias únicas en bodegas, gastronomía,
+                Conectamos a los principales socios de Mendoza en bodegas, gastronomía,
                 hotelería y servicios.
               </p>
             </div>
-            <div className="space-y-2.5">
-              <div className="flex items-center gap-2.5">
-                <span className="text-sm">📍</span>
-                <span className="text-white/70 text-[12px]">Mendoza, Argentina</span>
-              </div>
-              <a
-                href="https://mendoza-bureau.vercel.app/web_bureau"
-                onClick={e => { e.preventDefault(); try { window.top!.location.href = 'https://mendoza-bureau.vercel.app/web_bureau' } catch { window.open('https://mendoza-bureau.vercel.app/web_bureau', '_blank') } }}
-                className="flex items-center gap-2.5 group"
+
+            {/* Contacto: botones llamativos */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => abrir('https://wa.me/5492614000000')}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 font-bold text-[13px] text-white transition active:scale-95"
+                style={{ background: 'linear-gradient(135deg,#25D366,#128C7E)', boxShadow: '0 4px 14px rgba(37,211,102,0.35)' }}
               >
-                <span className="text-sm">🌐</span>
-                <span className="text-[12px] text-blue-300 underline group-hover:text-blue-200">mendozabureau.com</span>
-              </a>
-              <a
-                href="mailto:info@mendozabureau.com"
-                className="flex items-center gap-2.5 group"
+                <MessageCircle size={16} /> WhatsApp
+              </button>
+              <button
+                onClick={() => abrir('mailto:info@mendozabureau.com')}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 font-bold text-[13px] text-white transition active:scale-95"
+                style={{ background: 'linear-gradient(135deg,#f15a24,#ff7a45)', boxShadow: '0 4px 14px rgba(241,90,36,0.35)' }}
               >
-                <span className="text-sm">📧</span>
-                <span className="text-[12px] text-blue-300 underline group-hover:text-blue-200">info@mendozabureau.com</span>
-              </a>
-              <a
-                href="https://wa.me/5492614000000"
-                onClick={e => { e.preventDefault(); try { window.top!.location.href = 'https://wa.me/5492614000000' } catch { window.open('https://wa.me/5492614000000', '_blank') } }}
-                className="flex items-center gap-2.5 group"
-              >
-                <span className="text-sm">📱</span>
-                <span className="text-[12px] text-green-300 underline group-hover:text-green-200">WhatsApp Bureau</span>
-              </a>
+                <Mail size={16} /> Email
+              </button>
             </div>
+            </>
+            })()}
           </div>
         )}
       </div>
