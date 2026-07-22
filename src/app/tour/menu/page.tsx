@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Search, Layers } from 'lucide-react'
+import { Search, Layers, ArrowDownUp } from 'lucide-react'
 
 interface Socio {
   id: string
@@ -50,8 +50,11 @@ export default function TourMenuPage() {
   const [filtro, setFiltro] = useState('todos')
   const [busqueda, setBusqueda] = useState('')
   const [tab, setTab] = useState<'lugares' | 'informacion'>('lugares')
+  const [orden, setOrden] = useState<'az' | 'za' | 'categoria'>('az')
   const [opacity, setOpacity] = useState(0.85)
   const [logoUrl, setLogoUrl] = useState('')
+  // Socio resaltado desde el panorama (hotspot con hover en 3DVista)
+  const [resaltado, setResaltado] = useState<string | null>(null)
 
   useEffect(() => {
     document.body.style.background = 'transparent'
@@ -118,12 +121,44 @@ export default function TourMenuPage() {
     })
   }, [])
 
+  // Cantidad de socios por categoría (para los contadores en los chips)
+  const conteos = useMemo(() => {
+    const c: Record<string, number> = { todos: socios.length }
+    for (const s of socios) c[s.categoria] = (c[s.categoria] ?? 0) + 1
+    return c
+  }, [socios])
+
   const categoriasConSocios = CATEGORIAS.filter(
     c => c.key === 'todos' || socios.some(s => s.categoria === c.key)
   )
 
+  // ── Puente con 3DVista (postMessage) ────────────────────────────────────────
+  // Emite hacia el tour (padre) para resaltar/activar el hotspot correspondiente.
+  const emitir = (msg: Record<string, unknown>) => {
+    const payload = { source: 'bureau-menu', ...msg }
+    try { window.parent?.postMessage(payload, '*') } catch {}
+    try { if (window.top && window.top !== window.parent) window.top.postMessage(payload, '*') } catch {}
+  }
+
+  // Escucha del tour: cuando el hotspot de una categoría recibe hover en 3DVista,
+  // resaltamos las tarjetas de esa categoría.
+  useEffect(() => {
+    const onMsg = (e: MessageEvent) => {
+      const d = e.data
+      if (!d || d.source !== 'bureau-tour') return
+      if (d.type === 'hotspot-hover') setResaltado(d.categoria ?? null)
+      if (d.type === 'hotspot-out') setResaltado(null)
+      if (d.type === 'hotspot-click' && d.categoria) { setFiltro(d.categoria); setTab('lugares') }
+    }
+    window.addEventListener('message', onMsg)
+    return () => window.removeEventListener('message', onMsg)
+  }, [])
+
+  // Al cambiar de filtro, avisamos al tour cuál categoría quedó activa (punto 4).
+  useEffect(() => { emitir({ type: 'filtro', categoria: filtro }) }, [filtro])
+
   const filtrados = useMemo(() => {
-    return socios.filter(s => {
+    const lista = socios.filter(s => {
       const coincideCategoria = filtro === 'todos' || s.categoria === filtro
       const q = busqueda.toLowerCase()
       const coincideBusqueda =
@@ -133,11 +168,18 @@ export default function TourMenuPage() {
         s.direccion?.toLowerCase().includes(q)
       return coincideCategoria && coincideBusqueda
     })
-  }, [socios, filtro, busqueda])
+    const cmp = (a: Socio, b: Socio) =>
+      (a.razonSocial || '').localeCompare(b.razonSocial || '', 'es', { sensitivity: 'base' })
+    if (orden === 'az') return [...lista].sort(cmp)
+    if (orden === 'za') return [...lista].sort((a, b) => cmp(b, a))
+    // por categoría, y dentro de cada una alfabético
+    return [...lista].sort((a, b) =>
+      (a.categoria || '').localeCompare(b.categoria || '') || cmp(a, b))
+  }, [socios, filtro, busqueda, orden])
 
   // Render progresivo: pinta la primera tanda al toque y el resto en el próximo
   // frame, para que el panel aparezca sin esperar a dibujar las 50 tarjetas.
-  useEffect(() => { setVisibles(PRIMERA_TANDA) }, [filtro, busqueda])
+  useEffect(() => { setVisibles(PRIMERA_TANDA) }, [filtro, busqueda, orden])
   useEffect(() => {
     if (filtrados.length > visibles) {
       const t = requestAnimationFrame(() => setVisibles(filtrados.length))
@@ -247,28 +289,63 @@ export default function TourMenuPage() {
               </div>
             </div>
 
-            {/* Filtros */}
+            {/* Filtros con contador por categoría */}
             {categoriasConSocios.length > 1 && (
-              <div className="px-4 pb-3 flex gap-1.5 flex-wrap">
+              <div className="px-4 pb-2 flex gap-1.5 flex-wrap">
                 {categoriasConSocios.map(cat => {
                   const active = filtro === cat.key
+                  const n = conteos[cat.key] ?? 0
+                  const dot = CAT_COLORS[cat.key]
                   return (
                     <button
                       key={cat.key}
                       onClick={() => setFiltro(cat.key)}
-                      className="px-3 py-1 rounded-full text-[11px] font-semibold transition-all"
+                      className="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all flex items-center gap-1.5"
                       style={{
                         background: active ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.10)',
                         color: active ? '#111' : 'rgba(255,255,255,0.80)',
                         border: active ? '1px solid transparent' : '1px solid rgba(255,255,255,0.22)',
                       }}
                     >
+                      {dot && !active && (
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: dot }} />
+                      )}
                       {cat.label}
+                      <span
+                        className="text-[10px] font-bold rounded-full px-1.5 leading-[15px] min-w-[16px] text-center"
+                        style={{
+                          background: active ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.14)',
+                          color: active ? '#111' : 'rgba(255,255,255,0.65)',
+                        }}
+                      >
+                        {n}
+                      </span>
                     </button>
                   )
                 })}
               </div>
             )}
+
+            {/* Orden + total de resultados */}
+            <div className="px-4 pb-3 flex items-center justify-between">
+              <span className="text-white/40 text-[10px]">
+                {filtrados.length} {filtrados.length === 1 ? 'lugar' : 'lugares'}
+              </span>
+              <div className="flex items-center gap-1">
+                <ArrowDownUp size={11} className="text-white/40" />
+                <select
+                  value={orden}
+                  onChange={e => setOrden(e.target.value as typeof orden)}
+                  className="bg-transparent text-white/70 text-[11px] outline-none cursor-pointer"
+                  style={{ colorScheme: 'dark' }}
+                  title="Ordenar"
+                >
+                  <option value="az">Nombre A–Z</option>
+                  <option value="za">Nombre Z–A</option>
+                  <option value="categoria">Por categoría</option>
+                </select>
+              </div>
+            </div>
 
             {/* Lista */}
             <div className="overflow-y-auto flex-1 px-4 pb-4 space-y-2">
@@ -297,19 +374,25 @@ export default function TourMenuPage() {
                     : 'No hay lugares en esta categoría'}
                 </p>
               ) : (
-                mostrados.map(socio => (
+                mostrados.map(socio => {
+                  const cat = CAT_COLORS[socio.categoria] ?? '#9CA3AF'
+                  const hl = resaltado === socio.categoria     // resaltado desde el hotspot
+                  return (
                   <div
                     key={socio.id}
-                    className="rounded-xl p-3 flex items-center justify-between gap-3"
+                    onMouseEnter={() => emitir({ type: 'hover', categoria: socio.categoria, id: socio.id })}
+                    onMouseLeave={() => emitir({ type: 'hover-out' })}
+                    className="rounded-xl p-3 flex items-center justify-between gap-3 transition-all"
                     style={{
-                      background: 'rgba(255,255,255,0.07)',
-                      border: '1px solid rgba(255,255,255,0.13)',
+                      background: hl ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.07)',
+                      border: `1px solid ${hl ? cat : 'rgba(255,255,255,0.13)'}`,
+                      boxShadow: hl ? `0 0 0 1px ${cat}, 0 4px 14px rgba(0,0,0,0.25)` : 'none',
                     }}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span
                         className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ background: CAT_COLORS[socio.categoria] ?? '#9CA3AF' }}
+                        style={{ background: cat }}
                       />
                       <div className="min-w-0">
                         <p className="text-white text-[13px] font-semibold leading-tight truncate">
@@ -334,7 +417,8 @@ export default function TourMenuPage() {
                       <span className="text-white/25 text-[10px] flex-shrink-0">Sin tour</span>
                     )}
                   </div>
-                ))
+                  )
+                })
               )}
             </div>
           </>
