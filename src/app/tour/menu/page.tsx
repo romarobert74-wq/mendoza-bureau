@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { Search, Layers } from 'lucide-react'
 
@@ -77,6 +78,23 @@ export default function TourMenuPage() {
         const res = await fetch('/api/socios-menu')
         if (!res.ok) throw new Error('bad status')
         const data = (await res.json()) as Socio[]
+        if (!Array.isArray(data) || data.length === 0) throw new Error('vacío')
+        if (cancelado) return
+        setSocios(data)
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() })) } catch {}
+        if (!cancelado) setLoading(false)
+        return
+      } catch (err) {
+        console.error('Endpoint liviano no disponible, usando Firestore directo:', err)
+      }
+
+      // 3) Fallback: carga directa desde Firestore (comportamiento original).
+      try {
+        const q = query(collection(db, 'socios'), orderBy('razonSocial', 'asc'))
+        const snap = await getDocs(q)
+        const data = snap.docs
+          .map(d => ({ id: d.id, ...d.data() } as Socio & { activo?: boolean }))
+          .filter(s => s.activo !== false)
         if (cancelado) return
         setSocios(data)
         try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data, ts: Date.now() })) } catch {}
