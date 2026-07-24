@@ -320,7 +320,7 @@ function BodegaSection({ socio }: { socio: Socio }) {
   const d = (socio.bodegaData ?? {}) as Partial<NonNullable<Socio['bodegaData']>>
   return (
     <div>
-        <SecLabel color={T.orange}>Bodega{d.subzona ? ` · ${SUBZONAS_MENDOZA[d.subzona]}` : ''}</SecLabel>
+        <SecLabel color={T.orange}>Bodega{d.subzona ? ` · ${SUBZONAS_MENDOZA[d.subzona as keyof typeof SUBZONAS_MENDOZA] ?? d.subzona}` : ''}</SecLabel>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '10px', marginBottom: '14px' }}>
           {d.añoFundacion && (

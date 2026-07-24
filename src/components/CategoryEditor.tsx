@@ -10,6 +10,7 @@ import {
   HOTEL_VACIO, RESTAURANTE_VACIO, BODEGA_VACIA, ALOJAMIENTO_VACIO, SERVICIO_VACIO,
   SUBCATEGORIAS_SERVICIO,
 } from '@/types'
+import type { ItemLista } from '@/lib/firestore'
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 const lbl = 'block text-xs font-semibold uppercase tracking-wide mb-1.5'
@@ -47,23 +48,24 @@ function Txt({ label, value, onChange, placeholder, span2 }: { label: string; va
 }
 
 const IDIOMAS_COMUNES = ['Español', 'Inglés', 'Portugués', 'Francés', 'Italiano', 'Alemán']
+const VARIETALES_COMUNES = ['Malbec', 'Cabernet Sauvignon', 'Bonarda', 'Syrah', 'Merlot', 'Torrontés', 'Chardonnay', 'Sauvignon Blanc', 'Cabernet Franc', 'Pinot Noir', 'Tempranillo', 'Petit Verdot']
 
-// Selector de idiomas: botones toggle + campo "Otros". El valor se guarda como
-// string separado por comas (compatible con lo ya cargado).
-function Idiomas({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+// Selector genérico de botones toggle (multi-selección) + campo "Otros".
+// El valor se guarda como string separado por comas (compatible con lo ya cargado).
+function TogglesConOtros({ label, opciones, value, onChange, placeholderOtros }: {
+  label: string; opciones: string[]; value: string; onChange: (v: string) => void; placeholderOtros?: string
+}) {
   const seleccionados = value.split(',').map(s => s.trim()).filter(Boolean)
-  const otros = seleccionados.filter(s => !IDIOMAS_COMUNES.some(c => c.toLowerCase() === s.toLowerCase()))
+  const otros = seleccionados.filter(s => !opciones.some(c => c.toLowerCase() === s.toLowerCase()))
   const otrosStr = otros.join(', ')
 
-  const toggle = (idioma: string) => {
-    const activo = seleccionados.some(s => s.toLowerCase() === idioma.toLowerCase())
-    const base = seleccionados.filter(s => s.toLowerCase() !== idioma.toLowerCase())
-    const nuevos = activo ? base : [...base, idioma]
-    onChange(nuevos.join(', '))
+  const toggle = (op: string) => {
+    const activo = seleccionados.some(s => s.toLowerCase() === op.toLowerCase())
+    const base = seleccionados.filter(s => s.toLowerCase() !== op.toLowerCase())
+    onChange((activo ? base : [...base, op]).join(', '))
   }
-
   const setOtros = (txt: string) => {
-    const comunes = seleccionados.filter(s => IDIOMAS_COMUNES.some(c => c.toLowerCase() === s.toLowerCase()))
+    const comunes = seleccionados.filter(s => opciones.some(c => c.toLowerCase() === s.toLowerCase()))
     const extras = txt.split(',').map(s => s.trim()).filter(Boolean)
     onChange([...comunes, ...extras].join(', '))
   }
@@ -72,23 +74,29 @@ function Idiomas({ label, value, onChange }: { label: string; value: string; onC
     <div className="md:col-span-2">
       <label className={lbl} style={lbl_c}>{label}</label>
       <div className="flex flex-wrap gap-2 mb-2">
-        {IDIOMAS_COMUNES.map(idioma => {
-          const activo = seleccionados.some(s => s.toLowerCase() === idioma.toLowerCase())
+        {opciones.map(op => {
+          const activo = seleccionados.some(s => s.toLowerCase() === op.toLowerCase())
           return (
-            <button key={idioma} type="button" onClick={() => toggle(idioma)}
+            <button key={op} type="button" onClick={() => toggle(op)}
               className="px-3 py-1.5 rounded-lg text-sm font-medium transition"
               style={activo
                 ? { background: 'rgba(241,90,36,0.16)', color: '#ff7a45', border: '1px solid rgba(241,90,36,0.4)' }
                 : { background: '#111827', color: '#94a3b8', border: '1px solid #1e293b' }}>
-              {idioma}
+              {op}
             </button>
           )
         })}
       </div>
-      <input type="text" className="input" placeholder="Otros idiomas (separados por coma)"
+      <input type="text" className="input" placeholder={placeholderOtros ?? 'Otros (separados por coma)'}
         value={otrosStr} onChange={e => setOtros(e.target.value)} />
     </div>
   )
+}
+
+// Idiomas = toggles con la lista común de idiomas
+function Idiomas({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return <TogglesConOtros label={label} opciones={IDIOMAS_COMUNES} value={value} onChange={onChange}
+    placeholderOtros="Otros idiomas (separados por coma)" />
 }
 
 function Sel<T extends string>({ label, value, onChange, options }: { label: string; value: T; onChange: (v: T) => void; options: Record<T, string> }) {
@@ -254,8 +262,13 @@ export function RestauranteEditor({ data, onChange }: { data: RestauranteData; o
 }
 
 // ── Bodega Editor ─────────────────────────────────────────────────────────────
-export function BodegaEditor({ data, onChange }: { data: BodegaData; onChange: (d: BodegaData) => void }) {
+export function BodegaEditor({ data, onChange, departamentos = [] }: { data: BodegaData; onChange: (d: BodegaData) => void; departamentos?: ItemLista[] }) {
   const s = <K extends keyof BodegaData>(k: K, v: BodegaData[K]) => onChange({ ...data, [k]: v })
+
+  // Departamentos desde configuración; si no hay, usamos la lista base
+  const opcionesDepto: Record<string, string> = departamentos.length
+    ? Object.fromEntries([['', 'Seleccioná…'], ...departamentos.map(d => [d.nombre, d.nombre])])
+    : (SUBZONAS_MENDOZA as Record<string, string>)
 
   return (
     <div className="space-y-6">
@@ -263,8 +276,11 @@ export function BodegaEditor({ data, onChange }: { data: BodegaData; onChange: (
         <Num label="Año de fundación" value={data.añoFundacion} onChange={v => s('añoFundacion', v)} placeholder="1902" />
         <Num label="Hectáreas de viñedo" value={data.hectareas} onChange={v => s('hectareas', v)} placeholder="120" />
         <Txt label="Producción anual" value={data.produccionAnual} onChange={v => s('produccionAnual', v)} placeholder="500.000 botellas/año" />
-        <Sel label="Subzona de Mendoza" value={data.subzona} onChange={v => s('subzona', v as SubzonaMendoza)} options={SUBZONAS_MENDOZA} />
-        <Txt label="Varietales principales" value={data.varietalesPrincipales} onChange={v => s('varietalesPrincipales', v)} placeholder="Malbec, Cabernet Sauvignon, Torrontés" span2 />
+        <Sel label="Departamento de Mendoza" value={data.subzona} onChange={v => s('subzona', v)} options={opcionesDepto} />
+        <TogglesConOtros label="Varietales principales" opciones={VARIETALES_COMUNES}
+          value={data.varietalesPrincipales} onChange={v => s('varietalesPrincipales', v)}
+          placeholderOtros="Otros varietales (separados por coma)" />
+        <Idiomas label="Idiomas de atención" value={data.idiomasAtencion} onChange={v => s('idiomasAtencion', v)} />
         <Txt label="Certificaciones" value={data.certificacionesCalidad} onChange={v => s('certificacionesCalidad', v)} placeholder="Orgánico, Biodinámico, HACCP..." span2 />
         <div className="md:col-span-2">
           <Chk label="Exporta a mercados internacionales" value={data.exporta} onChange={v => s('exporta', v)} />
@@ -435,6 +451,7 @@ interface CategoryEditorProps {
   bodegaData: BodegaData
   alojamientoData: AlojamientoData
   servicioData: ServicioData
+  departamentos?: ItemLista[]
   onChange: (updates: {
     hotelData?: HotelData
     restauranteData?: RestauranteData
@@ -452,7 +469,7 @@ const CATEGORY_LABELS: Partial<Record<CategoriaSocio, { title: string; sub: stri
   servicio: { title: 'Datos del Servicio', sub: 'Completá la ficha técnica del proveedor', emoji: '🚌' },
 }
 
-export function CategoryEditor({ categoria, hotelData, restauranteData, bodegaData, alojamientoData, servicioData, onChange }: CategoryEditorProps) {
+export function CategoryEditor({ categoria, hotelData, restauranteData, bodegaData, alojamientoData, servicioData, departamentos, onChange }: CategoryEditorProps) {
   const meta = CATEGORY_LABELS[categoria]
   if (!meta) return null
 
@@ -470,7 +487,7 @@ export function CategoryEditor({ categoria, hotelData, restauranteData, bodegaDa
         <RestauranteEditor data={restauranteData} onChange={d => onChange({ restauranteData: d })} />
       )}
       {categoria === 'bodega' && (
-        <BodegaEditor data={bodegaData} onChange={d => onChange({ bodegaData: d })} />
+        <BodegaEditor data={bodegaData} onChange={d => onChange({ bodegaData: d })} departamentos={departamentos} />
       )}
       {categoria === 'alojamiento' && (
         <AlojamientoEditor data={alojamientoData} onChange={d => onChange({ alojamientoData: d })} />

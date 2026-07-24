@@ -269,8 +269,9 @@ export interface BodegaData {
   añoFundacion: number | null
   hectareas: number | null
   produccionAnual: string           // "500.000 botellas/año"
-  subzona: SubzonaMendoza
+  subzona: string                   // departamento de Mendoza (desde configuración)
   varietalesPrincipales: string     // "Malbec, Cabernet Sauvignon, Torrontés"
+  idiomasAtencion: string           // idiomas de atención (toggle)
   exporta: boolean
   mercadosExportacion: string
   certificacionesCalidad: string    // orgánico, biodinámico, HACCP...
@@ -300,8 +301,9 @@ export const BODEGA_VACIA = (): BodegaData => ({
   añoFundacion: null,
   hectareas: null,
   produccionAnual: '',
-  subzona: 'lujan_de_cuyo',
+  subzona: '',
   varietalesPrincipales: '',
+  idiomasAtencion: '',
   exporta: false,
   mercadosExportacion: '',
   certificacionesCalidad: '',

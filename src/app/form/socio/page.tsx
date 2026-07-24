@@ -289,7 +289,7 @@ function FormSocio() {
       {/* ── Hero ── */}
       <div style={{ background: 'radial-gradient(700px 400px at 50% -20%, rgba(241,90,36,0.18), transparent 60%), linear-gradient(160deg, #10121a 0%, #0a0b10 70%)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '40px 20px 48px', textAlign: 'center' }}>
         <div style={{ maxWidth: '620px', margin: '0 auto' }}>
-          <div style={{ marginBottom: 34 }}><BrandLogos logos={['bureau']} size={64} /></div>
+          <div style={{ marginBottom: 30 }}><BrandLogos logos={['bureau']} size={190} color /></div>
           <h1 style={{ fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 800, color: '#f1f5f9', margin: '0 0 6px', lineHeight: 1.05, letterSpacing: '-1px' }}>
             Bienvenido al futuro del
           </h1>
@@ -359,6 +359,7 @@ function FormSocio() {
               bodegaData={bodegaData}
               alojamientoData={alojamientoData}
               servicioData={servicioData}
+              departamentos={departamentos}
               onChange={handleCategoryChange}
             />
           </AccSection>
