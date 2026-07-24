@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore'
 import { db } from './firebase'
 import type { Socio, SocioFormData, Usuario } from '@/types'
+import type { LandingConfig } from './serviciosAdicionales'
 
 // ── Usuarios ──────────────────────────────────────────────
 
@@ -198,6 +199,21 @@ export async function getConfigSistema(): Promise<ConfigSistema | null> {
 
 export async function setConfigSistema(data: ConfigSistema) {
   await setDoc(doc(db, 'configuracion', 'sistema'), {
+    ...data,
+    actualizadoEn: serverTimestamp(),
+  }, { merge: true })
+}
+
+// ── Landing de servicios adicionales (precios + imágenes editables) ──
+
+export async function getLandingServicios(): Promise<LandingConfig | null> {
+  const snap = await getDoc(doc(db, 'configuracion', 'landing_servicios'))
+  if (!snap.exists()) return null
+  return snap.data() as LandingConfig
+}
+
+export async function setLandingServicios(data: LandingConfig) {
+  await setDoc(doc(db, 'configuracion', 'landing_servicios'), {
     ...data,
     actualizadoEn: serverTimestamp(),
   }, { merge: true })

@@ -1,6 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { getLandingServicios } from '@/lib/firestore'
+import type { LandingConfig } from '@/lib/serviciosAdicionales'
 
 /* ─────────────────────────────────────────────────────────────
    EL FARO 360 · Servicios adicionales para socios de Mendoza Bureau
@@ -146,6 +148,7 @@ const FAQS = [
 const money = (n: number) => 'USD ' + n.toLocaleString('en-US')
 
 export default function ServiciosAdicionales() {
+  const [cfg, setCfg] = useState<LandingConfig | null>(null)
   const [cant, setCant] = useState<Record<string, number>>({})
   const [empresa, setEmpresa] = useState('')
   const [rubro, setRubro] = useState('')
@@ -154,12 +157,20 @@ export default function ServiciosAdicionales() {
   const [email, setEmail] = useState('')
   const [msg, setMsg] = useState('')
 
+  useEffect(() => { getLandingServicios().then(setCfg).catch(() => {}) }, [])
+
+  // precios con override desde el panel
+  const servicios = useMemo(
+    () => SERVICIOS.map(s => ({ ...s, precio: cfg?.precios?.[s.id] ?? s.precio })),
+    [cfg]
+  )
+
   const set = (id: string, delta: number) =>
     setCant(c => ({ ...c, [id]: Math.max(0, (c[id] ?? 0) + delta) }))
 
   const items = useMemo(
-    () => SERVICIOS.filter(s => (cant[s.id] ?? 0) > 0).map(s => ({ ...s, q: cant[s.id] })),
-    [cant]
+    () => servicios.filter(s => (cant[s.id] ?? 0) > 0).map(s => ({ ...s, q: cant[s.id] })),
+    [cant, servicios]
   )
   const total = useMemo(() => items.reduce((a, s) => a + s.precio * s.q, 0), [items])
 
@@ -206,6 +217,12 @@ export default function ServiciosAdicionales() {
             y contenido visual para mostrar todo el potencial de tu lugar.
           </p>
           <a href="#servicios" style={btnPrimary}>Quiero sumar contenido ↓</a>
+          {cfg?.heroImg && (
+            <div style={{ marginTop: 34, borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={cfg.heroImg} alt="Mendoza Bureau · El Faro 360" style={{ width: '100%', display: 'block', maxHeight: 420, objectFit: 'cover' }} />
+            </div>
+          )}
         </header>
 
         {/* ── Oportunidad ── */}
@@ -220,7 +237,7 @@ export default function ServiciosAdicionales() {
         <h2 id="servicios" style={h2}>Elegí lo que querés sumar</h2>
         <p style={sub}>Tocá <b>+</b> para agregar. El total se calcula solo, abajo de todo.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16, marginBottom: 40 }}>
-          {SERVICIOS.map(s => {
+          {servicios.map(s => {
             const q = cant[s.id] ?? 0
             return (
               <div key={s.id} style={{
@@ -254,6 +271,18 @@ export default function ServiciosAdicionales() {
             </div>
           ))}
         </div>
+
+        {/* ── Galería (editable desde el panel) ── */}
+        {cfg?.galeria && cfg.galeria.length > 0 && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 10, marginBottom: 40 }}>
+            {cfg.galeria.map((img, i) => (
+              <div key={i} style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', aspectRatio: '4/3' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={img} alt={`Muestra ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* ── Cómo contratar ── */}
         <h2 style={h2}>Cómo funciona</h2>
