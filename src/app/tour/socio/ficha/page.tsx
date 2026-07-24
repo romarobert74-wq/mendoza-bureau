@@ -321,6 +321,11 @@ function BodegaSection({ socio }: { socio: Socio }) {
   return (
     <div>
         <SecLabel color={T.orange}>Bodega{d.subzona ? ` · ${SUBZONAS_MENDOZA[d.subzona as keyof typeof SUBZONAS_MENDOZA] ?? d.subzona}` : ''}</SecLabel>
+        {d.departamentoCampos && (
+          <p style={{ fontSize: '11px', color: T.muted, margin: '0 0 12px' }}>
+            🍇 Viñedos en {SUBZONAS_MENDOZA[d.departamentoCampos as keyof typeof SUBZONAS_MENDOZA] ?? d.departamentoCampos}
+          </p>
+        )}
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '10px', marginBottom: '14px' }}>
           {d.añoFundacion && (

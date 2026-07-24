@@ -269,7 +269,8 @@ export interface BodegaData {
   añoFundacion: number | null
   hectareas: number | null
   produccionAnual: string           // "500.000 botellas/año"
-  subzona: string                   // departamento de Mendoza (desde configuración)
+  subzona: string                   // departamento de la bodega / oficinas (desde configuración)
+  departamentoCampos: string        // departamento de los viñedos / campos de vid
   varietalesPrincipales: string     // "Malbec, Cabernet Sauvignon, Torrontés"
   idiomasAtencion: string           // idiomas de atención (toggle)
   exporta: boolean
@@ -302,6 +303,7 @@ export const BODEGA_VACIA = (): BodegaData => ({
   hectareas: null,
   produccionAnual: '',
   subzona: '',
+  departamentoCampos: '',
   varietalesPrincipales: '',
   idiomasAtencion: '',
   exporta: false,

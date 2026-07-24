@@ -276,7 +276,8 @@ export function BodegaEditor({ data, onChange, departamentos = [] }: { data: Bod
         <Num label="Año de fundación" value={data.añoFundacion} onChange={v => s('añoFundacion', v)} placeholder="1902" />
         <Num label="Hectáreas de viñedo" value={data.hectareas} onChange={v => s('hectareas', v)} placeholder="120" />
         <Txt label="Producción anual" value={data.produccionAnual} onChange={v => s('produccionAnual', v)} placeholder="500.000 botellas/año" />
-        <Sel label="Departamento de Mendoza" value={data.subzona} onChange={v => s('subzona', v)} options={opcionesDepto} />
+        <Sel label="Departamento (bodega / oficinas)" value={data.subzona} onChange={v => s('subzona', v)} options={opcionesDepto} />
+        <Sel label="Departamento (viñedos / campos)" value={data.departamentoCampos} onChange={v => s('departamentoCampos', v)} options={opcionesDepto} />
         <TogglesConOtros label="Varietales principales" opciones={VARIETALES_COMUNES}
           value={data.varietalesPrincipales} onChange={v => s('varietalesPrincipales', v)}
           placeholderOtros="Otros varietales (separados por coma)" />
