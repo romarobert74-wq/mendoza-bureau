@@ -53,6 +53,41 @@ const IcoPremium = (
     <path d="M10 36h28" stroke="#fff" strokeWidth="1.4" opacity=".4" />
   </svg>
 )
+const IcoFoto = (
+  <svg viewBox="0 0 48 48" fill="none" width="40" height="40">
+    <rect x="5" y="13" width="38" height="26" rx="4" stroke="#fff" strokeWidth="2" />
+    <path d="M16 13l3-4h10l3 4" stroke="#fff" strokeWidth="2" strokeLinejoin="round" />
+    <circle cx="24" cy="26" r="7" stroke={ORANGE} strokeWidth="2" />
+    <text x="38" y="20" fontSize="7" fontWeight="800" fill={ORANGE} textAnchor="end">HDR</text>
+  </svg>
+)
+const IcoReel = (
+  <svg viewBox="0 0 48 48" fill="none" width="40" height="40">
+    <rect x="15" y="5" width="18" height="38" rx="4" stroke="#fff" strokeWidth="2" />
+    <path d="M21 18l9 6-9 6z" fill={ORANGE} />
+  </svg>
+)
+const IcoVideoH = (
+  <svg viewBox="0 0 48 48" fill="none" width="40" height="40">
+    <rect x="5" y="11" width="38" height="26" rx="4" stroke="#fff" strokeWidth="2" />
+    <path d="M20 19l9 5-9 5z" fill={ORANGE} />
+  </svg>
+)
+const IcoDrone = (
+  <svg viewBox="0 0 48 48" fill="none" width="40" height="40">
+    <circle cx="11" cy="14" r="5" stroke={ORANGE} strokeWidth="2" />
+    <circle cx="37" cy="14" r="5" stroke={ORANGE} strokeWidth="2" />
+    <path d="M14 17l7 6M34 17l-7 6" stroke="#fff" strokeWidth="2" />
+    <rect x="19" y="22" width="10" height="7" rx="2" stroke="#fff" strokeWidth="2" />
+    <circle cx="24" cy="34" r="3" stroke={ORANGE} strokeWidth="2" />
+  </svg>
+)
+const IcoVideo360 = (
+  <svg viewBox="0 0 48 48" fill="none" width="40" height="40">
+    <ellipse cx="24" cy="24" rx="20" ry="12" stroke={ORANGE} strokeWidth="2" />
+    <path d="M20 18l10 6-10 6z" fill="#fff" />
+  </svg>
+)
 
 const SERVICIOS: Servicio[] = [
   { id: 'pano1', nombre: 'Panorama 360° adicional', precio: 100, icon: IcoPano,
@@ -73,6 +108,21 @@ const SERVICIOS: Servicio[] = [
   { id: 'premium', nombre: 'Bloque visual premium', precio: 450, icon: IcoPremium,
     ideal: 'Material profesional para redes, web y campañas — en el mismo relevamiento.',
     ejemplos: 'Hasta 30 fotos HDR + 2 reels (30s) · o 1 video institucional (60s)' },
+  { id: 'video360', nombre: 'Video 360°', precio: 350, icon: IcoVideo360,
+    ideal: 'Video inmersivo 360° para vivir el espacio en movimiento.',
+    ejemplos: 'Recorrido inmersivo del lugar, ideal para redes y la plataforma.' },
+  { id: 'fotohdr', nombre: 'Fotografías HDR', precio: 250, icon: IcoFoto,
+    ideal: 'Producción fotográfica profesional HDR.',
+    ejemplos: 'Fotos de alta calidad para web, redes y presentaciones.' },
+  { id: 'reel', nombre: 'Reel vertical', precio: 250, icon: IcoReel,
+    ideal: 'Reel vertical de hasta 30 segundos.',
+    ejemplos: 'Perfecto para Instagram, TikTok y redes.' },
+  { id: 'videoh', nombre: 'Video horizontal', precio: 250, icon: IcoVideoH,
+    ideal: 'Video institucional horizontal de hasta 60 segundos.',
+    ejemplos: 'Ideal para web, YouTube y presentaciones comerciales.' },
+  { id: 'drone', nombre: 'Servicio de drone', precio: 250, icon: IcoDrone,
+    ideal: 'Tomas aéreas con drone, según permisos y condiciones técnicas.',
+    ejemplos: 'Vistas panorámicas del predio, viñedos o entorno.' },
 ]
 
 const RUBROS = ['Hotel', 'Bodega', 'Restaurante', 'Servicio turístico', 'Organizador / Planner', 'Otro']
