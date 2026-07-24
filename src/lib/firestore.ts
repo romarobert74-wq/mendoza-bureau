@@ -387,28 +387,49 @@ export async function restaurarBackup(data: BackupData): Promise<void> {
   }
 }
 
-// Quita campos pesados (base64) para que el snapshot entre en un doc (<1MB)
-function sinImagenes(o: any): any {
-  const c = { ...o }
-  delete c.fotoPortada; delete c.logoUrl; delete c._fotos
-  delete c.heroImagen; delete c.documentos; delete c.contenido
-  if (Array.isArray(c.directiva)) c.directiva = c.directiva.map((m: any) => ({ ...m, foto: '' }))
-  return c
+// Quita RECURSIVAMENTE cualquier imagen base64 (data:...) y las fotos, esté
+// donde esté, para que el snapshot entre en un documento (<1MB de Firestore).
+function quitarPesados(o: any): any {
+  if (Array.isArray(o)) {
+    // en arrays mantenemos la longitud (imagen -> '')
+    return o.map(v => (typeof v === 'string' && v.startsWith('data:')) ? '' : quitarPesados(v))
+  }
+  if (o && typeof o === 'object') {
+    const r: Record<string, any> = {}
+    for (const [k, v] of Object.entries(o)) {
+      if (k === '_fotos') continue                             // las fotos van en el backup local
+      if (typeof v === 'string' && v.startsWith('data:')) continue  // OMITIMOS la imagen (así al restaurar no pisa la foto viva)
+      r[k] = quitarPesados(v)
+    }
+    return r
+  }
+  return o
 }
 
 // Guarda un snapshot LIGERO (solo texto, sin imágenes) en la nube (Firestore).
 export async function guardarSnapshotNube(nota?: string): Promise<void> {
   const full = await generarBackupCompleto(false)
   const datos: Record<string, any[]> = {}
-  for (const [k, v] of Object.entries(full.colecciones)) datos[k] = v.map(sinImagenes)
+  for (const [k, v] of Object.entries(full.colecciones)) datos[k] = v.map(quitarPesados)
   const resumen = contarBackup(full)
+  const payload = { fecha: new Date().toISOString(), resumen, nota: nota ?? '', datos }
+
+  // Guarda de Firestore: el documento no puede superar 1MB. Avisamos con claridad.
+  try {
+    const size = new Blob([JSON.stringify(payload)]).size
+    if (size > 950_000) {
+      throw new Error(
+        `El snapshot pesa ${Math.round(size / 1024)} KB y supera el límite de 1 MB de la nube. ` +
+        `Usá el "Backup local completo" (no tiene ese límite).`
+      )
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('límite')) throw e
+    // si Blob no está disponible por algún motivo, seguimos e intentamos igual
+  }
+
   const id = new Date().toISOString().replace(/[:.]/g, '-')
-  await setDoc(doc(db, 'backups', id), {
-    fecha: new Date().toISOString(),
-    resumen,
-    nota: nota ?? '',
-    datos,
-  })
+  await setDoc(doc(db, 'backups', id), payload)
 }
 
 export async function listarSnapshots(): Promise<SnapshotNube[]> {

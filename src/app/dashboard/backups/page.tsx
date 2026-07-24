@@ -84,8 +84,10 @@ export default function BackupsPage() {
       await guardarSnapshotNube()
       toast.success('Snapshot guardado en la nube', { id: t })
       cargarLista()
-    } catch {
-      toast.error('Error al guardar el snapshot', { id: t })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Error al guardar el snapshot'
+      console.error('Snapshot:', err)
+      toast.error(msg, { id: t, duration: 7000 })
     } finally {
       setSnapeando(false)
     }
