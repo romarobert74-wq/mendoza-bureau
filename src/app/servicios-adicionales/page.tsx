@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { getLandingServicios } from '@/lib/firestore'
 import type { LandingConfig } from '@/lib/serviciosAdicionales'
+import { BrandLogos } from '@/components/BrandLogos'
 
 /* ─────────────────────────────────────────────────────────────
    EL FARO 360 · Servicios adicionales para socios de Mendoza Bureau
@@ -204,8 +205,11 @@ export default function ServiciosAdicionales() {
 
       <div style={{ position: 'relative', maxWidth: 1000, margin: '0 auto', padding: '0 20px' }}>
 
+        {/* ── Logos ── */}
+        <div style={{ paddingTop: 30 }}><BrandLogos variant="header" /></div>
+
         {/* ── Hero ── */}
-        <header style={{ paddingTop: 64, paddingBottom: 40, textAlign: 'center' }}>
+        <header style={{ paddingTop: 34, paddingBottom: 40, textAlign: 'center' }}>
           <span style={{
             display: 'inline-block', fontSize: 12, fontWeight: 700, letterSpacing: 1.5,
             textTransform: 'uppercase', color: ORANGE, border: `1px solid ${ORANGE}55`,
@@ -370,8 +374,11 @@ export default function ServiciosAdicionales() {
           <a href="#servicios" style={btnPrimary}>Quiero potenciar mi recorrido</a>
         </section>
 
-        <footer style={{ textAlign: 'center', padding: '20px 0 50px', color: '#475569', fontSize: 12 }}>
-          El Faro 360 · Contenido inmersivo para Mendoza Bureau
+        <footer style={{ textAlign: 'center', padding: '10px 0 50px' }}>
+          <BrandLogos variant="footer" />
+          <p style={{ color: '#475569', fontSize: 12, marginTop: 14 }}>
+            El Faro 360 · Contenido inmersivo para Mendoza Bureau
+          </p>
         </footer>
       </div>
     </div>

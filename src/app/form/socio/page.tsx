@@ -1,7 +1,7 @@
 'use client'
 
-import { Suspense, useState, useRef, useEffect } from 'react'
-import { crearSocio, getConfigSistema } from '@/lib/firestore'
+import { Suspense, useState, useRef } from 'react'
+import { crearSocio } from '@/lib/firestore'
 import { uploadImage } from '@/lib/storage'
 import type {
   SocioFormData, CategoriaSocio, SalonIndividual,
@@ -13,21 +13,28 @@ import {
 } from '@/types'
 import { CategoryEditor } from '@/components/CategoryEditor'
 import { SalonesEditor } from '@/components/SalonesEditor'
+import { BrandLogos } from '@/components/BrandLogos'
 import { CheckCircle, AlertCircle, ChevronRight, Upload, Loader2, X } from 'lucide-react'
 
 const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
 
 // ── Shared inline styles ──────────────────────────────────────────────────────
+const ORANGE = '#f15a24'
+
 const inp: React.CSSProperties = {
   width: '100%',
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: '10px',
+  background: 'rgba(255,255,255,0.07)',
+  border: '1px solid rgba(255,255,255,0.15)',
+  borderRadius: '12px',
   padding: '11px 14px',
-  fontSize: '14px',
+  fontSize: '16px',
   color: '#f1f5f9',
   outline: 'none',
+  boxSizing: 'border-box',
 }
+
+// opciones de los <select> con texto oscuro (el desplegable usa fondo claro del navegador)
+const optStyle: React.CSSProperties = { color: '#0a0b10', background: '#fff' }
 
 const lbl: React.CSSProperties = {
   display: 'block',
@@ -40,10 +47,13 @@ const lbl: React.CSSProperties = {
 }
 
 const cardStyle: React.CSSProperties = {
-  background: '#0d1225',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: '16px',
+  background: 'rgba(255,255,255,0.05)',
+  backdropFilter: 'blur(16px)',
+  WebkitBackdropFilter: 'blur(16px)',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '18px',
   padding: '24px',
+  boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
 }
 
 const secTitle: React.CSSProperties = {
@@ -51,7 +61,7 @@ const secTitle: React.CSSProperties = {
   fontWeight: 800,
   textTransform: 'uppercase',
   letterSpacing: '0.12em',
-  color: '#fb923c',
+  color: ORANGE,
   marginBottom: '4px',
 }
 
@@ -104,19 +114,19 @@ function ImageUploadField({ label, hint, value, onChange, storageId, aspect }: {
       ) : (
         <button type="button" onClick={() => inputRef.current?.click()} disabled={uploading}
           style={{ width: '100%', padding: '22px', borderRadius: '12px', border: '2px dashed rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.03)', cursor: uploading ? 'not-allowed' : 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', transition: 'border-color 0.2s, background 0.2s' }}
-          onMouseEnter={e => { if (!uploading) { (e.currentTarget as HTMLButtonElement).style.borderColor = '#3b82f6'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(59,130,246,0.06)' } }}
+          onMouseEnter={e => { if (!uploading) { (e.currentTarget as HTMLButtonElement).style.borderColor = ORANGE; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(241,90,36,0.06)' } }}
           onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.12)'; (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)' }}>
           {uploading ? (
             <>
-              <Loader2 size={24} color="#60a5fa" style={{ animation: 'spin 0.8s linear infinite' }} />
+              <Loader2 size={24} color={ORANGE} style={{ animation: 'spin 0.8s linear infinite' }} />
               <span style={{ fontSize: '13px', color: '#94a3b8' }}>Subiendo... {progress}%</span>
               <div style={{ width: '100%', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '99px' }}>
-                <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg,#2563eb,#60a5fa)', borderRadius: '99px', transition: 'width 0.2s' }} />
+                <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg,#f15a24,#ff7a45)', borderRadius: '99px', transition: 'width 0.2s' }} />
               </div>
             </>
           ) : (
             <>
-              <Upload size={24} color="#60a5fa" />
+              <Upload size={24} color={ORANGE} />
               <span style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: 500 }}>Tocá para subir {label.toLowerCase()}</span>
               <span style={{ fontSize: '11px', color: '#64748b' }}>JPG, PNG, WEBP</span>
             </>
@@ -163,15 +173,6 @@ function FormSocio() {
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
-  const [logoBureau, setLogoBureau] = useState('')
-  const [logoElFaro, setLogoElFaro] = useState('')
-
-  useEffect(() => {
-    getConfigSistema().then(cfg => {
-      if (cfg?.logoUrl) setLogoBureau(cfg.logoUrl)
-      if (cfg?.logoElFaroUrl) setLogoElFaro(cfg.logoElFaroUrl)
-    }).catch(() => {})
-  }, [])
 
   // Campos generales
   const [form, setForm] = useState({
@@ -251,7 +252,7 @@ function FormSocio() {
   // ── Pantalla de éxito ──────────────────────────────────────────────────────
   if (done) {
     return (
-      <div style={{ minHeight: '100vh', background: '#080c18', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '16px', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ minHeight: '100vh', background: '#0a0b10', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '16px', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
         <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(34,197,94,0.1)', border: '2px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <CheckCircle size={40} color="#4ade80" />
         </div>
@@ -268,25 +269,19 @@ function FormSocio() {
   const hasCategoryFields = ['hotel', 'restaurante', 'bodega', 'alojamiento', 'servicio'].includes(form.categoria)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#080c18', color: '#f1f5f9', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#0a0b10', color: '#f1f5f9', fontFamily: 'system-ui, sans-serif' }}>
 
       {/* ── Hero ── */}
-      <div style={{ background: 'linear-gradient(160deg, #0d1225 0%, #080c18 70%)', borderBottom: '1px solid #1a2235', padding: '56px 20px 48px', textAlign: 'center' }}>
+      <div style={{ background: 'radial-gradient(700px 400px at 50% -20%, rgba(241,90,36,0.18), transparent 60%), linear-gradient(160deg, #10121a 0%, #0a0b10 70%)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '38px 20px 48px', textAlign: 'center' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-          {logoBureau ? (
-            <img src={logoBureau} alt="Mendoza Bureau" style={{ height: '40px', objectFit: 'contain', filter: 'brightness(0) invert(1)', margin: '0 auto 24px' }} />
-          ) : (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)', borderRadius: '99px', padding: '4px 16px', fontSize: '11px', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fb923c', marginBottom: '24px' }}>
-              ✦ Mendoza Bureau · El Faro 360
-            </div>
-          )}
+          <div style={{ marginBottom: 28 }}><BrandLogos variant="header" /></div>
           <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, color: '#f1f5f9', margin: '0 0 8px', lineHeight: 1.2 }}>
             Bienvenido al futuro del
           </h1>
-          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, color: '#3b82f6', margin: '0 0 20px', lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, color: ORANGE, margin: '0 0 20px', lineHeight: 1.2 }}>
             turismo inmersivo
           </h1>
-          <div style={{ width: '40px', height: '3px', background: 'linear-gradient(90deg, #2563eb, #f97316)', borderRadius: '99px', margin: '0 auto 24px' }} />
+          <div style={{ width: '40px', height: '3px', background: 'linear-gradient(90deg, #f15a24, #ff7a45)', borderRadius: '99px', margin: '0 auto 24px' }} />
           <p style={{ fontSize: '15px', color: '#64748b', maxWidth: '520px', margin: '0 auto 14px', lineHeight: 1.7 }}>
             Mendoza Bureau junto a El Faro 360 están desarrollando una plataforma inmersiva
             para que tu destino se vea en{' '}
@@ -309,9 +304,9 @@ function FormSocio() {
             <input value={form.razonSocial} onChange={set('razonSocial')} required style={inp} placeholder="Ej: Bodega Salentein" />
           </Field>
           <Field label="Rubro *" hint="Elegí el que mejor describa tu negocio — aparecerán campos específicos a continuación">
-            <select value={form.categoria} onChange={set('categoria')} style={{ ...inp, background: '#111827', cursor: 'pointer' }}>
+            <select value={form.categoria} onChange={set('categoria')} style={{ ...inp, cursor: 'pointer', colorScheme: 'dark' }}>
               {CATEGORIAS_OPTIONS.map(([val, label]) => (
-                <option key={val} value={val}>{label}</option>
+                <option key={val} value={val} style={optStyle}>{label}</option>
               ))}
             </select>
           </Field>
@@ -397,21 +392,16 @@ function FormSocio() {
         )}
 
         <button type="submit" disabled={sending}
-          style={{ width: '100%', padding: '15px', borderRadius: '12px', fontWeight: 700, fontSize: '15px', color: 'white', background: sending ? '#1d4ed8' : 'linear-gradient(135deg, #2563eb, #1d4ed8)', border: '1px solid #3b82f6', cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.7 : 1, transition: 'opacity 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          style={{ width: '100%', padding: '15px', borderRadius: '999px', fontWeight: 700, fontSize: '15px', color: 'white', background: 'linear-gradient(135deg, #f15a24, #ff7a45)', border: 'none', cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.7 : 1, boxShadow: '0 8px 24px rgba(241,90,36,0.35)', transition: 'opacity 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {sending ? 'Enviando...' : (
             <>Enviar mis datos <ChevronRight size={16} /></>
           )}
         </button>
 
-        {logoElFaro && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', paddingTop: '8px' }}>
-            <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#334155' }}>Desarrollado por</span>
-            <img src={logoElFaro} alt="El Faro 360" style={{ height: '16px', objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.7 }} />
-          </div>
-        )}
-
-        <p style={{ textAlign: 'center', fontSize: '11px', color: '#1e293b', paddingBottom: '8px' }}>
-          Mendoza Bureau · Convention & Visitors Bureau · El Faro 360
+        {/* Logos al pie */}
+        <div style={{ paddingTop: '16px' }}><BrandLogos variant="footer" /></div>
+        <p style={{ textAlign: 'center', fontSize: '11px', color: '#475569', paddingBottom: '8px' }}>
+          Mendoza Bureau · Convention &amp; Visitors Bureau · El Faro 360
         </p>
       </form>
     </div>
@@ -421,7 +411,7 @@ function FormSocio() {
 export default function FormSocioPage() {
   return (
     <Suspense fallback={
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#080c18' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0b10' }}>
         <div style={{ width: 32, height: 32, border: '2px solid #1e293b', borderTop: '2px solid #3b82f6', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       </div>
     }>
