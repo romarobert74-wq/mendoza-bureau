@@ -1,7 +1,8 @@
 'use client'
 
-import { Suspense, useState, useRef } from 'react'
-import { crearSocio } from '@/lib/firestore'
+import { Suspense, useState, useRef, useEffect } from 'react'
+import { crearSocio, getConfigSistema } from '@/lib/firestore'
+import type { ItemLista } from '@/lib/firestore'
 import { uploadImage } from '@/lib/storage'
 import type {
   SocioFormData, CategoriaSocio, SalonIndividual,
@@ -173,6 +174,11 @@ function FormSocio() {
   const [sending, setSending] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+  const [departamentos, setDepartamentos] = useState<ItemLista[]>([])
+
+  useEffect(() => {
+    getConfigSistema().then(cfg => setDepartamentos(cfg?.departamentos ?? [])).catch(() => {})
+  }, [])
 
   // Campos generales
   const [form, setForm] = useState({
@@ -180,6 +186,7 @@ function FormSocio() {
     infoGeneral: '',
     categoria: 'bodega' as CategoriaSocio,
     direccion: '',
+    departamento: '',
     ubicacionUrl: '',
     fotoPortada: '',
     logoUrl: '',
@@ -226,6 +233,7 @@ function FormSocio() {
         categoria: form.categoria,
         infoGeneral: form.infoGeneral,
         direccion: form.direccion,
+        departamento: form.departamento,
         ubicacionUrl: form.ubicacionUrl,
         fotoPortada: form.fotoPortada,
         logoUrl: form.logoUrl,
@@ -269,16 +277,23 @@ function FormSocio() {
   const hasCategoryFields = ['hotel', 'restaurante', 'bodega', 'alojamiento', 'servicio'].includes(form.categoria)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0a0b10', color: '#f1f5f9', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{
+      minHeight: '100vh', background: '#0a0b10', color: '#f1f5f9', colorScheme: 'dark',
+      // los .input (CategoryEditor, SalonesEditor) heredan estos tokens → quedan oscuros
+      ['--bg-input' as string]: '#171a24',
+      ['--text' as string]: '#f1f5f9',
+      ['--border-2' as string]: 'rgba(255,255,255,0.15)',
+      ['--text-faint' as string]: '#7c8797',
+    } as React.CSSProperties}>
 
       {/* ── Hero ── */}
-      <div style={{ background: 'radial-gradient(700px 400px at 50% -20%, rgba(241,90,36,0.18), transparent 60%), linear-gradient(160deg, #10121a 0%, #0a0b10 70%)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '38px 20px 48px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <div style={{ marginBottom: 28 }}><BrandLogos variant="header" /></div>
-          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, color: '#f1f5f9', margin: '0 0 8px', lineHeight: 1.2 }}>
+      <div style={{ background: 'radial-gradient(700px 400px at 50% -20%, rgba(241,90,36,0.18), transparent 60%), linear-gradient(160deg, #10121a 0%, #0a0b10 70%)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '40px 20px 48px', textAlign: 'center' }}>
+        <div style={{ maxWidth: '620px', margin: '0 auto' }}>
+          <div style={{ marginBottom: 34 }}><BrandLogos logos={['bureau']} size={64} /></div>
+          <h1 style={{ fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 800, color: '#f1f5f9', margin: '0 0 6px', lineHeight: 1.05, letterSpacing: '-1px' }}>
             Bienvenido al futuro del
           </h1>
-          <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, color: ORANGE, margin: '0 0 20px', lineHeight: 1.2 }}>
+          <h1 style={{ fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 800, color: ORANGE, margin: '0 0 20px', lineHeight: 1.05, letterSpacing: '-1px' }}>
             turismo inmersivo
           </h1>
           <div style={{ width: '40px', height: '3px', background: 'linear-gradient(90deg, #f15a24, #ff7a45)', borderRadius: '99px', margin: '0 auto 24px' }} />
@@ -317,6 +332,12 @@ function FormSocio() {
           </Field>
           <Field label="Dirección">
             <input value={form.direccion} onChange={set('direccion')} style={inp} placeholder="Ej: Ruta 89 s/n, Tunuyán, Mendoza" />
+          </Field>
+          <Field label="Departamento" hint="Elegí el departamento de Mendoza donde está tu negocio">
+            <select value={form.departamento} onChange={set('departamento')} style={{ ...inp, cursor: 'pointer' }}>
+              <option value="" style={optStyle}>Seleccioná un departamento…</option>
+              {departamentos.map(d => <option key={d.id} value={d.nombre} style={optStyle}>{d.nombre}</option>)}
+            </select>
           </Field>
           <Field label="Link de Google Maps" hint="Google Maps → buscá tu negocio → tocá 'Compartir' → copiá el link">
             <input value={form.ubicacionUrl} onChange={set('ubicacionUrl')} style={inp} placeholder="https://maps.app.goo.gl/..." />
@@ -398,10 +419,12 @@ function FormSocio() {
           )}
         </button>
 
-        {/* Logos al pie */}
-        <div style={{ paddingTop: '16px' }}><BrandLogos variant="footer" /></div>
+        {/* Power by El Faro (a color) */}
+        <div style={{ paddingTop: '18px' }}>
+          <BrandLogos logos={['faro']} size={34} label="Power by" color />
+        </div>
         <p style={{ textAlign: 'center', fontSize: '11px', color: '#475569', paddingBottom: '8px' }}>
-          Mendoza Bureau · Convention &amp; Visitors Bureau · El Faro 360
+          Mendoza Bureau · Convention &amp; Visitors Bureau
         </p>
       </form>
     </div>

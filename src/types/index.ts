@@ -494,6 +494,7 @@ export interface Socio {
   etiqueta: string
   categoria: CategoriaSocio
   direccion: string
+  departamento?: string
   contacto: {
     whatsapp: string
     email: string
