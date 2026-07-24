@@ -183,6 +183,8 @@ export interface ConfigSistema {
   categoriasExtra: ItemLista[]
   logoUrl?: string
   logoElFaroUrl?: string
+  logoBureauBlanco?: string   // versión ícono a color + letras blancas (para fondos oscuros)
+  logoElFaroBlanco?: string   // versión El Faro en blanco
 }
 
 export async function getConfigSistema(): Promise<ConfigSistema | null> {
@@ -194,6 +196,8 @@ export async function getConfigSistema(): Promise<ConfigSistema | null> {
     categoriasExtra: (d.categoriasExtra ?? []) as ItemLista[],
     logoUrl: (d.logoUrl ?? '') as string,
     logoElFaroUrl: (d.logoElFaroUrl ?? '') as string,
+    logoBureauBlanco: (d.logoBureauBlanco ?? '') as string,
+    logoElFaroBlanco: (d.logoElFaroBlanco ?? '') as string,
   }
 }
 

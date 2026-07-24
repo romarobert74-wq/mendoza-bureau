@@ -27,12 +27,18 @@ export default function ConfiguracionPage() {
   const [logoElFaroUrl, setLogoElFaroUrl] = useState('')
   const [subiendoLogo, setSubiendoLogo] = useState(false)
   const [subiendoLogoFaro, setSubiendoLogoFaro] = useState(false)
+  const [logoBureauBlanco, setLogoBureauBlanco] = useState('')
+  const [logoElFaroBlanco, setLogoElFaroBlanco] = useState('')
+  const [subiendoLogoBlanco, setSubiendoLogoBlanco] = useState(false)
+  const [subiendoLogoFaroBlanco, setSubiendoLogoFaroBlanco] = useState(false)
   const [nuevoDepto, setNuevoDepto] = useState('')
   const [nuevaCat, setNuevaCat] = useState('')
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const logoFaroInputRef = useRef<HTMLInputElement>(null)
+  const logoBlancoInputRef = useRef<HTMLInputElement>(null)
+  const logoFaroBlancoInputRef = useRef<HTMLInputElement>(null)
 
   const [checklist, setChecklist] = useState<Record<string, boolean>>({})
   const [notasMigracion, setNotasMigracion] = useState('')
@@ -45,6 +51,8 @@ export default function ConfiguracionPage() {
         setCategoriasExtra(cfg.categoriasExtra)
         setLogoUrl(cfg.logoUrl ?? '')
         setLogoElFaroUrl(cfg.logoElFaroUrl ?? '')
+        setLogoBureauBlanco(cfg.logoBureauBlanco ?? '')
+        setLogoElFaroBlanco(cfg.logoElFaroBlanco ?? '')
       } else {
         setDepartamentos(DEPARTAMENTOS_SEED.map(n => ({ id: uid(), nombre: n })))
       }
@@ -112,6 +120,34 @@ export default function ConfiguracionPage() {
       setSubiendoLogoFaro(false)
       e.target.value = ''
     }
+  }
+
+  const subirLogoBlanco = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) { toast.error('Debe ser una imagen'); return }
+    setSubiendoLogoBlanco(true)
+    try {
+      const url = await uploadImage(file, undefined, undefined, { preserveAlpha: true, maxPx: 700 })
+      setLogoBureauBlanco(url)
+      await setConfigSistema({ departamentos, categoriasExtra, logoUrl, logoElFaroUrl, logoBureauBlanco: url, logoElFaroBlanco })
+      toast.success('Logo blanco actualizado')
+    } catch { toast.error('Error al subir el logo') }
+    finally { setSubiendoLogoBlanco(false); e.target.value = '' }
+  }
+
+  const subirLogoFaroBlanco = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) { toast.error('Debe ser una imagen'); return }
+    setSubiendoLogoFaroBlanco(true)
+    try {
+      const url = await uploadImage(file, undefined, undefined, { preserveAlpha: true, maxPx: 700 })
+      setLogoElFaroBlanco(url)
+      await setConfigSistema({ departamentos, categoriasExtra, logoUrl, logoElFaroUrl, logoBureauBlanco, logoElFaroBlanco: url })
+      toast.success('Logo blanco actualizado')
+    } catch { toast.error('Error al subir el logo') }
+    finally { setSubiendoLogoFaroBlanco(false); e.target.value = '' }
   }
 
   const addDepto = () => {
@@ -218,10 +254,33 @@ export default function ConfiguracionPage() {
               onUpload={() => logoFaroInputRef.current?.click()}
               onQuitar={() => setLogoElFaroUrl('')}
             />
+            <LogoUploader
+              label="Logo Bureau — letras blancas"
+              url={logoBureauBlanco}
+              subiendo={subiendoLogoBlanco}
+              onUpload={() => logoBlancoInputRef.current?.click()}
+              onQuitar={() => setLogoBureauBlanco('')}
+              finalBlanco
+            />
+            <LogoUploader
+              label="Logo El Faro — blanco"
+              url={logoElFaroBlanco}
+              subiendo={subiendoLogoFaroBlanco}
+              onUpload={() => logoFaroBlancoInputRef.current?.click()}
+              onQuitar={() => setLogoElFaroBlanco('')}
+              finalBlanco
+            />
           </div>
+          <p className="text-xs mt-3" style={{ color: 'var(--text-faint)' }}>
+            Los dos de abajo (“letras blancas / blanco”) son opcionales: subilos tal cual (ícono a color + letras blancas)
+            para que se muestren así en los headers oscuros del formulario y la landing. Si no los cargás, el sistema usa el
+            logo normal volviéndolo blanco con un filtro.
+          </p>
 
           <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={subirLogo} />
           <input ref={logoFaroInputRef} type="file" accept="image/*" className="hidden" onChange={subirLogoFaro} />
+          <input ref={logoBlancoInputRef} type="file" accept="image/*" className="hidden" onChange={subirLogoBlanco} />
+          <input ref={logoFaroBlancoInputRef} type="file" accept="image/*" className="hidden" onChange={subirLogoFaroBlanco} />
         </section>
 
         {/* Departamentos de Mendoza */}
@@ -314,25 +373,36 @@ export default function ConfiguracionPage() {
   )
 }
 
-function LogoUploader({ label, url, subiendo, onUpload, onQuitar }: {
-  label: string; url: string; subiendo: boolean; onUpload: () => void; onQuitar: () => void
+function LogoUploader({ label, url, subiendo, onUpload, onQuitar, finalBlanco = false }: {
+  label: string; url: string; subiendo: boolean; onUpload: () => void; onQuitar: () => void; finalBlanco?: boolean
 }) {
   return (
     <div className="rounded-xl p-4" style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)' }}>
       <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--text-faint)' }}>{label}</p>
       <div className="flex items-center gap-3 mb-3">
-        {/* Preview sobre fondo oscuro (blanco automático) */}
-        <div className="w-16 h-16 rounded-lg flex items-center justify-center shrink-0 overflow-hidden" style={{ background: '#0a0a0b' }}>
-          {url
-            ? <img src={url} alt={label} className="w-full h-full object-contain p-2" style={{ filter: 'brightness(0) invert(1)' }} />
-            : <ImageIcon size={20} style={{ color: '#3f3f42' }} />}
-        </div>
-        {/* Preview sobre fondo claro (color original) */}
-        <div className="w-16 h-16 rounded-lg flex items-center justify-center shrink-0 overflow-hidden" style={{ background: '#f5f5f4' }}>
-          {url
-            ? <img src={url} alt={label} className="w-full h-full object-contain p-2" />
-            : <ImageIcon size={20} style={{ color: '#d6d3d1' }} />}
-        </div>
+        {finalBlanco ? (
+          // Logo ya finalizado (color + letras blancas): preview solo sobre oscuro, sin filtro
+          <div className="w-28 h-16 rounded-lg flex items-center justify-center shrink-0 overflow-hidden" style={{ background: '#0a0a0b' }}>
+            {url
+              ? <img src={url} alt={label} className="w-full h-full object-contain p-2" />
+              : <ImageIcon size={20} style={{ color: '#3f3f42' }} />}
+          </div>
+        ) : (
+          <>
+            {/* Preview sobre fondo oscuro (blanco automático) */}
+            <div className="w-16 h-16 rounded-lg flex items-center justify-center shrink-0 overflow-hidden" style={{ background: '#0a0a0b' }}>
+              {url
+                ? <img src={url} alt={label} className="w-full h-full object-contain p-2" style={{ filter: 'brightness(0) invert(1)' }} />
+                : <ImageIcon size={20} style={{ color: '#3f3f42' }} />}
+            </div>
+            {/* Preview sobre fondo claro (color original) */}
+            <div className="w-16 h-16 rounded-lg flex items-center justify-center shrink-0 overflow-hidden" style={{ background: '#f5f5f4' }}>
+              {url
+                ? <img src={url} alt={label} className="w-full h-full object-contain p-2" />
+                : <ImageIcon size={20} style={{ color: '#d6d3d1' }} />}
+            </div>
+          </>
+        )}
       </div>
       <div className="flex items-center gap-2">
         <button onClick={onUpload} disabled={subiendo} className="btn-outline" style={{ padding: '6px 12px', fontSize: '12px' }}>
