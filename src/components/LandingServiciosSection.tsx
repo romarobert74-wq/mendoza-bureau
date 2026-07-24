@@ -11,6 +11,7 @@ export function LandingServiciosSection() {
   const [precios, setPrecios] = useState<Record<string, number>>({})
   const [heroImg, setHeroImg] = useState('')
   const [galeria, setGaleria] = useState<string[]>([])
+  const [mostrarPrecios, setMostrarPrecios] = useState(true)
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [subiendo, setSubiendo] = useState<'hero' | 'galeria' | null>(null)
@@ -21,6 +22,7 @@ export function LandingServiciosSection() {
         setPrecios(cfg?.precios ?? {})
         setHeroImg(cfg?.heroImg ?? '')
         setGaleria(cfg?.galeria ?? [])
+        setMostrarPrecios(cfg?.mostrarPrecios !== false)
       })
       .catch(() => {})
       .finally(() => setCargando(false))
@@ -60,7 +62,7 @@ export function LandingServiciosSection() {
   const guardar = async () => {
     setGuardando(true)
     try {
-      await setLandingServicios({ precios, heroImg, galeria })
+      await setLandingServicios({ precios, heroImg, galeria, mostrarPrecios })
       toast.success('Landing actualizada')
     } catch {
       toast.error('Error al guardar')
@@ -85,8 +87,21 @@ export function LandingServiciosSection() {
         </p>
       </div>
 
+      {/* Mostrar/ocultar precios en la landing */}
+      <label className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 cursor-pointer"
+        style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
+        <div>
+          <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>Mostrar precios en la landing</p>
+          <p className="text-xs" style={{ color: 'var(--text-faint)' }}>
+            Si lo apagás, el socio elige servicios pero no ve importes: el botón pasa a “Solicitar cotización”.
+          </p>
+        </div>
+        <input type="checkbox" checked={mostrarPrecios} onChange={e => setMostrarPrecios(e.target.checked)}
+          className="w-5 h-5 shrink-0" style={{ accentColor: '#f15a24' }} />
+      </label>
+
       {/* Precios */}
-      <div>
+      <div style={{ opacity: mostrarPrecios ? 1 : 0.5 }}>
         <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>Precios (USD)</p>
         <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))' }}>
           {SERVICIOS_META.map(s => (

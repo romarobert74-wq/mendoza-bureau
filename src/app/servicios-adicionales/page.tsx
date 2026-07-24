@@ -159,6 +159,8 @@ export default function ServiciosAdicionales() {
 
   useEffect(() => { getLandingServicios().then(setCfg).catch(() => {}) }, [])
 
+  const showPrices = cfg?.mostrarPrecios !== false   // por defecto, se muestran
+
   // precios con override desde el panel
   const servicios = useMemo(
     () => SERVICIOS.map(s => ({ ...s, precio: cfg?.precios?.[s.id] ?? s.precio })),
@@ -184,16 +186,16 @@ export default function ServiciosAdicionales() {
     if (email) L.push(`*Email:* ${email}`)
     L.push('', '*Servicios seleccionados:*')
     if (items.length === 0) L.push('— (todavía sin selección) Necesito asesoramiento.')
-    else items.forEach(s => L.push(`• ${s.nombre} ×${s.q} — ${money(s.precio * s.q)}`))
-    L.push('', `*Total estimado: ${money(total)}*`)
+    else items.forEach(s => L.push(showPrices ? `• ${s.nombre} ×${s.q} — ${money(s.precio * s.q)}` : `• ${s.nombre} ×${s.q}`))
+    if (showPrices) L.push('', `*Total estimado: ${money(total)}*`)
     if (msg) L.push('', `*Mensaje:* ${msg}`)
-    L.push('', '_Valores de referencia, a confirmar antes de producir._')
+    if (showPrices) L.push('', '_Valores de referencia, a confirmar antes de producir._')
     const url = `https://wa.me/${WA}?text=${encodeURIComponent(L.join('\n'))}`
     window.open(url, '_blank')
   }
 
   return (
-    <div style={{ background: '#0a0b10', color: '#f1f5f9', minHeight: '100vh' }}>
+    <div style={{ background: '#0a0b10', color: '#f1f5f9', minHeight: '100vh', overflowX: 'hidden' }}>
       {/* fondo con glow */}
       <div style={{
         position: 'fixed', inset: 0, pointerEvents: 'none',
@@ -248,7 +250,7 @@ export default function ServiciosAdicionales() {
                 {s.destacado && <span style={badge}>Más elegido</span>}
                 <div style={{ marginBottom: 10 }}>{s.icon}</div>
                 <h3 style={{ fontSize: 17, fontWeight: 700, margin: '0 0 4px' }}>{s.nombre}</h3>
-                <p style={{ fontSize: 22, fontWeight: 800, color: ORANGE, margin: '0 0 10px' }}>{money(s.precio)}</p>
+                {showPrices && <p style={{ fontSize: 22, fontWeight: 800, color: ORANGE, margin: '0 0 10px' }}>{money(s.precio)}</p>}
                 <p style={{ fontSize: 13, color: '#cbd5e1', margin: '0 0 6px', lineHeight: 1.5 }}>{s.ideal}</p>
                 {s.ejemplos && <p style={{ fontSize: 12, color: '#7c8797', margin: '0 0 16px', lineHeight: 1.5 }}>{s.ejemplos}</p>}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 'auto' }}>
@@ -306,8 +308,8 @@ export default function ServiciosAdicionales() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12 }}>
             <input placeholder="Empresa / Socio" value={empresa} onChange={e => setEmpresa(e.target.value)} style={input} />
             <select value={rubro} onChange={e => setRubro(e.target.value)} style={{ ...input, colorScheme: 'dark' }}>
-              <option value="">Rubro…</option>
-              {RUBROS.map(r => <option key={r} value={r}>{r}</option>)}
+              <option value="" style={optStyle}>Rubro…</option>
+              {RUBROS.map(r => <option key={r} value={r} style={optStyle}>{r}</option>)}
             </select>
             <input placeholder="Nombre y apellido" value={nombre} onChange={e => setNombre(e.target.value)} style={input} />
             <input placeholder="WhatsApp" value={tel} onChange={e => setTel(e.target.value)} style={input} />
@@ -319,26 +321,30 @@ export default function ServiciosAdicionales() {
           {items.length > 0 && (
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12, display: 'grid', gap: 6 }}>
               {items.map(s => (
-                <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#cbd5e1' }}>
+                <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#cbd5e1', gap: 12 }}>
                   <span>{s.nombre} ×{s.q}</span>
-                  <span style={{ fontVariantNumeric: 'tabular-nums' }}>{money(s.precio * s.q)}</span>
+                  {showPrices && <span style={{ fontVariantNumeric: 'tabular-nums' }}>{money(s.precio * s.q)}</span>}
                 </div>
               ))}
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-            <div>
-              <p style={{ margin: 0, fontSize: 12, color: '#7c8797', textTransform: 'uppercase', letterSpacing: 1 }}>Total estimado</p>
-              <p style={{ margin: 0, fontSize: 30, fontWeight: 800, color: ORANGE, fontVariantNumeric: 'tabular-nums' }}>{money(total)}</p>
-            </div>
-            <button onClick={enviar} style={{ ...btnPrimary, display: 'inline-flex', alignItems: 'center', gap: 8, border: 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: showPrices ? 'space-between' : 'center', gap: 12, flexWrap: 'wrap' }}>
+            {showPrices && (
+              <div>
+                <p style={{ margin: 0, fontSize: 12, color: '#7c8797', textTransform: 'uppercase', letterSpacing: 1 }}>Total estimado</p>
+                <p style={{ margin: 0, fontSize: 30, fontWeight: 800, color: ORANGE, fontVariantNumeric: 'tabular-nums' }}>{money(total)}</p>
+              </div>
+            )}
+            <button onClick={enviar} style={{ ...btnPrimary, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none' }}>
               <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm5.4 13.9c-.2.6-1.2 1.2-1.7 1.2-.4 0-1 .1-3.2-.9-2.7-1.1-4.4-3.9-4.6-4.1-.1-.2-1-1.4-1-2.6 0-1.2.6-1.8.9-2 .2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.5c-.2.2-.3.4-.1.7.2.3.9 1.4 1.9 2.3 1.3 1.1 2.3 1.5 2.6 1.6.3.1.5.1.7-.1l.7-.9c.2-.3.4-.2.7-.1l2 .9c.3.1.5.2.6.3.1.3.1.8-.1 1.4Z" /></svg>
-              Enviar por WhatsApp
+              {showPrices ? 'Enviar por WhatsApp' : 'Solicitar cotización'}
             </button>
           </div>
           <p style={{ fontSize: 11, color: '#64748b', margin: 0, textAlign: 'center' }}>
-            Valores de referencia. Se confirman antes de producir. La pauta publicitaria no está incluida.
+            {showPrices
+              ? 'Valores de referencia. Se confirman antes de producir. La pauta publicitaria no está incluida.'
+              : 'Te enviamos la cotización a la brevedad. La pauta publicitaria no está incluida.'}
           </p>
         </div>
 
@@ -402,5 +408,8 @@ const badge: React.CSSProperties = {
 }
 const input: React.CSSProperties = {
   background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)',
-  borderRadius: 12, padding: '11px 14px', color: '#fff', fontSize: 14, outline: 'none', width: '100%',
+  borderRadius: 12, padding: '11px 14px', color: '#fff', fontSize: 16, outline: 'none', width: '100%', boxSizing: 'border-box',
 }
+// las opciones del desplegable se renderizan con el fondo del navegador (claro),
+// así que las forzamos a texto oscuro sobre fondo blanco para que se lean
+const optStyle: React.CSSProperties = { color: '#0a0b10', background: '#fff' }

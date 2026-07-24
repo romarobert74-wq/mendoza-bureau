@@ -26,4 +26,5 @@ export interface LandingConfig {
   precios?: Record<string, number>
   heroImg?: string
   galeria?: string[]
+  mostrarPrecios?: boolean   // si es false, la landing oculta precios y pide cotización
 }
