@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { initializeApp, getApps } from 'firebase/app'
-import { getFirestore, doc, setDoc, increment } from 'firebase/firestore'
+import { getFirestore, doc, getDoc, setDoc, increment } from 'firebase/firestore'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -61,18 +61,56 @@ export async function POST(req: NextRequest) {
       sociosContext = `\n\nSOCIOS ACTIVOS DE MENDOZA BUREAU:\n${lineas.join('\n\n')}`
     }
 
+    // ── Base de conocimiento: leemos los documentos (PDF/texto) desde la config ──
+    // Se hace server-side para no enviar el PDF de ida y vuelta al cliente.
+    const bloquesDoc: Anthropic.ContentBlockParam[] = []
+    let conocimientoTexto = ''
+    try {
+      const cfgSnap = await getDoc(doc(db, 'configuracion', 'chatbot'))
+      const documentos = (cfgSnap.exists() ? cfgSnap.data().documentos : []) as { nombre: string; contenido: string }[] | undefined
+      let presupuesto = 4_500_000 // ~4.5MB de base64 para no pasarnos del límite del request
+      for (const d of documentos ?? []) {
+        if (!d?.contenido) continue
+        const esPdf = (d.nombre || '').toLowerCase().endsWith('.pdf')
+        if (presupuesto - d.contenido.length < 0) break
+        presupuesto -= d.contenido.length
+        if (esPdf) {
+          bloquesDoc.push({
+            type: 'document',
+            source: { type: 'base64', media_type: 'application/pdf', data: d.contenido },
+            title: d.nombre,
+          } as Anthropic.ContentBlockParam)
+        } else {
+          // documento de texto: viene en base64 → lo decodificamos
+          try {
+            const txt = Buffer.from(d.contenido, 'base64').toString('utf-8')
+            conocimientoTexto += `\n\n### Documento: ${d.nombre}\n${txt}`
+          } catch { /* ignorar documento ilegible */ }
+        }
+      }
+    } catch (e) {
+      console.warn('[chat] no se pudieron leer los documentos:', e)
+    }
+
     const systemPrompt = [
       config?.promptSistema ?? '',
       tonoExtra,
       sociosContext,
-      '\nCuando el usuario pregunta por un tour virtual, siempre incluí el link exacto del tour en tu respuesta.',
+      conocimientoTexto ? `\n\nBASE DE CONOCIMIENTO (documentos cargados):${conocimientoTexto}` : '',
+      '\nUsá la información de los documentos adjuntos y la base de conocimiento para responder. Si la respuesta está en un documento, respondé con esos datos.',
+      'Cuando el usuario pregunta por un socio, un tour, cómo contactarlo o su web, dale los datos concretos que tengas: link del tour, WhatsApp y web.',
+      'Si no tenés el dato, decilo con claridad en vez de inventarlo.',
       'Respondé siempre en español.',
     ].filter(Boolean).join('\n')
 
-    const messages = mensajes.map((m: { rol: string; contenido: string }) => ({
-      role: m.rol as 'user' | 'assistant',
-      content: m.contenido,
-    }))
+    const primerUserIdx = mensajes.findIndex((m: { rol: string }) => m.rol === 'user')
+    const messages = mensajes.map((m: { rol: string; contenido: string }, i: number) => {
+      // Adjuntamos los documentos (PDF) al PRIMER mensaje del usuario
+      if (i === primerUserIdx && bloquesDoc.length > 0) {
+        return { role: 'user' as const, content: [...bloquesDoc, { type: 'text' as const, text: m.contenido }] }
+      }
+      return { role: m.rol as 'user' | 'assistant', content: m.contenido }
+    })
 
     const response = await client.messages.create({
       model: config?.modelo ?? 'claude-haiku-4-5',
