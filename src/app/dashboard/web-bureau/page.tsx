@@ -335,9 +335,17 @@ function TabInicio() {
             </div>
             {cfg.logoUrl && (
               <div className="flex-shrink-0 flex flex-col items-center gap-1">
-                <div className="w-20 h-14 bg-gray-800 rounded-lg flex items-center justify-center p-2">
+                {/* Fondo cuadriculado: si el logo es transparente, se ve la cuadrícula detrás */}
+                <div className="w-40 h-24 rounded-lg flex items-center justify-center p-3" style={{
+                  backgroundColor: '#fff',
+                  backgroundImage: 'linear-gradient(45deg,#cfd3da 25%,transparent 25%),linear-gradient(-45deg,#cfd3da 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#cfd3da 75%),linear-gradient(-45deg,transparent 75%,#cfd3da 75%)',
+                  backgroundSize: '16px 16px',
+                  backgroundPosition: '0 0,0 8px,8px -8px,-8px 0',
+                  border: '1px solid var(--border)',
+                }}>
                   <img src={cfg.logoUrl} alt="Logo" className="max-h-full max-w-full object-contain" />
                 </div>
+                <span className="text-[10px]" style={{ color: 'var(--text-faint)' }}>vista con transparencia</span>
                 <button type="button" onClick={() => setCfg(c => ({ ...c, logoUrl: '' }))}
                   className="text-xs transition hover:text-red-400" style={{ color: 'var(--text-muted)' }}>
                   Quitar
@@ -366,14 +374,16 @@ function TabInicio() {
           </Field>
         </div>
 
-        {/* Preview */}
+        {/* Preview del header real */}
         <div className="rounded-xl overflow-hidden">
-          <div className="h-10 flex items-center px-4 gap-3" style={{ background: cfg.colorPrimario }}>
+          <div className="h-16 flex items-center px-4 gap-3" style={{ background: cfg.colorPrimario }}>
             {cfg.logoUrl
-              ? <img src={cfg.logoUrl} alt="Logo" className="h-6 object-contain" />
-              : <div className="w-6 h-6 bg-white/20 rounded flex items-center justify-center text-white font-black text-sm">M</div>
+              ? <img src={cfg.logoUrl} alt="Logo" className="h-12 object-contain" />
+              : <>
+                  <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center text-white font-black text-sm">M</div>
+                  <span className="text-white font-bold text-sm">Mendoza Bureau</span>
+                </>
             }
-            <span className="text-white font-bold text-sm">Mendoza Bureau</span>
           </div>
           <div className="h-12" style={{ background: `linear-gradient(135deg,${cfg.colorPrimario},${cfg.colorSecundario})` }} />
         </div>
