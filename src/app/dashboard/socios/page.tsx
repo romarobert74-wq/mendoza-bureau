@@ -10,13 +10,14 @@ import type { Socio, CategoriaSocio } from '@/types'
 import toast from 'react-hot-toast'
 import {
   Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2, MessageCircle,
-  Clock, Copy, Check, Eye, MousePointerClick, Globe as GlobeIcon, Timer, ArrowUp, ArrowDown, ArrowUpDown, Link2,
+  Clock, Copy, Check, Eye, MousePointerClick, Globe as GlobeIcon, Timer, ArrowUp, ArrowDown, ArrowUpDown, Link2, Download,
 } from 'lucide-react'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
-type Columna = 'nombre' | 'categoria' | 'direccion' | 'estado'
+type Columna = 'nombre' | 'categoria' | 'departamento' | 'direccion' | 'estado'
 type Direccion = 'asc' | 'desc'
+type EstadoFiltro = 'todos' | 'activo' | 'inactivo'
 
 function estadoOrden(s: Socio): number {
   if (s.activo) return 2
@@ -41,6 +42,7 @@ export default function SociosPage() {
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('')
   const [catFiltro, setCatFiltro] = useState<CategoriaSocio | 'todas'>('todas')
+  const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('todos')
   const [orden, setOrden] = useState<{ col: Columna; dir: Direccion }>({ col: 'nombre', dir: 'asc' })
 
   const ordenarPor = (col: Columna) => {
@@ -87,11 +89,19 @@ export default function SociosPage() {
     .filter(cat => socios.some(s => s.categoria === cat))
 
   const filtrados = socios
-    .filter(s =>
-      (catFiltro === 'todas' || s.categoria === catFiltro) &&
-      (s.razonSocial.toLowerCase().includes(filtro.toLowerCase()) ||
-       s.etiqueta.toLowerCase().includes(filtro.toLowerCase()))
-    )
+    .filter(s => {
+      const q = filtro.toLowerCase()
+      const coincideTexto =
+        s.razonSocial.toLowerCase().includes(q) ||
+        s.etiqueta.toLowerCase().includes(q) ||
+        (s.direccion || '').toLowerCase().includes(q) ||
+        (s.departamento || '').toLowerCase().includes(q)
+      const coincideEstado =
+        estadoFiltro === 'todos' ||
+        (estadoFiltro === 'activo' && s.activo) ||
+        (estadoFiltro === 'inactivo' && !s.activo)
+      return (catFiltro === 'todas' || s.categoria === catFiltro) && coincideTexto && coincideEstado
+    })
     .sort((a, b) => {
       const dir = orden.dir === 'asc' ? 1 : -1
       switch (orden.col) {
@@ -99,6 +109,8 @@ export default function SociosPage() {
           return a.razonSocial.localeCompare(b.razonSocial) * dir
         case 'categoria':
           return CATEGORIAS[a.categoria].localeCompare(CATEGORIAS[b.categoria]) * dir
+        case 'departamento':
+          return (a.departamento || '').localeCompare(b.departamento || '') * dir
         case 'direccion':
           return (a.direccion || '').localeCompare(b.direccion || '') * dir
         case 'estado':
@@ -107,6 +119,30 @@ export default function SociosPage() {
           return 0
       }
     })
+
+  // ── Exportar a Excel la lista filtrada ──
+  const exportarExcel = async () => {
+    if (filtrados.length === 0) { toast.error('No hay socios para exportar'); return }
+    const XLSX = await import('xlsx')
+    const filas = filtrados.map(s => ({
+      Nombre: s.razonSocial,
+      Etiqueta: s.etiqueta,
+      Categoría: CATEGORIAS[s.categoria] ?? s.categoria,
+      Departamento: s.departamento || '',
+      Dirección: s.direccion || '',
+      Estado: s.activo ? 'Activo' : 'Inactivo / a revisar',
+      WhatsApp: s.contacto?.whatsapp || '',
+      Email: s.contacto?.email || '',
+      Web: s.contacto?.web || '',
+      'Tour 3DVista': s.urlInternaTour || '',
+    }))
+    const ws = XLSX.utils.json_to_sheet(filas)
+    ws['!cols'] = [{ wch: 26 }, { wch: 20 }, { wch: 14 }, { wch: 16 }, { wch: 34 }, { wch: 18 }, { wch: 16 }, { wch: 24 }, { wch: 24 }, { wch: 40 }]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Socios')
+    XLSX.writeFile(wb, `socios-mendoza-bureau-${new Date().toISOString().slice(0, 10)}.xlsx`)
+    toast.success(`${filas.length} socios exportados`)
+  }
 
   const puedeEditar = usuario?.rol === 'el_faro' || usuario?.rol === 'bureau'
   const puedeEliminar = usuario?.rol === 'el_faro'
@@ -191,12 +227,39 @@ export default function SociosPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
           {puedeEditar && (
+            <button onClick={exportarExcel} className="btn-outline" title="Exportar la lista filtrada a Excel">
+              <Download size={15} />
+              Exportar Excel
+            </button>
+          )}
+          {puedeEditar && (
             <Link href="/dashboard/socios/nuevo" className="btn-primary">
               <Plus size={15} />
               Nuevo socio
             </Link>
           )}
         </div>
+      </div>
+
+      {/* Filtro por estado */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {([
+          ['todos', 'Todos', socios.length],
+          ['activo', 'Activos', socios.filter(s => s.activo).length],
+          ['inactivo', 'Pendientes / a revisar', socios.filter(s => !s.activo).length],
+        ] as [EstadoFiltro, string, number][]).map(([key, label, n]) => {
+          const on = estadoFiltro === key
+          return (
+            <button key={key} onClick={() => setEstadoFiltro(key)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5"
+              style={on
+                ? { background: 'rgba(241,90,36,0.16)', color: 'var(--orange-2)', border: '1px solid rgba(241,90,36,0.4)' }
+                : { background: 'var(--bg-input)', color: 'var(--text-muted)', border: '1px solid var(--border-2)' }}>
+              {label}
+              <span className="text-[10px] font-bold rounded-full px-1.5" style={{ background: on ? 'rgba(241,90,36,0.2)' : 'var(--border-2)' }}>{n}</span>
+            </button>
+          )
+        })}
       </div>
 
       {/* Indicadores de interacción — filtrables por categoría */}
@@ -236,7 +299,7 @@ export default function SociosPage() {
       {/* Search */}
       <input
         type="text"
-        placeholder="Buscar por nombre o etiqueta..."
+        placeholder="Buscar por nombre, etiqueta, dirección o departamento..."
         value={filtro}
         onChange={e => setFiltro(e.target.value)}
         className="input max-w-md mb-6"
@@ -254,6 +317,7 @@ export default function SociosPage() {
               <tr>
                 <ThOrdenable label="Socio" col="nombre" orden={orden} onClick={ordenarPor} />
                 <ThOrdenable label="Categoría" col="categoria" orden={orden} onClick={ordenarPor} />
+                <ThOrdenable label="Departamento" col="departamento" orden={orden} onClick={ordenarPor} className="hidden lg:table-cell" />
                 <ThOrdenable label="Dirección" col="direccion" orden={orden} onClick={ordenarPor} className="hidden md:table-cell" />
                 <ThOrdenable label="Estado" col="estado" orden={orden} onClick={ordenarPor} />
                 {puedeEditar && (
@@ -264,7 +328,7 @@ export default function SociosPage() {
             <tbody>
               {filtrados.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-12 text-sm" style={{ color: 'var(--icon)' }}>
+                  <td colSpan={6} className="text-center py-12 text-sm" style={{ color: 'var(--icon)' }}>
                     No hay socios registrados
                   </td>
                 </tr>
@@ -280,6 +344,7 @@ export default function SociosPage() {
                     <td className="px-4 py-3.5">
                       <CategoriaBadge categoria={socio.categoria} />
                     </td>
+                    <td className="px-4 py-3.5 hidden lg:table-cell text-sm" style={{ color: 'var(--text-muted)' }}>{socio.departamento || '—'}</td>
                     <td className="px-4 py-3.5 hidden md:table-cell text-sm" style={{ color: 'var(--text-muted)' }}>{socio.direccion}</td>
                     <td className="px-4 py-3.5">
                       {socio.activo ? (
