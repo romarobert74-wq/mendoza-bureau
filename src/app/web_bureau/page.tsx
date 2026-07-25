@@ -285,17 +285,13 @@ export default function WebBureauPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             {config.logoUrl
-              ? <img src={config.logoUrl} alt="Logo" className="h-12 sm:h-14 w-auto object-contain" style={{ background: 'transparent' }} />
-              : (
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center font-black text-white text-lg">M</div>
-                  <div>
-                    <p className="text-white font-bold text-sm leading-tight">Mendoza Bureau</p>
-                    <p className="text-white/70 text-[10px] leading-tight hidden sm:block">Convention &amp; Visitors Bureau</p>
-                  </div>
-                </div>
-              )
+              ? <img src={config.logoUrl} alt="Mendoza Bureau" className="h-12 sm:h-14 w-auto object-contain" />
+              : <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center font-black text-white text-lg">M</div>
             }
+            <div className="leading-tight">
+              <h2 className="text-white font-bold text-xl sm:text-2xl leading-tight">Mendoza Bureau</h2>
+              <p className="text-white/70 text-[10px] leading-tight hidden sm:block">Convention &amp; Visitors Bureau</p>
+            </div>
           </div>
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-1">

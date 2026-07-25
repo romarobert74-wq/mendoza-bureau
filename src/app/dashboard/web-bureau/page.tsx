@@ -379,11 +379,9 @@ function TabInicio() {
           <div className="h-16 flex items-center px-4 gap-3" style={{ background: cfg.colorPrimario }}>
             {cfg.logoUrl
               ? <img src={cfg.logoUrl} alt="Logo" className="h-12 object-contain" />
-              : <>
-                  <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center text-white font-black text-sm">M</div>
-                  <span className="text-white font-bold text-sm">Mendoza Bureau</span>
-                </>
+              : <div className="w-9 h-9 bg-white/20 rounded flex items-center justify-center text-white font-black text-sm">M</div>
             }
+            <h2 className="text-white font-bold text-xl">Mendoza Bureau</h2>
           </div>
           <div className="h-12" style={{ background: `linear-gradient(135deg,${cfg.colorPrimario},${cfg.colorSecundario})` }} />
         </div>
