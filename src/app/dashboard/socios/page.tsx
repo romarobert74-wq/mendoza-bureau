@@ -10,7 +10,7 @@ import type { Socio, CategoriaSocio } from '@/types'
 import toast from 'react-hot-toast'
 import {
   Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2, MessageCircle,
-  Clock, Copy, Check, Eye, MousePointerClick, Globe as GlobeIcon, Timer, ArrowUp, ArrowDown, ArrowUpDown,
+  Clock, Copy, Check, Eye, MousePointerClick, Globe as GlobeIcon, Timer, ArrowUp, ArrowDown, ArrowUpDown, Link2,
 } from 'lucide-react'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -114,6 +114,16 @@ export default function SociosPage() {
   const [linkCopiado, setLinkCopiado] = useState(false)
 
   const FORM_URL = 'https://mendoza-bureau.vercel.app/form/socio'
+  const [copiado3dvista, setCopiado3dvista] = useState<string | null>(null)
+
+  // Link de la ficha del socio para pegar en el WebFrame de 3DVista
+  const copiarLink3DVista = (socioId: string) => {
+    const base = typeof window !== 'undefined' ? window.location.origin : 'https://mendoza-bureau.vercel.app'
+    navigator.clipboard.writeText(`${base}/tour/socio/ficha?id=${socioId}`)
+    setCopiado3dvista(socioId)
+    toast.success('Link de 3DVista copiado')
+    setTimeout(() => setCopiado3dvista(null), 2000)
+  }
 
   const copiarLink = () => {
     navigator.clipboard.writeText(FORM_URL)
@@ -180,27 +190,6 @@ export default function SociosPage() {
           <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{socios.length} socios registrados</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
-          {usuario?.rol === 'el_faro' && (
-            <>
-              <button onClick={compartirWhatsApp} className="btn-outline">
-                <MessageCircle size={15} />
-                WhatsApp
-              </button>
-              <button onClick={copiarLink} className="btn-outline">
-                {linkCopiado ? <Check size={15} /> : <Copy size={15} />}
-                {linkCopiado ? 'Copiado!' : 'Copiar link'}
-              </button>
-              <button
-                onClick={alimentarBestia}
-                disabled={alimentando}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-[var(--text)] transition disabled:opacity-60"
-                style={{ background: 'rgba(124,58,237,0.2)', border: '1px solid rgba(139,92,246,0.4)', color: '#c4b5fd' }}
-              >
-                {alimentando ? <Loader2 size={15} className="animate-spin" /> : <Zap size={15} />}
-                Alimentar la bestia
-              </button>
-            </>
-          )}
           {puedeEditar && (
             <Link href="/dashboard/socios/nuevo" className="btn-primary">
               <Plus size={15} />
@@ -310,6 +299,11 @@ export default function SociosPage() {
                     {puedeEditar && (
                       <td className="px-4 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-3">
+                          <button onClick={() => copiarLink3DVista(socio.id)}
+                            className="transition hover:text-[var(--orange-2)]" style={{ color: copiado3dvista === socio.id ? '#22c55e' : 'var(--icon)' }}
+                            title="Copiar link de 3DVista (ficha para el WebFrame)">
+                            {copiado3dvista === socio.id ? <Check size={15} /> : <Link2 size={15} />}
+                          </button>
                           {socio.urlInternaTour && (
                             <a href={socio.urlInternaTour} target="_blank" rel="noopener noreferrer"
                               className="transition hover:text-blue-400" style={{ color: 'var(--icon)' }} title="Ver tour">
