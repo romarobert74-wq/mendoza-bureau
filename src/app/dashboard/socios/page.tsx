@@ -1,16 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { getSocios, eliminarSocio, getAnalyticsResumen } from '@/lib/firestore'
-import type { AnalyticsResumen, AnalyticsSocio } from '@/lib/firestore'
+import { getSocios, eliminarSocio, getAnalyticsEventos } from '@/lib/firestore'
+import type { AnalyticsResumen, AnalyticsSocio, AnalyticsEvento } from '@/lib/firestore'
 import { useAuth } from '@/context/AuthContext'
 import { CATEGORIAS, CATEGORIA_COLOR } from '@/types'
 import type { Socio, CategoriaSocio } from '@/types'
 import toast from 'react-hot-toast'
 import {
   Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2, MessageCircle,
-  Clock, Copy, Check, Eye, MousePointerClick, Globe as GlobeIcon, Timer, ArrowUp, ArrowDown, ArrowUpDown, Link2, Download,
+  Clock, Copy, Check, Eye, MousePointerClick, Globe as GlobeIcon, Timer, ArrowUp, ArrowDown, ArrowUpDown, Link2, Download, CalendarDays,
 } from 'lucide-react'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -38,12 +38,15 @@ function fmtTiempo(ms: number): string {
 export default function SociosPage() {
   const { usuario } = useAuth()
   const [socios, setSocios] = useState<Socio[]>([])
-  const [analytics, setAnalytics] = useState<AnalyticsResumen | null>(null)
+  const [eventos, setEventos] = useState<AnalyticsEvento[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [filtro, setFiltro] = useState('')
   const [catFiltro, setCatFiltro] = useState<CategoriaSocio | 'todas'>('todas')
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('todos')
   const [orden, setOrden] = useState<{ col: Columna; dir: Direccion }>({ col: 'nombre', dir: 'asc' })
+  // Rango de fechas para las métricas (null = sin límite)
+  const [desde, setDesde] = useState('')   // 'YYYY-MM-DD'
+  const [hasta, setHasta] = useState('')
 
   const ordenarPor = (col: Columna) => {
     setOrden(o => o.col === col ? { col, dir: o.dir === 'asc' ? 'desc' : 'asc' } : { col, dir: 'asc' })
@@ -51,11 +54,71 @@ export default function SociosPage() {
 
   const cargar = async () => {
     setLoading(true)
-    const [data, a] = await Promise.all([getSocios(), getAnalyticsResumen()])
+    const [data, ev] = await Promise.all([getSocios(), getAnalyticsEventos()])
     setSocios(data)
-    setAnalytics(a)
+    setEventos(ev)
     setLoading(false)
   }
+
+  // Agrega los eventos según el rango elegido → mismo shape que getAnalyticsResumen
+  const analytics = useMemo<AnalyticsResumen | null>(() => {
+    if (!eventos) return null
+    const dDesde = desde ? new Date(desde + 'T00:00:00') : null
+    const dHasta = hasta ? new Date(hasta + 'T23:59:59') : null
+    const vacio = (): AnalyticsSocio => ({ tour: 0, contacto: 0, web: 0, redes: 0, visitas: 0, tiempoMs: 0 })
+    const porSocio: Record<string, AnalyticsSocio> = {}
+    const total = vacio()
+    const porDia: Record<string, number> = {}
+    for (const e of eventos) {
+      if (dDesde && (!e.fecha || e.fecha < dDesde)) continue
+      if (dHasta && (!e.fecha || e.fecha > dHasta)) continue
+      if (!porSocio[e.socioId]) porSocio[e.socioId] = vacio()
+      const s = porSocio[e.socioId]
+      if (e.tipo === 'webframe_tiempo') {
+        const dur = typeof e.ms === 'number' ? e.ms : 0
+        s.tiempoMs += dur; s.visitas += 1; total.tiempoMs += dur; total.visitas += 1
+      } else if (e.tipo === 'tour' || e.tipo === 'contacto' || e.tipo === 'web' || e.tipo === 'redes') {
+        s[e.tipo] += 1; total[e.tipo] += 1
+        if (e.tipo === 'tour' && e.fecha) { const k = e.fecha.toISOString().slice(0, 10); porDia[k] = (porDia[k] ?? 0) + 1 }
+      }
+    }
+    // Serie: dentro del rango (máx 92 días); si no hay rango, últimos 30 días
+    const fin = dHasta ?? new Date()
+    let ini = dDesde ?? new Date(fin.getTime() - 29 * 86400000)
+    const maxDias = 92
+    if ((fin.getTime() - ini.getTime()) / 86400000 > maxDias) ini = new Date(fin.getTime() - maxDias * 86400000)
+    const serieVisitas: { fecha: string; visitas: number }[] = []
+    for (let dt = new Date(ini); dt <= fin; dt.setDate(dt.getDate() + 1)) {
+      const k = dt.toISOString().slice(0, 10)
+      serieVisitas.push({ fecha: k, visitas: porDia[k] ?? 0 })
+    }
+    return { porSocio, total, serieVisitas }
+  }, [eventos, desde, hasta])
+
+  // Opciones de "mes" para el filtro rápido (últimos 12 meses)
+  const mesesOpciones = useMemo(() => {
+    const arr: { value: string; label: string }[] = []
+    const now = new Date()
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      arr.push({
+        value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: d.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }),
+      })
+    }
+    return arr
+  }, [])
+
+  const setMes = (value: string) => {
+    if (!value) { setDesde(''); setHasta(''); return }
+    const [y, m] = value.split('-').map(Number)
+    const first = new Date(y, m - 1, 1)
+    const last = new Date(y, m, 0)
+    const fmt = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    setDesde(fmt(first)); setHasta(fmt(last))
+  }
+  const mesActivo = (desde && hasta && desde.slice(0, 7) === hasta.slice(0, 7) &&
+    desde.endsWith('-01')) ? desde.slice(0, 7) : ''
 
   useEffect(() => { cargar() }, [])
 
@@ -277,6 +340,37 @@ export default function SociosPage() {
         })}
       </div>
 
+      {/* Filtro de período para las métricas */}
+      <div className="flex flex-wrap items-end gap-3 mb-4 p-3 rounded-xl" style={{ background: 'var(--bg-elev)', border: '1px solid var(--border)' }}>
+        <div className="flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+          <CalendarDays size={15} />
+          <span className="text-xs font-semibold uppercase tracking-wide">Período de métricas</span>
+        </div>
+        <div>
+          <label className="block text-[10px] mb-1" style={{ color: 'var(--text-faint)' }}>Mes</label>
+          <select value={mesActivo} onChange={e => setMes(e.target.value)} className="input" style={{ paddingTop: 6, paddingBottom: 6, minWidth: 150 }}>
+            <option value="">Todo el período</option>
+            {mesesOpciones.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-[10px] mb-1" style={{ color: 'var(--text-faint)' }}>Desde</label>
+          <input type="date" value={desde} max={hasta || undefined} onChange={e => setDesde(e.target.value)} className="input" style={{ paddingTop: 6, paddingBottom: 6 }} />
+        </div>
+        <div>
+          <label className="block text-[10px] mb-1" style={{ color: 'var(--text-faint)' }}>Hasta</label>
+          <input type="date" value={hasta} min={desde || undefined} onChange={e => setHasta(e.target.value)} className="input" style={{ paddingTop: 6, paddingBottom: 6 }} />
+        </div>
+        {(desde || hasta) && (
+          <button onClick={() => { setDesde(''); setHasta('') }} className="btn-outline" style={{ padding: '6px 12px', fontSize: 12 }}>
+            <XCircle size={13} /> Limpiar
+          </button>
+        )}
+        <span className="text-xs ml-auto self-center" style={{ color: 'var(--text-faint)' }}>
+          {desde || hasta ? `Mostrando ${desde || '…'} → ${hasta || '…'}` : 'Mostrando todo el período'}
+        </span>
+      </div>
+
       {/* Indicadores de interacción — filtrables por categoría */}
       {analytics && (
         <>
@@ -351,7 +445,9 @@ export default function SociosPage() {
             {/* Tendencia de visitas (30 días, global) */}
             <div className="kpi-card">
               <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>Visitas por día</p>
-              <p className="text-xs mb-3" style={{ color: 'var(--text-faint)' }}>Últimos 30 días · todas las categorías</p>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-faint)' }}>
+                {desde || hasta ? 'Período seleccionado' : 'Últimos 30 días'} · todas las categorías
+              </p>
               {analytics && (() => {
                 const serie = analytics.serieVisitas
                 const max = Math.max(1, ...serie.map(d => d.visitas))

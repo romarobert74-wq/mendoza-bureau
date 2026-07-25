@@ -284,6 +284,19 @@ const EVENTO_VACIO = (): AnalyticsSocio => ({
   tour: 0, contacto: 0, web: 0, redes: 0, visitas: 0, tiempoMs: 0,
 })
 
+// Evento crudo de analytics (para poder filtrar por rango de fechas en el cliente)
+export interface AnalyticsEvento { socioId: string; tipo: string; ms?: number; fecha: Date | null }
+
+export async function getAnalyticsEventos(): Promise<AnalyticsEvento[]> {
+  const snap = await getDocs(collection(db, 'analytics'))
+  return snap.docs
+    .map(d => {
+      const x = d.data() as { socioId?: string; tipo?: string; ms?: number; timestamp?: { toDate?: () => Date } }
+      return { socioId: x.socioId ?? '', tipo: x.tipo ?? '', ms: x.ms, fecha: x.timestamp?.toDate?.() ?? null }
+    })
+    .filter(e => e.socioId)
+}
+
 export async function getAnalyticsResumen(): Promise<AnalyticsResumen> {
   const snap = await getDocs(collection(db, 'analytics'))
   const porSocio: Record<string, AnalyticsSocio> = {}
