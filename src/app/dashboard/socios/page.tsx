@@ -84,6 +84,21 @@ export default function SociosPage() {
     return acc
   })()
 
+  // Métricas de comportamiento derivadas (respetan el filtro de categoría)
+  const pct = (num: number, den: number) => (den > 0 ? Math.round((num / den) * 100) : 0)
+  const t = totalesCategoria
+  const conversion = pct(t.contacto, t.tour)     // % que tocan contacto
+  const ctrWeb = pct(t.web, t.tour)              // % que tocan la web
+  const tiempoPromMs = t.visitas > 0 ? t.tiempoMs / t.visitas : 0
+
+  // Top socios por visitas (dentro de la categoría filtrada)
+  const topSocios = socios
+    .filter(s => catFiltro === 'todas' || s.categoria === catFiltro)
+    .map(s => ({ s, a: analytics?.porSocio[s.id] }))
+    .filter((x): x is { s: Socio; a: AnalyticsSocio } => !!x.a && x.a.tour > 0)
+    .sort((a, b) => b.a.tour - a.a.tour)
+    .slice(0, 5)
+
   // Categorías que tienen al menos un socio (para los chips de filtro)
   const categoriasPresentes = (Object.keys(CATEGORIAS) as CategoriaSocio[])
     .filter(cat => socios.some(s => s.categoria === cat))
@@ -292,6 +307,69 @@ export default function SociosPage() {
             <IndicadorCard label="Clicks de contacto" value={totalesCategoria.contacto} sub="WhatsApp / email" icon={MousePointerClick} accent="#25d366" />
             <IndicadorCard label="Clicks a web" value={totalesCategoria.web} sub="sitio del socio" icon={GlobeIcon} accent="#38bdf8" />
             <IndicadorCard label="Tiempo en tour" value={fmtTiempo(totalesCategoria.tiempoMs)} sub={`${totalesCategoria.visitas} sesiones`} icon={Timer} accent="#a855f7" isText />
+          </div>
+
+          {/* ── Comportamiento ── */}
+          <p className="section-title mb-2">Comportamiento</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <IndicadorCard label="Conversión a contacto" value={`${conversion}%`} sub={`${t.contacto} de ${t.tour} visitas`} icon={MousePointerClick} accent="#25d366" isText />
+            <IndicadorCard label="Tiempo prom. / sesión" value={fmtTiempo(tiempoPromMs)} sub={`${t.visitas} sesiones`} icon={Timer} accent="#a855f7" isText />
+            <IndicadorCard label="CTR a la web" value={`${ctrWeb}%`} sub={`${t.web} de ${t.tour} visitas`} icon={GlobeIcon} accent="#38bdf8" isText />
+            <IndicadorCard label="Clicks a redes" value={t.redes} sub="Instagram / redes" icon={Zap} accent="#ec4899" />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            {/* Top socios por visitas */}
+            <div className="kpi-card">
+              <p className="text-sm font-semibold mb-3" style={{ color: 'var(--text)' }}>Top socios por visitas</p>
+              {topSocios.length === 0 ? (
+                <p className="text-xs" style={{ color: 'var(--text-faint)' }}>Todavía no hay visitas registradas.</p>
+              ) : (
+                <div className="space-y-2">
+                  {topSocios.map(({ s, a }, i) => {
+                    const conv = pct(a.contacto, a.tour)
+                    const max = topSocios[0].a.tour || 1
+                    return (
+                      <div key={s.id} className="flex items-center gap-3">
+                        <span className="text-xs font-bold w-4 text-center" style={{ color: 'var(--text-muted)' }}>{i + 1}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-sm truncate" style={{ color: 'var(--text)' }}>{s.razonSocial}</span>
+                            <span className="text-xs shrink-0" style={{ color: 'var(--text-muted)' }}>{a.tour} vis · {conv}% conv</span>
+                          </div>
+                          <div className="h-1.5 rounded-full mt-1" style={{ background: 'var(--border-2)' }}>
+                            <div className="h-full rounded-full" style={{ width: `${Math.max(6, (a.tour / max) * 100)}%`, background: CATEGORIA_COLOR[s.categoria] ?? '#f15a24' }} />
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Tendencia de visitas (30 días, global) */}
+            <div className="kpi-card">
+              <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text)' }}>Visitas por día</p>
+              <p className="text-xs mb-3" style={{ color: 'var(--text-faint)' }}>Últimos 30 días · todas las categorías</p>
+              {analytics && (() => {
+                const serie = analytics.serieVisitas
+                const max = Math.max(1, ...serie.map(d => d.visitas))
+                return (
+                  <div className="flex items-end gap-[3px]" style={{ height: 90 }}>
+                    {serie.map(d => (
+                      <div key={d.fecha} className="flex-1 rounded-t transition-all"
+                        title={`${d.fecha}: ${d.visitas} visitas`}
+                        style={{
+                          height: `${Math.max(3, (d.visitas / max) * 100)}%`,
+                          background: d.visitas > 0 ? 'var(--orange-2)' : 'var(--border-2)',
+                          opacity: d.visitas > 0 ? 1 : 0.5,
+                        }} />
+                    ))}
+                  </div>
+                )
+              })()}
+            </div>
           </div>
         </>
       )}

@@ -277,6 +277,7 @@ export interface AnalyticsSocio {
 export interface AnalyticsResumen {
   porSocio: Record<string, AnalyticsSocio>
   total: AnalyticsSocio
+  serieVisitas: { fecha: string; visitas: number }[]   // visitas (tour) por día, últimos 30 días
 }
 
 const EVENTO_VACIO = (): AnalyticsSocio => ({
@@ -287,9 +288,11 @@ export async function getAnalyticsResumen(): Promise<AnalyticsResumen> {
   const snap = await getDocs(collection(db, 'analytics'))
   const porSocio: Record<string, AnalyticsSocio> = {}
   const total = EVENTO_VACIO()
+  const porDia: Record<string, number> = {}   // 'YYYY-MM-DD' -> visitas (tour)
 
   snap.docs.forEach(d => {
-    const { socioId, tipo, ms } = d.data() as { socioId?: string; tipo?: string; ms?: number }
+    const data = d.data() as { socioId?: string; tipo?: string; ms?: number; timestamp?: { toDate?: () => Date } }
+    const { socioId, tipo, ms } = data
     if (!socioId) return
     if (!porSocio[socioId]) porSocio[socioId] = EVENTO_VACIO()
     const s = porSocio[socioId]
@@ -300,10 +303,22 @@ export async function getAnalyticsResumen(): Promise<AnalyticsResumen> {
     } else if (tipo === 'tour' || tipo === 'contacto' || tipo === 'web' || tipo === 'redes') {
       s[tipo] += 1
       total[tipo] += 1
+      if (tipo === 'tour') {
+        const ts = data.timestamp?.toDate?.()
+        if (ts) { const k = ts.toISOString().slice(0, 10); porDia[k] = (porDia[k] ?? 0) + 1 }
+      }
     }
   })
 
-  return { porSocio, total }
+  // Serie de los últimos 30 días (rellena con 0 los días sin datos)
+  const serieVisitas: { fecha: string; visitas: number }[] = []
+  for (let i = 29; i >= 0; i--) {
+    const dt = new Date(); dt.setDate(dt.getDate() - i)
+    const k = dt.toISOString().slice(0, 10)
+    serieVisitas.push({ fecha: k, visitas: porDia[k] ?? 0 })
+  }
+
+  return { porSocio, total, serieVisitas }
 }
 
 // Estadísticas de un socio dentro de un rango de fechas (para reportes mensuales/trimestrales)
