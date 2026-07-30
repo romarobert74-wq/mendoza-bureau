@@ -180,6 +180,13 @@ function FormSocio() {
     getConfigSistema().then(cfg => setDepartamentos(cfg?.departamentos ?? [])).catch(() => {})
   }, [])
 
+  // Al enviar con éxito, redirige a servicios adicionales tras unos segundos
+  useEffect(() => {
+    if (!done) return
+    const t = setTimeout(() => { window.location.href = '/servicios-adicionales' }, 7000)
+    return () => clearTimeout(t)
+  }, [done])
+
   // Campos generales
   const [form, setForm] = useState({
     razonSocial: '',
@@ -260,15 +267,23 @@ function FormSocio() {
   // ── Pantalla de éxito ──────────────────────────────────────────────────────
   if (done) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a0b10', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '16px', padding: '40px 20px', fontFamily: 'system-ui, sans-serif' }}>
-        <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(34,197,94,0.1)', border: '2px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <CheckCircle size={40} color="#4ade80" />
+      <div style={{ minHeight: '100vh', background: '#0a0b10', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '18px', padding: '40px 20px' }}>
+        <div style={{ marginBottom: 4 }}><BrandLogos logos={['bureau']} size={150} /></div>
+        <div style={{ width: 82, height: 82, borderRadius: '50%', background: 'rgba(34,197,94,0.1)', border: '2px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <CheckCircle size={42} color="#4ade80" />
         </div>
-        <h2 style={{ fontSize: '22px', fontWeight: 800, color: '#f1f5f9', margin: 0 }}>¡Datos enviados!</h2>
-        <p style={{ fontSize: '14px', color: '#64748b', maxWidth: '300px', margin: 0, lineHeight: 1.6 }}>
-          Tu información fue recibida con éxito. En breve la revisaremos y la verás reflejada en el tour virtual.
+        <h2 style={{ fontSize: 'clamp(24px,5vw,34px)', fontWeight: 800, color: '#f1f5f9', margin: 0 }}>¡Gracias! Datos recibidos</h2>
+        <p style={{ fontSize: '15px', color: '#94a3b8', maxWidth: '440px', margin: 0, lineHeight: 1.6 }}>
+          Tu información fue enviada con éxito. En breve la revisaremos y la verás reflejada en el tour virtual.
         </p>
-        <p style={{ fontSize: '11px', color: '#1e293b', marginTop: '24px' }}>Mendoza Bureau · El Faro 360</p>
+        <p style={{ fontSize: '14px', color: '#cbd5e1', maxWidth: '440px', margin: '4px 0 0', lineHeight: 1.6 }}>
+          Antes de irte: <b style={{ color: ORANGE }}>coordiná el día de tu relevamiento</b> y descubrí cómo potenciar tu recorrido con más panoramas, videos y experiencias.
+        </p>
+        <a href="/servicios-adicionales"
+          style={{ marginTop: 10, display: 'inline-block', background: `linear-gradient(135deg, ${ORANGE}, #ff7a45)`, color: '#fff', fontWeight: 700, fontSize: '15px', padding: '14px 28px', borderRadius: 999, textDecoration: 'none', boxShadow: `0 8px 24px ${ORANGE}44` }}>
+          Coordinar relevamiento y ver servicios →
+        </a>
+        <p style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>Te llevamos ahí en unos segundos…</p>
       </div>
     )
   }

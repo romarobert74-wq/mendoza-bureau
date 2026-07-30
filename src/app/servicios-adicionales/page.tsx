@@ -157,6 +157,9 @@ export default function ServiciosAdicionales() {
   const [tel, setTel] = useState('')
   const [email, setEmail] = useState('')
   const [msg, setMsg] = useState('')
+  // Relevamiento principal (fecha + horario)
+  const [fechaRelev, setFechaRelev] = useState('')
+  const [horaRelev, setHoraRelev] = useState('')
 
   useEffect(() => { getLandingServicios().then(setCfg).catch(() => {}) }, [])
 
@@ -180,6 +183,7 @@ export default function ServiciosAdicionales() {
   const enviar = () => {
     const L: string[] = []
     L.push('*Solicitud de servicios adicionales — El Faro 360*', '')
+    if (fechaRelev || horaRelev) L.push(`*📅 Relevamiento solicitado:* ${fechaRelev || '(fecha a coordinar)'}${horaRelev ? ' · ' + horaRelev : ''}`)
     if (empresa) L.push(`*Empresa:* ${empresa}`)
     if (rubro) L.push(`*Rubro:* ${rubro}`)
     if (nombre) L.push(`*Contacto:* ${nombre}`)
@@ -231,6 +235,34 @@ export default function ServiciosAdicionales() {
           )}
         </header>
 
+        {/* ── Paso 1: Relevamiento ── */}
+        <section style={{ ...glass, borderColor: `${ORANGE}55`, boxShadow: `0 0 0 1px ${ORANGE}33, 0 10px 40px rgba(0,0,0,0.3)` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+            <span style={{ background: ORANGE, color: '#fff', fontWeight: 800, fontSize: 13, width: 26, height: 26, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
+            <h2 style={{ fontSize: 'clamp(18px,3vw,24px)', fontWeight: 800, margin: 0 }}>Coordiná tu relevamiento</h2>
+          </div>
+          <p style={{ color: '#94a3b8', fontSize: 14, margin: '0 0 16px', lineHeight: 1.6 }}>
+            Elegí el día y horario en que querés que vayamos a hacer tu tour 360°. Después, si querés, sumás servicios extra (paso 2).
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>📅 Fecha preferida</label>
+              <input type="date" value={fechaRelev} onChange={e => setFechaRelev(e.target.value)} style={input} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>🕒 Horario / turno</label>
+              <select value={horaRelev} onChange={e => setHoraRelev(e.target.value)} style={{ ...input, colorScheme: 'dark' }}>
+                <option value="" style={optStyle}>Elegí un turno…</option>
+                {['Mañana (9 a 12 h)', 'Mediodía (12 a 15 h)', 'Tarde (15 a 18 h)', 'A coordinar'].map(o =>
+                  <option key={o} value={o} style={optStyle}>{o}</option>)}
+              </select>
+            </div>
+          </div>
+          <p style={{ color: '#64748b', fontSize: 12, margin: '12px 0 0' }}>
+            El relevamiento base incluye hasta 5 panoramas 360° · lo confirmamos por WhatsApp.
+          </p>
+        </section>
+
         {/* ── Oportunidad ── */}
         <section style={glass}>
           <p style={{ fontSize: 'clamp(18px,3vw,24px)', fontWeight: 600, lineHeight: 1.5, margin: 0, textAlign: 'center' }}>
@@ -240,8 +272,8 @@ export default function ServiciosAdicionales() {
         </section>
 
         {/* ── Servicios (selector) ── */}
-        <h2 id="servicios" style={h2}>Elegí lo que querés sumar</h2>
-        <p style={sub}>Tocá <b>+</b> para agregar. El total se calcula solo, abajo de todo.</p>
+        <h2 id="servicios" style={h2}>2 · Sumá servicios (opcional)</h2>
+        <p style={sub}>Tocá <b>+</b> para agregar. El total se calcula solo, abajo de todo. Si no querés extras, enviá igual con tu fecha de relevamiento.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16, marginBottom: 40 }}>
           {servicios.map(s => {
             const q = cant[s.id] ?? 0
