@@ -107,11 +107,12 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
   const categoria = useWatch({ control, name: 'categoria' }) ?? 'bodega'
 
   const [salones, setSalones] = useState<SalonIndividual[]>(defaultValues?.salones ?? [])
-  const [hotelData, setHotelData] = useState<HotelData>(defaultValues?.hotelData ?? HOTEL_VACIO())
-  const [restauranteData, setRestauranteData] = useState<RestauranteData>(defaultValues?.restauranteData ?? RESTAURANTE_VACIO())
-  const [bodegaData, setBodegaData] = useState<BodegaData>(defaultValues?.bodegaData ?? BODEGA_VACIA())
-  const [alojamientoData, setAlojamientoData] = useState<AlojamientoData>(defaultValues?.alojamientoData ?? ALOJAMIENTO_VACIO())
-  const [servicioData, setServicioData] = useState<ServicioData>(defaultValues?.servicioData ?? SERVICIO_VACIO())
+  // Se mergea con los defaults para que socios viejos tengan los campos nuevos
+  const [hotelData, setHotelData] = useState<HotelData>({ ...HOTEL_VACIO(), ...defaultValues?.hotelData })
+  const [restauranteData, setRestauranteData] = useState<RestauranteData>({ ...RESTAURANTE_VACIO(), ...defaultValues?.restauranteData })
+  const [bodegaData, setBodegaData] = useState<BodegaData>({ ...BODEGA_VACIA(), ...defaultValues?.bodegaData })
+  const [alojamientoData, setAlojamientoData] = useState<AlojamientoData>({ ...ALOJAMIENTO_VACIO(), ...defaultValues?.alojamientoData })
+  const [servicioData, setServicioData] = useState<ServicioData>({ ...SERVICIO_VACIO(), ...defaultValues?.servicioData })
 
   const doSubmit = async (data: SocioFormData) => {
     // Los inputs numéricos vacíos llegan como NaN → Firestore no los acepta

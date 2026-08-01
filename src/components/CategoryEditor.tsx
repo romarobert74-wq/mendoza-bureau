@@ -55,7 +55,7 @@ const VARIETALES_COMUNES = ['Malbec', 'Cabernet Sauvignon', 'Bonarda', 'Syrah', 
 function TogglesConOtros({ label, opciones, value, onChange, placeholderOtros }: {
   label: string; opciones: string[]; value: string; onChange: (v: string) => void; placeholderOtros?: string
 }) {
-  const seleccionados = value.split(',').map(s => s.trim()).filter(Boolean)
+  const seleccionados = (value || '').split(',').map(s => s.trim()).filter(Boolean)
   const otros = seleccionados.filter(s => !opciones.some(c => c.toLowerCase() === s.toLowerCase()))
   const otrosStr = otros.join(', ')
 
