@@ -8,6 +8,7 @@ import { auth } from '@/lib/firebase'
 import { getConfigSistema } from '@/lib/firestore'
 import { useAuth } from '@/context/AuthContext'
 import { useTheme } from '@/context/ThemeContext'
+import { VersionBadge } from '@/components/VersionBadge'
 import {
   LayoutDashboard, Users, MapPin, Settings,
   LogOut, Map, Bot, Globe, DatabaseBackup,
@@ -151,6 +152,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main */}
       <main className="flex-1 overflow-auto" style={{ background: 'var(--bg)' }}>
+        {/* Barra superior con el cartel de entorno (desarrollo / producción) */}
+        <div className="flex items-center px-6 h-11 sticky top-0 z-30" style={{
+          background: 'var(--bg-elev)', borderBottom: '1px solid var(--border)', backdropFilter: 'blur(8px)',
+        }}>
+          <VersionBadge inline />
+        </div>
         {children}
       </main>
     </div>

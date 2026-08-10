@@ -6,8 +6,9 @@ import { useEffect, useState } from 'react'
    - Producción (rama main en Vercel)  → "PRODUCCIÓN · FINAL" (verde)
    - Desarrollo / preview (rama develop u otras / local) → "DESARROLLO · PRUEBAS" (naranja)
    Vercel expone estas variables automáticamente en proyectos Next.js.
-   Se puede colapsar a un puntito (se recuerda en el navegador). */
-export function VersionBadge() {
+   Se puede colapsar a un puntito (se recuerda en el navegador).
+   - inline: se muestra dentro del flujo (barra superior) en vez de flotar. */
+export function VersionBadge({ inline = false }: { inline?: boolean }) {
   const [open, setOpen] = useState(true)
   const [mounted, setMounted] = useState(false)
 
@@ -32,8 +33,12 @@ export function VersionBadge() {
     try { localStorage.setItem('mb-envbadge', next ? 'full' : 'min') } catch { /* noop */ }
   }
 
+  const pos: React.CSSProperties = inline
+    ? { position: 'relative' }
+    : { position: 'fixed', left: 14, bottom: 14, zIndex: 9999 }
+
   const base: React.CSSProperties = {
-    position: 'fixed', left: 14, bottom: 14, zIndex: 9999,
+    ...pos,
     display: 'inline-flex', alignItems: 'center', gap: 8,
     fontFamily: 'ui-sans-serif,system-ui,sans-serif', cursor: 'pointer', userSelect: 'none',
     border: `1px solid ${color}`, background: bg, color,

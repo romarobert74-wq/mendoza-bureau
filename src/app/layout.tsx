@@ -4,7 +4,6 @@ import './globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { Toaster } from 'react-hot-toast'
-import { VersionBadge } from '@/components/VersionBadge'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -33,7 +32,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <AuthProvider>
             {children}
-            <VersionBadge />
             <Toaster position="top-right" />
           </AuthProvider>
         </ThemeProvider>
