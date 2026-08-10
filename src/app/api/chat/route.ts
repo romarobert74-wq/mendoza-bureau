@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { initializeApp, getApps } from 'firebase/app'
 import { getFirestore, doc, getDoc, setDoc, increment } from 'firebase/firestore'
+import { FieldValue } from 'firebase-admin/firestore'
+import { getAdminDb } from '@/lib/firebaseAdmin'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -46,6 +48,7 @@ export async function POST(req: NextRequest) {
     }
 
     const tonoExtra = TONO_EXTRA[config?.tono] ?? ''
+    const admin = getAdminDb()
 
     let sociosContext = ''
     if (socios && Array.isArray(socios) && socios.length > 0) {
@@ -66,8 +69,14 @@ export async function POST(req: NextRequest) {
     const bloquesDoc: Anthropic.ContentBlockParam[] = []
     let conocimientoTexto = ''
     try {
-      const cfgSnap = await getDoc(doc(db, 'configuracion', 'chatbot'))
-      const documentos = (cfgSnap.exists() ? cfgSnap.data().documentos : []) as { nombre: string; contenido: string }[] | undefined
+      let documentos: { nombre: string; contenido: string }[] | undefined
+      if (admin) {
+        const snap = await admin.collection('configuracion').doc('chatbot').get()
+        documentos = snap.exists ? (snap.data()?.documentos as typeof documentos) : []
+      } else {
+        const cfgSnap = await getDoc(doc(db, 'configuracion', 'chatbot'))
+        documentos = (cfgSnap.exists() ? cfgSnap.data().documentos : []) as typeof documentos
+      }
       let presupuesto = 4_500_000 // ~4.5MB de base64 para no pasarnos del límite del request
       for (const d of documentos ?? []) {
         if (!d?.contenido) continue
@@ -131,19 +140,31 @@ export async function POST(req: NextRequest) {
 
       const mes = new Date().toISOString().slice(0, 7)
 
-      await setDoc(
-        doc(db, 'configuracion', 'chatbot_uso'),
-        {
-          totalConsultas: increment(1),
-          totalInputTokens: increment(input_tokens),
-          totalOutputTokens: increment(output_tokens),
-          totalCostoUSD: increment(costoUSD),
+      if (admin) {
+        await admin.collection('configuracion').doc('chatbot_uso').set({
+          totalConsultas: FieldValue.increment(1),
+          totalInputTokens: FieldValue.increment(input_tokens),
+          totalOutputTokens: FieldValue.increment(output_tokens),
+          totalCostoUSD: FieldValue.increment(costoUSD),
           ultimaConsulta: new Date().toISOString(),
-          [`meses.${mes}.consultas`]: increment(1),
-          [`meses.${mes}.costoUSD`]: increment(costoUSD),
-        },
-        { merge: true },
-      )
+          [`meses.${mes}.consultas`]: FieldValue.increment(1),
+          [`meses.${mes}.costoUSD`]: FieldValue.increment(costoUSD),
+        }, { merge: true })
+      } else {
+        await setDoc(
+          doc(db, 'configuracion', 'chatbot_uso'),
+          {
+            totalConsultas: increment(1),
+            totalInputTokens: increment(input_tokens),
+            totalOutputTokens: increment(output_tokens),
+            totalCostoUSD: increment(costoUSD),
+            ultimaConsulta: new Date().toISOString(),
+            [`meses.${mes}.consultas`]: increment(1),
+            [`meses.${mes}.costoUSD`]: increment(costoUSD),
+          },
+          { merge: true },
+        )
+      }
     } catch (usageErr) {
       console.warn('[chat] usage tracking failed:', usageErr)
     }
