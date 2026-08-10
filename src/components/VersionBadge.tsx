@@ -22,7 +22,12 @@ export function VersionBadge({ inline = false }: { inline?: boolean }) {
   // Inyectado en build por next.config.js (VERCEL_ENV / VERCEL_GIT_COMMIT_REF).
   const env = process.env.NEXT_PUBLIC_APP_ENV
   const ref = process.env.NEXT_PUBLIC_APP_BRANCH
-  const isProd = env === 'production' || ref === 'main'
+  // Detección base por variables de build...
+  let isProd = env === 'production' || ref === 'main'
+  // ...y red de seguridad por dominio: la URL manda (develop = pruebas).
+  const host = typeof window !== 'undefined' ? window.location.hostname : ''
+  if (/develop|-git-|dev\./.test(host)) isProd = false
+  else if (host === 'mendoza-bureau.vercel.app') isProd = true
 
   const label = isProd ? 'PRODUCCIÓN · FINAL' : 'DESARROLLO · PRUEBAS'
   const color = isProd ? '#16a34a' : '#f15a24'
