@@ -80,6 +80,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const visibleNav = navItems.filter(item => item.roles.includes(usuario.rol))
+  const esProd = process.env.NEXT_PUBLIC_APP_ENV === 'production' || process.env.NEXT_PUBLIC_APP_BRANCH === 'main'
 
   return (
     <div className="dashboard-scope min-h-screen flex" style={{ background: 'var(--bg)' }}>
@@ -153,10 +154,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main */}
       <main className="flex-1 overflow-auto" style={{ background: 'var(--bg)' }}>
         {/* Barra superior con el cartel de entorno (desarrollo / producción) */}
-        <div className="flex items-center px-6 h-11 sticky top-0 z-30" style={{
-          background: 'var(--bg-elev)', borderBottom: '1px solid var(--border)', backdropFilter: 'blur(8px)',
+        <div className="flex items-center gap-3 px-6 h-11 sticky top-0 z-30" style={{
+          background: esProd ? 'rgba(22,163,74,.08)' : 'rgba(241,90,36,.09)',
+          borderBottom: `2px solid ${esProd ? '#16a34a' : '#f15a24'}`,
+          backdropFilter: 'blur(8px)',
         }}>
           <VersionBadge inline />
+          <span className="text-[11px] uppercase tracking-wider" style={{ color: 'var(--text-faint)' }}>
+            {esProd ? 'Estás en el sistema real — los cambios impactan' : 'Entorno de pruebas — probá tranquilo'}
+          </span>
         </div>
         {children}
       </main>
