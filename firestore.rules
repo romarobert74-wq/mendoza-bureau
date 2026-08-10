@@ -53,20 +53,29 @@ service cloud.firestore {
       }
     }
 
-    // Configuración del sistema (departamentos, categorías, tour madre, chatbot, logo, etc.):
-    // lectura pública porque el tour y la web institucional la necesitan sin login.
-    // Escritura solo el_faro, salvo el contador de uso del bot que escribe la API sin auth.
+    // Configuración del sistema (departamentos, categorías, tour madre, logo, etc.):
+    // la mayoría es de lectura pública porque el tour y la web la necesitan sin login.
+    // Los documentos SENSIBLES quedan restringidos (lista de exclusión abajo).
+
+    // Uso del bot: lo escribe la API con Admin SDK (bypass de reglas) → nadie más escribe.
     match /configuracion/chatbot_uso {
-      allow read: if true;
-      allow write: if true;
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    // Conocimiento del bot (PDFs + prompt): NO es público. La API lo lee con
+    // Admin SDK; el panel lo edita con rol el_faro.
+    match /configuracion/chatbot {
+      allow read: if isAuthenticated();
+      allow write: if isElFaro();
     }
     // Plan de migración: info interna, no la necesita el tour ni la web pública
     match /configuracion/migracion {
       allow read: if isAuthenticated();
       allow write: if isElFaro();
     }
+    // Resto de la configuración: pública para lectura, EXCEPTO los sensibles de arriba.
     match /configuracion/{docId} {
-      allow read: if true;
+      allow read: if docId != 'chatbot' && docId != 'chatbot_uso' && docId != 'migracion';
       allow write: if isElFaro();
     }
 
@@ -84,9 +93,10 @@ service cloud.firestore {
       allow write: if isBureau() || isElFaro();
     }
 
-    // Analytics / clicks: escritura pública (desde tours), lectura con rol
+    // Analytics / clicks: la escribe la API con Admin SDK (bypass de reglas).
+    // Ya no hace falta escritura pública directa. Lectura con rol.
     match /analytics/{docId} {
-      allow create: if true;
+      allow create: if false;
       allow read: if isAuthenticated();
       allow update, delete: if isElFaro();
     }
