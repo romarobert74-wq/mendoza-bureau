@@ -421,7 +421,6 @@ export default function PlataformaLanding() {
       <footer className="foot">
         <div className="foot-grid">
           <div className="foot-brand">
-            <BrandLogos logos={['bureau']} size={58} forceFilter />
             <p className="foot-desc">Plataforma inmersiva institucional para los socios de Mendoza Bureau.</p>
           </div>
           <div className="foot-col">
@@ -438,13 +437,17 @@ export default function PlataformaLanding() {
             <a href="https://mendozabureau.com.ar" target="_blank" rel="noopener noreferrer">mendozabureau.com.ar</a>
           </div>
         </div>
-        <div className="foot-bottom">
-          <span className="foot-copy">© {new Date().getFullYear()} Mendoza Bureau. Todos los derechos reservados.</span>
+        {/* Logos: Mendoza Bureau a la izquierda, El Faro a la derecha */}
+        <div className="foot-logos">
+          <img className="foot-logo-b" src="/ejemplos/logo-bureau.png" alt="Mendoza Bureau"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
           <span className="foot-power">
             <span>Producido por</span>
-            <BrandLogos logos={['faro']} size={40} forceFilter />
+            <img className="foot-logo-f" src="/ejemplos/logo-faro.png" alt="El Faro 360"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
           </span>
         </div>
+        <p className="foot-copy">© {new Date().getFullYear()} Mendoza Bureau. Todos los derechos reservados.</p>
       </footer>
 
       {/* ── Flotantes (aparecen en el segundo scroll) ── */}
@@ -665,9 +668,12 @@ const CSS = `
 .foot-col h4{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--text);margin-bottom:16px;font-weight:700}
 .foot-col{display:flex;flex-direction:column;gap:11px;font-size:14px}
 .foot-col a{color:#a99e97;transition:color .15s}.foot-col a:hover{color:var(--o2)}
-.foot-bottom{max-width:1220px;margin:26px auto 0;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
-.foot-copy{font-size:12.5px;color:#7d7268}
+.foot-logos{max-width:1220px;margin:30px auto 0;padding-top:28px;border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+.foot-logo-b{height:56px;object-fit:contain}
 .foot-power{display:inline-flex;align-items:center;gap:14px;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#7d7268;font-weight:600}
+.foot-logo-f{height:42px;object-fit:contain}
+.foot-copy{max-width:1220px;margin:22px auto 0;font-size:12.5px;color:#7d7268;text-align:center}
 
 /* flotantes (ocultos hasta el 2do scroll) */
 .wa-float{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:#25D366;color:#fff;
@@ -710,7 +716,7 @@ const CSS = `
   .hero-cta{flex-direction:column;align-items:stretch}
   .sec,.sec-feature,.cta-final{padding:64px 18px}
   .sec-head{margin-bottom:40px}
-  .foot-bottom{flex-direction:column;align-items:flex-start}
+  .foot-logos{flex-direction:column;align-items:center;gap:22px;text-align:center}
   /* CTA fija inferior — también aparece en el 2do scroll */
   .sticky-cta{display:block;position:fixed;left:12px;right:12px;bottom:12px;z-index:59;text-align:center;
     background:linear-gradient(135deg,#ff6a3d,#ffa057);color:#241209;font-weight:700;padding:15px;border-radius:14px;
