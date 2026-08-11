@@ -6,7 +6,7 @@ import { BrandLogos } from '@/components/BrandLogos'
 import {
   Menu, X, Camera, Compass, MapPin, Sparkles, Video, Plane, Images,
   Film, CheckCircle2, MessageCircle, ArrowRight, Eye, TrendingUp,
-  Award, Layers, Users2, ScanSearch, CalendarClock, Aperture, Wand2, Rocket,
+  Award, Layers, Users2, ScanSearch, CalendarClock, Aperture, Wand2, Rocket, Gift,
 } from 'lucide-react'
 
 /* ─────────────────────────────────────────────────────────────
@@ -324,24 +324,47 @@ export default function PlataformaLanding() {
         </div>
         <div className="pagos">
           <details className="pago-acc" open>
-            <summary>Cómo se abona</summary>
+            <summary>Formas de pago</summary>
             <div className="pago-body">
-              <ul>
-                <li><CheckCircle2 size={15} color={O} /> Tour base: <b>50% para comenzar</b> y 50% contra entrega.</li>
-                <li><CheckCircle2 size={15} color={O} /> Recorrido ampliado y producciones: <b>financiación hasta 60 días</b> según los servicios.</li>
-                <li><CheckCircle2 size={15} color={O} /> Valores de referencia en dólares, se abonan en pesos a la cotización del día.</li>
-              </ul>
+              <div className="pay-cards">
+                {[
+                  ['Tour Base', '5 panoramas', '50% inicio + 50% entrega', 'Pago anticipado: 5 fotos Express'],
+                  ['Base + Pack 3', '8 panoramas', '50% inicio + 50% a 30 días (+3%)', '10 fotos Express'],
+                  ['Base + Pack 5', '10 panoramas', '50% inicio + 25% a 30 días (+3%) + 25% a 60 días (+6%)', 'Reel vertical 30 s'],
+                  ['Base + Pack 10', '15 panoramas', '50% inicio + 25% a 30 días (+3%) + 25% a 60 días (+6%)', 'Reel + “Tesoro escondido”'],
+                ].map(([tit, pan, pago, bonus]) => (
+                  <div key={tit} className="pay-card">
+                    <div className="pay-card-top">
+                      <span className="pay-title">{tit}</span>
+                      <span className="pay-panos">{pan}</span>
+                    </div>
+                    <div className="pay-pago"><span className="pay-lbl">Pago</span>{pago}</div>
+                    <div className="pay-bonus"><Gift size={14} /> {bonus}</div>
+                  </div>
+                ))}
+              </div>
+              <p className="pago-note">
+                Financiación mediante <b>ECHEQ</b> propio del contratante. Los recargos se aplican
+                únicamente sobre las cuotas financiadas.
+              </p>
             </div>
           </details>
           <details className="pago-acc">
             <summary>Medios de pago</summary>
             <div className="pago-body">
-              <div className="medios">
-                {['Transferencia bancaria', 'Efectivo', 'Mercado Pago', 'Cheque'].map(m => (
-                  <span key={m}><CheckCircle2 size={14} color={O} /> {m}</span>
+              <div className="medios-cards">
+                {[
+                  ['Transferencia bancaria', 'Disponible'],
+                  ['Efectivo', 'Disponible'],
+                  ['Mercado Pago', 'Disponible, sujeto a los costos propios de la plataforma'],
+                  ['ECHEQ', 'Disponible y recomendado para operaciones financiadas'],
+                ].map(([medio, cond]) => (
+                  <div key={medio} className="medio-card">
+                    <span className="medio-name"><CheckCircle2 size={15} color={O} /> {medio}</span>
+                    <span className="medio-cond">{cond}</span>
+                  </div>
                 ))}
               </div>
-              <p className="pago-note">Consultanos por las alternativas de financiación para tu proyecto.</p>
             </div>
           </details>
         </div>
@@ -584,12 +607,31 @@ const CSS = `
 .pago-acc summary::after{content:"+";color:var(--o);font-size:26px;font-weight:300;line-height:1;flex:none}
 .pago-acc[open] summary::after{content:"–"}
 .pago-body{padding:0 0 22px}
-.pago-body ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
-.pago-body li{display:flex;gap:11px;align-items:flex-start;color:#cdc3bc;font-size:15px;line-height:1.55}
-.pago-body li svg{flex:none;margin-top:3px}
-.medios{display:flex;flex-wrap:wrap;gap:12px 24px}
-.medios span{display:inline-flex;align-items:center;gap:9px;font-size:15px;color:#cdc3bc}
 .pago-note{margin-top:18px;color:var(--muted);font-size:13.5px;line-height:1.6}
+
+/* tarjetas de formas de pago */
+.pay-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pay-card{background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.pay-card-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;
+  padding-bottom:12px;border-bottom:1px solid var(--line)}
+.pay-title{font-family:var(--font-display),serif;font-weight:700;font-size:18px}
+.pay-panos{color:var(--o2);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.pay-pago{color:#cdc3bc;font-size:14.5px;line-height:1.55}
+.pay-lbl{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px;font-weight:700}
+.pay-bonus{margin-top:auto;display:inline-flex;align-items:center;gap:7px;align-self:flex-start;
+  background:rgba(255,106,61,.12);border:1px solid rgba(255,106,61,.3);color:var(--o2);
+  font-weight:700;font-size:13px;padding:8px 13px;border-radius:999px;line-height:1.3}
+.pay-bonus svg{flex:none}
+
+/* tarjetas de medios de pago */
+.medios-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.medio-card{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.medio-name{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:15px}
+.medio-cond{color:var(--muted);font-size:13.5px;line-height:1.5;padding-left:24px}
+
+@media(max-width:640px){
+  .pay-cards,.medios-cards{grid-template-columns:1fr}
+}
 
 /* cta final */
 .cta-final{position:relative;z-index:2;overflow:hidden;text-align:center;padding:130px 22px}
