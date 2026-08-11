@@ -5,15 +5,14 @@ import { Fraunces, Manrope } from 'next/font/google'
 import { BrandLogos } from '@/components/BrandLogos'
 import {
   Menu, X, Camera, Compass, MapPin, Sparkles, Video, Plane, Images,
-  Film, Building2, Users, CheckCircle2, ChevronRight, MessageCircle,
-  ScanSearch, CalendarClock, Aperture, Wand2, Rocket, ArrowRight,
+  Film, CheckCircle2, MessageCircle, ArrowRight, Eye, TrendingUp,
+  Award, Layers, Users2, ScanSearch, CalendarClock, Aperture, Wand2, Rocket,
 } from 'lucide-react'
 
 /* ─────────────────────────────────────────────────────────────
    LANDING PRINCIPAL · Mendoza Bureau × El Faro 360
-   Rediseño v3 — Editorial oscuro inmersivo.
-   Hero cinemático con parallax + grano, marquee, scroll-story
-   con panel fijo, grillas bento. Sin precios. Misma información.
+   Reorganizada: directa y orientada al socio.
+   Qué ofrecemos · Beneficios · Cómo se hace · Formas de pago · Inscripción.
    ───────────────────────────────────────────────────────────── */
 
 const display = Fraunces({ subsets: ['latin'], weight: ['400', '600', '700', '900'], style: ['normal', 'italic'], variable: '--font-display', display: 'swap' })
@@ -29,41 +28,27 @@ const O = '#ff6a3d'
 const IMG_HERO = 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=1900&q=72'
 const IMG_MARGOT = 'https://images.unsplash.com/photo-1474722883778-792e7990302f?auto=format&fit=crop&w=1000&q=74'
 const IMG_PALOMA = 'https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=1000&q=74'
-// Grano cinematográfico (SVG noise embebido)
-const GRAIN = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E\")"
 
 const NAV = [
-  ['Qué es', '#que-es'], ['Cómo funciona', '#como'], ['Ejemplos', '#ejemplos'],
-  ['Ampliá', '#ampliar'], ['Servicios', '#servicios'], ['Beneficios', '#beneficios'], ['FAQ', '#faq'],
+  ['El proyecto', '#proyecto'], ['Beneficios', '#beneficios'], ['Ejemplos', '#ejemplos'],
+  ['Cómo funciona', '#como'], ['Servicios', '#servicios'], ['Pagos', '#pagos'], ['FAQ', '#faq'],
 ] as const
-
-const STEPS: [typeof ScanSearch, string, string][] = [
-  [ScanSearch, 'Conocemos tu propuesta', 'Entendemos tu espacio o servicio y qué querés destacar.'],
-  [CalendarClock, 'Coordinamos el relevamiento', 'Agendamos día y horario de la visita de producción.'],
-  [Aperture, 'Capturamos en 360°', 'Realizamos las tomas inmersivas de los puntos elegidos.'],
-  [Wand2, 'Editamos y armamos el recorrido', 'Optimización, navegación y hotspots interactivos.'],
-  [Rocket, 'Integramos a la plataforma', 'Tu propuesta queda publicada dentro de Mendoza Bureau.'],
-]
 
 export default function PlataformaLanding() {
   const [menu, setMenu] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [active, setActive] = useState(0)
+  const [showFloat, setShowFloat] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const heroBgRef = useRef<HTMLDivElement>(null)
-  const heroCopyRef = useRef<HTMLDivElement>(null)
 
-  // Scroll: navbar + parallax
   useEffect(() => {
     let raf = 0
     const apply = () => {
       const y = window.scrollY
       setScrolled(y > 24)
-      if (heroBgRef.current) heroBgRef.current.style.transform = `translate3d(0,${Math.min(y, 900) * 0.42}px,0) scale(1.2)`
-      if (heroCopyRef.current) {
-        heroCopyRef.current.style.opacity = String(Math.max(0, 1 - y / 560))
-        heroCopyRef.current.style.transform = `translate3d(0,${y * 0.14}px,0)`
-      }
+      // Los botones flotantes aparecen recién en el "segundo scroll"
+      setShowFloat(y > window.innerHeight * 1.15)
+      if (heroBgRef.current) heroBgRef.current.style.transform = `translate3d(0,${Math.min(y, 900) * 0.4}px,0) scale(1.2)`
       raf = 0
     }
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(apply) }
@@ -72,41 +57,24 @@ export default function PlataformaLanding() {
     return () => { window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf) }
   }, [])
 
-  // Reveal
   useEffect(() => {
     const els = rootRef.current?.querySelectorAll('.reveal')
     if (!els?.length) return
     const io = new IntersectionObserver((entries) => {
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } })
-    }, { threshold: 0.14 })
+    }, { threshold: 0.12 })
     els.forEach(el => io.observe(el))
     return () => io.disconnect()
   }, [])
 
-  // Scroll-story: paso activo
-  useEffect(() => {
-    const steps = rootRef.current?.querySelectorAll('.story-step')
-    if (!steps?.length) return
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) setActive(Number((e.target as HTMLElement).dataset.i))
-      })
-    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 })
-    steps.forEach(el => io.observe(el))
-    return () => io.disconnect()
-  }, [])
-
-  const ActiveIcon = STEPS[active][0]
-
   return (
     <div ref={rootRef} className={`mb-landing ${display.variable} ${sans.variable}`}>
       <style>{CSS}</style>
-      <div className="grain" aria-hidden />
 
       {/* ── Navbar ── */}
       <header className={`nav ${scrolled ? 'nav-solid' : ''}`}>
         <div className="nav-in">
-          <a href="#top" className="nav-logo"><BrandLogos logos={['bureau']} size={scrolled ? 60 : 120} /></a>
+          <a href="#top" className="nav-logo"><BrandLogos logos={['bureau']} size={scrolled ? 54 : 92} /></a>
           <nav className="nav-links">
             {NAV.map(([t, h]) => <a key={h} href={h}>{t}</a>)}
           </nav>
@@ -129,14 +97,11 @@ export default function PlataformaLanding() {
         <div className="hero-mesh" aria-hidden />
         <div className="hero-veil" aria-hidden />
         <div className="hero-in">
-          <div className="hero-copy" ref={heroCopyRef}>
-            <h1>
-              Mostrá tu espacio<br />dentro de la plataforma<br />
-              <span className="hl">inmersiva de Mendoza Bureau</span>
-            </h1>
+          <div className="hero-copy">
+            <h1>Mostrá tu espacio dentro de la plataforma <span className="hl">inmersiva de Mendoza Bureau</span></h1>
             <p className="lead">
-              Junto a El Faro 360 virtualizamos los espacios, servicios y experiencias de los socios de
-              Mendoza Bureau, para que organizadores, empresas y visitantes puedan conocerlos antes de llegar.
+              Junto a El Faro 360 virtualizamos tu bodega, hotel, restaurante o servicio en un recorrido
+              360°, para que tus clientes lo conozcan y lo recorran antes de llegar.
             </p>
             <div className="hero-cta">
               <a href={FORM_SOCIO} className="btn btn-primary btn-lg">Quiero virtualizar mi espacio <ArrowRight size={18} /></a>
@@ -150,88 +115,69 @@ export default function PlataformaLanding() {
         <span className="hero-scroll" aria-hidden><span /></span>
       </section>
 
-      {/* ── Marquee ── */}
-      <div className="marquee" aria-hidden>
-        <div className="marquee-track">
-          {[...Array(2)].map((_, k) => (
-            <span key={k}>
-              {['Bodegas', 'Hoteles', 'Gastronomía', 'Experiencias', 'Enoturismo', 'Servicios', 'Espacios de eventos', 'Cafeterías'].map(w => (
-                <em key={w}>{w}<i>·</i></em>
-              ))}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Qué es — bento ── */}
-      <section id="que-es" className="sec reveal">
-        <div className="sec-head sec-head-left">
-          <span className="kicker">01 · El proyecto</span>
-          <h2>No es una sesión de fotos.<br /><span className="ital">Es una herramienta institucional.</span></h2>
-        </div>
-        <div className="bento">
-          <div className="bento-cell bento-lg">
-            <Compass size={26} color={O} />
-            <h3>Una plataforma inmersiva institucional</h3>
-            <p>Mendoza Bureau reúne a sus socios en un mismo lugar, donde cada espacio, servicio y experiencia se muestra de forma profesional e interactiva.</p>
-          </div>
-          <div className="bento-cell">
-            <Aperture size={24} color={O} />
-            <h3>Recorridos 360°</h3>
-            <p>El Faro 360 desarrolla la producción inmersiva completa.</p>
-          </div>
-          <div className="bento-cell">
-            <Sparkles size={24} color={O} />
-            <h3>Experiencias a medida</h3>
-            <p>Catas, procesos y escenas interactivas dentro del tour.</p>
-          </div>
-          <div className="bento-cell bento-wide">
-            <Users size={24} color={O} />
-            <h3>Pensada para descubrir antes de llegar</h3>
-            <p>Organizadores, empresas y visitantes conocen tu propuesta desde cualquier dispositivo, en cualquier momento.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Cómo funciona — scroll story ── */}
-      <section id="como" className="story reveal">
+      {/* ── 1 · El proyecto ── */}
+      <section id="proyecto" className="sec reveal">
         <div className="sec-head">
-          <span className="kicker">02 · El camino</span>
-          <h2>Cómo funciona</h2>
-          <p className="sub">Del primer contacto a tu recorrido publicado, en cinco pasos.</p>
+          <span className="kicker">01 · El proyecto</span>
+          <h2>Una plataforma para <span className="ital">mostrar y recorrer</span> los espacios de los socios</h2>
+          <p className="sub">
+            Mendoza Bureau, junto a El Faro 360, reúne a sus socios en una plataforma inmersiva donde cada
+            uno muestra su espacio, sus servicios y sus experiencias en 360°.
+          </p>
         </div>
-        <div className="story-in">
-          <div className="story-sticky">
-            <div className="story-card">
-              <span className="story-num">{String(active + 1).padStart(2, '0')}</span>
-              <div className="story-ic"><ActiveIcon size={64} color={O} /></div>
-              <h3>{STEPS[active][1]}</h3>
-              <p>{STEPS[active][2]}</p>
-              <div className="story-dots">
-                {STEPS.map((_, i) => <span key={i} className={i === active ? 'on' : ''} />)}
-              </div>
-            </div>
+        <div className="cards-3">
+          <div className="card">
+            <span className="card-ic"><Compass size={20} color={O} /></span>
+            <h3>Qué hace</h3>
+            <p>Convierte tu espacio en un recorrido virtual 360° navegable desde el celular o la computadora, con fotos, datos y enlaces.</p>
           </div>
-          <div className="story-steps">
-            {STEPS.map(([Ic, t, d], i) => (
-              <div key={t} className={`story-step ${i === active ? 'active' : ''}`} data-i={i}>
-                <span className="story-step-n"><Ic size={22} color={O} /></span>
-                <div>
-                  <h4>{String(i + 1).padStart(2, '0')} — {t}</h4>
-                  <p>{d}</p>
-                </div>
-              </div>
-            ))}
+          <div className="card">
+            <span className="card-ic"><Eye size={20} color={O} /></span>
+            <h3>Para qué</h3>
+            <p>Para que te conozcan antes de llegar: sumás visibilidad, mostrás mejor y ayudás a que el cliente decida.</p>
+          </div>
+          <div className="card">
+            <span className="card-ic"><Users2 size={20} color={O} /></span>
+            <h3>Para quiénes</h3>
+            <p>Bodegas, hoteles, restaurantes, salones de eventos y empresas de servicios socias de Mendoza Bureau.</p>
           </div>
         </div>
       </section>
 
-      {/* ── Ejemplos ── */}
+      {/* ── 2 · Beneficios ── */}
+      <section id="beneficios" className="sec sec-soft reveal">
+        <div className="sec-head">
+          <span className="kicker">02 · Por qué sumarte</span>
+          <h2>Lo que ganás estando en la plataforma</h2>
+          <p className="sub">Beneficios concretos para tu negocio desde el día que publicamos tu recorrido.</p>
+        </div>
+        <div className="cards-3">
+          {[
+            [Eye, 'Más visibilidad', 'Aparecés dentro de la plataforma institucional de Mendoza Bureau, frente a organizadores, empresas y turistas.'],
+            [Compass, 'Mostrás mejor tu espacio', 'El cliente recorre cada ambiente en 360° antes de la visita, sin dudas ni sorpresas.'],
+            [TrendingUp, 'Más consultas y ventas', 'Quien ve y recorre, decide más rápido. Un espacio que se muestra bien, vende mejor.'],
+            [Award, 'Te diferenciás de la competencia', 'Muy pocos ofrecen una experiencia inmersiva. Vos sí.'],
+            [Images, 'Material audiovisual reutilizable', 'Fotos y videos profesionales que usás en tu web, redes y campañas.'],
+            [Sparkles, 'Presencia profesional 24/7', 'Tu espacio se puede visitar en cualquier momento, desde cualquier lugar.'],
+          ].map(([Ic, t, d]) => {
+            const Icon = Ic as typeof Eye
+            return (
+              <div key={t as string} className="card">
+                <span className="card-ic"><Icon size={20} color={O} /></span>
+                <h3>{t as string}</h3>
+                <p>{d as string}</p>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* ── 3 · Ejemplos ── */}
       <section id="ejemplos" className="sec reveal">
         <div className="sec-head">
-          <span className="kicker">03 · En vivo</span>
+          <span className="kicker">03 · Ejemplos reales</span>
           <h2>Mirá cómo se vive un recorrido 360°</h2>
-          <p className="sub">Ejemplos reales producidos por El Faro 360.</p>
+          <p className="sub">Recorridos producidos por El Faro 360. Tocá para explorarlos.</p>
         </div>
         <div className="ejemplos">
           {[
@@ -253,23 +199,51 @@ export default function PlataformaLanding() {
         </div>
       </section>
 
-      {/* ── Tour base ── */}
+      {/* ── 4 · Cómo funciona (tarjetas iguales) ── */}
+      <section id="como" className="sec sec-soft reveal">
+        <div className="sec-head">
+          <span className="kicker">04 · Cómo se hace</span>
+          <h2>De la charla a tu recorrido publicado</h2>
+          <p className="sub">Un proceso simple, en cinco pasos. Vos solo elegís qué mostrar.</p>
+        </div>
+        <div className="pasos">
+          {[
+            [ScanSearch, 'Conocemos tu propuesta', 'Entendemos tu espacio y qué querés destacar.'],
+            [CalendarClock, 'Coordinamos la visita', 'Agendamos día y horario del relevamiento.'],
+            [Aperture, 'Capturamos en 360°', 'Tomamos los puntos elegidos de tu espacio.'],
+            [Wand2, 'Editamos el recorrido', 'Navegación, hotspots y optimización.'],
+            [Rocket, 'Publicamos', 'Tu recorrido queda dentro de Mendoza Bureau.'],
+          ].map(([Ic, t, d], i) => {
+            const Icon = Ic as typeof Rocket
+            return (
+              <div key={t as string} className="paso">
+                <span className="paso-n">{i + 1}</span>
+                <span className="paso-ic"><Icon size={22} color={O} /></span>
+                <h3>{t as string}</h3>
+                <p>{d as string}</p>
+              </div>
+            )
+          })}
+        </div>
+      </section>
+
+      {/* ── 5 · Qué incorpora el tour base ── */}
       <section className="sec reveal">
         <div className="split">
           <div>
-            <span className="kicker kicker-left">04 · Tour base</span>
-            <h2 className="h2-left">Tu recorrido comienza con 5 panoramas 360°</h2>
+            <span className="kicker kicker-left">05 · Tour base</span>
+            <h2 className="h2-left">Qué incluye tu tour base</h2>
             <p className="p-lg">
-              Vos elegís los <b>cinco lugares que mejor representan tu propuesta</b>. Se distribuyen libremente
-              dentro del mismo establecimiento y se realizan durante el relevamiento programado.
+              Elegís los <b>5 lugares que mejor representan tu propuesta</b> y nosotros armamos el recorrido
+              completo, listo para publicar dentro de la plataforma.
             </p>
           </div>
           <div className="incluye">
             <p className="incluye-t">Incluye</p>
             <div className="incluye-grid">
-              {['5 panoramas 360°', 'Edición y optimización', 'Navegación', 'Hotspots básicos', 'Armado del recorrido',
-                'Ficha del socio', 'Logo y fotos', 'Descripción', 'Web y WhatsApp', 'Redes y links',
-                'Info comercial', 'Integración en la plataforma'].map(x => (
+              {['5 panoramas 360°', 'Edición y optimización', 'Navegación fluida', 'Hotspots básicos',
+                'Armado del recorrido', 'Ficha del socio', 'Logo y fotos', 'Descripción',
+                'Web y WhatsApp', 'Redes y links', 'Info comercial', 'Publicación en la plataforma'].map(x => (
                 <span key={x}><CheckCircle2 size={14} color={O} /> {x}</span>
               ))}
             </div>
@@ -277,177 +251,102 @@ export default function PlataformaLanding() {
         </div>
       </section>
 
-      {/* ── Ampliá + Servicios ── */}
-      <section id="ampliar" className="sec reveal">
+      {/* ── 6 · Servicios adicionales ── */}
+      <section id="servicios" className="sec sec-soft reveal">
         <div className="sec-head">
-          <span className="kicker">05 · Ampliá y sumá contenido</span>
-          <h2>Ampliá tu recorrido y potenciá tu presencia</h2>
-          <p className="sub">Mostrá cada rincón de tu espacio y aprovechá la visita para generar más contenido profesional.</p>
+          <span className="kicker">06 · Servicios adicionales</span>
+          <h2>Sumá más panoramas y contenido</h2>
+          <p className="sub">Opcionales, para mostrar cada rincón y aprovechar la misma producción.</p>
         </div>
-
-        <div className="ampliar-panel">
-          <div className="ampliar-head">
-            <span className="ampliar-badge">Lo principal</span>
-            <h3>Ampliá tu recorrido</h3>
-            <p>Hay espacios donde cinco puntos alcanzan, y otros donde vale mostrar más. Elegí cuánto querés mostrar.</p>
-          </div>
-          <div className="cards-4">
-            {[
-              ['Panorama adicional', 'Para incorporar un punto puntual que no entró en los 5 iniciales.'],
-              ['Pack 3', 'Ideal para espacios pequeños o medianos con algunos sectores más.'],
-              ['Pack 5', 'Ideal para hoteles, bodegas o restaurantes con varias áreas relevantes.'],
-              ['Pack 10', 'Para proyectos de mayor escala y experiencias más completas.'],
-            ].map(([t, d]) => (
-              <div key={t} className="card card-pack">
-                <span className="card-ic"><MapPin size={20} color={O} /></span>
-                <h4 className="card-h">{t}</h4>
-                <p>{d}</p>
+        <div className="cards-3">
+          {[
+            [Layers, 'Panoramas / packs extra', 'Sumá puntos al recorrido con packs de 3, 5 o 10 panoramas.'],
+            [Images, 'Fotografías HDR', 'Imágenes profesionales para web, redes, Booking y publicidad.'],
+            [Film, 'Reel vertical', 'Contenido para Instagram, TikTok y campañas.'],
+            [Video, 'Video institucional', 'Presentá tu espacio, propuesta o experiencia.'],
+            [Plane, 'Tomas con drone', 'Mostrá ubicación, escala, entorno y paisaje.'],
+            [Camera, 'Video 360°', 'Escenas inmersivas con movimiento, sonido y personas.'],
+          ].map(([Ic, t, d]) => {
+            const Icon = Ic as typeof Images
+            return (
+              <div key={t as string} className="card">
+                <span className="card-ic"><Icon size={20} color={O} /></span>
+                <h3>{t as string}</h3>
+                <p>{d as string}</p>
               </div>
-            ))}
-          </div>
+            )
+          })}
         </div>
-
-        <span id="servicios" className="anchor" />
-        <div className="sub-block">
-          <h3 className="mini-title">Aprovechá la visita y generá más contenido</h3>
-          <p className="sub sub-tight">
-            Ya que nuestro equipo estará en tu establecimiento, aprovechá la misma producción para redes,
-            web, campañas y comunicación institucional.
-          </p>
-          <div className="cards-3">
-            {[
-              [Images, 'Fotografías HDR', 'Imágenes profesionales para web, redes, Booking y publicidad.'],
-              [Film, 'Reel vertical', 'Contenido pensado para Instagram, TikTok y campañas.'],
-              [Video, 'Video institucional', 'Presentá tu espacio, propuesta o experiencia.'],
-              [Plane, 'Drone', 'Mostrá ubicación, escala, entorno y paisaje.'],
-              [Compass, 'Video 360°', 'Experiencias inmersivas con movimiento, sonido y personas.'],
-              [Sparkles, 'Pack audiovisual premium', 'Combina fotos, video, reels y/o drone en una producción.'],
-            ].map(([Ic, t, d]) => {
-              const Icon = Ic as typeof Images
-              return (
-                <div key={t as string} className="card">
-                  <span className="card-ic"><Icon size={20} color={O} /></span>
-                  <h4 className="card-h">{t as string}</h4>
-                  <p>{d as string}</p>
-                </div>
-              )
-            })}
-          </div>
-          <div className="center"><a href={SERVICIOS} className="btn btn-primary">Ver servicios disponibles</a></div>
-        </div>
+        <div className="center"><a href={SERVICIOS} className="btn btn-primary">Ver servicios y armar tu presupuesto</a></div>
       </section>
 
-      {/* ── Experiencias inmersivas ── */}
+      {/* ── 7 · Experiencias dentro del tour ── */}
       <section className="sec-feature reveal">
         <div className="feature-in">
           <span className="eyebrow">A medida</span>
-          <h2 className="h2-light">Experiencias inmersivas dentro del tour</h2>
-          <p className="sub sub-light">Además de recorrer un espacio, diseñamos experiencias <b>dentro del propio recorrido</b>.</p>
+          <h2 className="h2-light">Experiencias dentro del tour</h2>
+          <p className="sub sub-light">No solo se recorre: se vive. Diseñamos escenas interactivas dentro del propio recorrido.</p>
           <div className="exp-grid">
             {['Cata guiada', 'Experiencia gastronómica', 'Recorrido por un proceso productivo', 'Un sommelier explicando un varietal',
-              'Un chef presentando un plato', 'Personal mostrando una habitación', 'Hotspots especiales e interactivos',
-              'Juegos, búsqueda de objetos y beneficios'].map(x => (
+              'Un chef presentando un plato', 'Personal mostrando una habitación', 'Hotspots interactivos',
+              'Juegos y búsqueda de objetos'].map(x => (
               <span key={x} className="exp-chip"><Sparkles size={14} color={O} /> {x}</span>
             ))}
           </div>
           <p className="exp-ex">
-            “Imaginá recorrer una bodega y, al acercarte a una estación de degustación, activar un
-            <b> video 360°</b> donde una persona explica uno de los varietales.”
+            “Recorrés una bodega y, al llegar a la sala de degustación, se activa un <b>video 360°</b> donde
+            un sommelier te explica el varietal.”
           </p>
-          <a href={WA} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg">Quiero crear una experiencia</a>
+          <a href={WA} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg">Quiero una experiencia a medida</a>
         </div>
       </section>
 
-      {/* ── ¿Cuánto querés mostrar? ── */}
-      <section className="sec reveal">
+      {/* ── 8 · Formas de pago ── */}
+      <section id="pagos" className="sec reveal">
         <div className="sec-head">
-          <span className="kicker">06 · Tu medida</span>
-          <h2>¿Cuánto querés mostrar?</h2>
-          <p className="sub">Cada proyecto se personaliza según las características de tu espacio.</p>
+          <span className="kicker">07 · Formas de pago</span>
+          <h2>Simple y flexible</h2>
         </div>
-        <div className="cards-3 cards-tight">
-          {[
-            ['Esencial', 'Mostrá lo más importante', 'Los cinco puntos principales de tu espacio.'],
-            ['Ampliado', 'Mostrá más ambientes', 'Más sectores, habitaciones, salones, terrazas o exteriores.'],
-            ['Experiencia completa', 'Contá toda la experiencia', 'Tour + más panoramas + fotografía + video + drone + contenido inmersivo.'],
-          ].map(([t, s, d], i) => (
-            <div key={t} className={`card card-tier ${i === 2 ? 'card-tier-hl' : ''}`}>
-              <span className="tier-tag">{t}</span>
-              <h3>{s}</h3>
-              <p>{d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Empresas de servicios ── */}
-      <section className="sec reveal">
-        <div className="split">
-          <div>
-            <span className="card-ic"><Building2 size={22} color={O} /></span>
-            <h2 className="h2-left" style={{ marginTop: 16 }}>¿Ofrecés servicios y no tenés un espacio para recorrer?</h2>
-            <p className="p-lg">También podemos integrar tu empresa dentro de la plataforma.</p>
-            <a href={FORM_SOCIO} className="btn btn-primary" style={{ marginTop: 22 }}>Quiero mostrar mis servicios</a>
+        <div className="pagos">
+          <div className="pago-card">
+            <h3>Cómo se abona</h3>
+            <ul>
+              <li><CheckCircle2 size={15} color={O} /> Tour base: <b>50% para comenzar</b> y 50% contra entrega.</li>
+              <li><CheckCircle2 size={15} color={O} /> Recorrido ampliado y producciones: <b>financiación hasta 60 días</b> según los servicios.</li>
+              <li><CheckCircle2 size={15} color={O} /> Valores de referencia en dólares, se abonan en pesos a la cotización del día.</li>
+            </ul>
           </div>
-          <div className="incluye">
-            <p className="incluye-t">Podés sumar</p>
-            <div className="incluye-grid">
-              {['Ficha institucional', 'Servicios', 'Fotografías', 'Videos', 'Datos de contacto', 'WhatsApp',
-                'Redes', 'Web', 'Casos y experiencias', 'Contenido interactivo'].map(x => (
-                <span key={x}><CheckCircle2 size={14} color={O} /> {x}</span>
+          <div className="pago-card">
+            <h3>Medios de pago</h3>
+            <div className="medios">
+              {['Transferencia bancaria', 'Efectivo', 'Mercado Pago', 'Cheque'].map(m => (
+                <span key={m}><CheckCircle2 size={14} color={O} /> {m}</span>
               ))}
             </div>
+            <p className="pago-note">Consultanos por las alternativas de financiación para tu proyecto.</p>
           </div>
         </div>
       </section>
 
-      {/* ── Beneficios ── */}
-      <section id="beneficios" className="sec reveal">
-        <div className="sec-head">
-          <span className="kicker">07 · Por qué sumarte</span>
-          <h2>Beneficios de formar parte</h2>
+      {/* ── Cómo inscribirse / CTA final ── */}
+      <section className="cta-final reveal">
+        <div className="cta-bg" style={{ backgroundImage: `url(${IMG_HERO})` }} aria-hidden />
+        <div className="cta-veil" aria-hidden />
+        <div className="cta-in">
+          <span className="eyebrow">Cómo inscribirte</span>
+          <h2>Sumarte es muy simple</h2>
+          <p>Completá el formulario con los datos de tu espacio y coordinamos el relevamiento. Del resto nos ocupamos nosotros.</p>
+          <div className="hero-cta center">
+            <a href={FORM_SOCIO} className="btn btn-primary btn-lg">Completar mi inscripción <ArrowRight size={18} /></a>
+            <a href={WA} target="_blank" rel="noopener noreferrer" className="btn btn-outline">Consultar por WhatsApp</a>
+          </div>
         </div>
-        <div className="cards-3">
-          {[
-            [MapPin, 'Mostrá tu espacio antes de la visita'],
-            [Compass, 'Ayudá a entender instalaciones, distribución y capacidades'],
-            [Images, 'Generá material visual reutilizable'],
-            [Sparkles, 'Diferenciate de otros establecimientos'],
-            [Users, 'Formá parte de la plataforma institucional de Mendoza Bureau'],
-          ].map(([Ic, t]) => {
-            const Icon = Ic as typeof MapPin
-            return <div key={t as string} className="benef"><span className="card-ic"><Icon size={18} color={O} /></span><span>{t as string}</span></div>
-          })}
-        </div>
-      </section>
-
-      {/* ── Formas de pago ── */}
-      <section className="sec reveal">
-        <div className="sec-head">
-          <span className="kicker">08 · Cómo avanzar</span>
-          <h2>Opciones simples para avanzar</h2>
-          <p className="sub">Distintas modalidades según los servicios contratados.</p>
-        </div>
-        <div className="cards-3">
-          {[
-            ['Tour base', '50% para comenzar y 50% contra entrega.'],
-            ['Recorrido ampliado', 'Financiación disponible según la configuración del proyecto.'],
-            ['Proyectos más completos', 'Financiación disponible hasta 60 días según servicios contratados.'],
-          ].map(([t, d]) => (
-            <div key={t} className="card"><h3>{t}</h3><p>{d}</p></div>
-          ))}
-        </div>
-        <p className="pay-note">
-          Medios de pago: transferencia bancaria, efectivo, Mercado Pago y cheque.
-          Los valores se expresan en dólares como referencia y se convierten a pesos al momento de cada pago
-          según la cotización establecida. <b>Consultanos por las alternativas de financiación para tu proyecto.</b>
-        </p>
       </section>
 
       {/* ── FAQ ── */}
-      <section id="faq" className="sec reveal">
+      <section id="faq" className="sec sec-soft reveal">
         <div className="sec-head">
-          <span className="kicker">09 · Dudas</span>
+          <span className="kicker">08 · Dudas</span>
           <h2>Preguntas frecuentes</h2>
         </div>
         <div className="faq">
@@ -457,7 +356,6 @@ export default function PlataformaLanding() {
             ['¿Qué pasa si necesito mostrar más espacios?', 'Podés ampliar con panoramas adicionales o packs de 3, 5 o 10.'],
             ['¿Puedo sumar fotografías o videos?', 'Sí: fotos HDR, reels, video institucional, drone y video 360°.'],
             ['¿Qué son las experiencias inmersivas?', 'Escenas interactivas dentro del tour (catas, procesos, videos 360°, hotspots especiales). Se arman a medida.'],
-            ['¿Y si presto servicios y no tengo espacio físico?', 'Igual te integramos: ficha institucional, fotos, videos, contacto, casos y contenido interactivo.'],
             ['¿Cuánto demora la producción?', 'Depende del alcance; lo coordinamos al momento del relevamiento.'],
             ['¿Cómo se coordina la visita?', 'Agendás fecha y horario del relevamiento y nuestro equipo se acerca.'],
             ['¿Hay financiación?', 'Sí, según la modalidad y los servicios. Consultanos las alternativas disponibles.'],
@@ -472,34 +370,16 @@ export default function PlataformaLanding() {
         </div>
       </section>
 
-      {/* ── CTA final ── */}
-      <section className="cta-final reveal">
-        <div className="cta-bg" style={{ backgroundImage: `url(${IMG_HERO})` }} aria-hidden />
-        <div className="cta-veil" aria-hidden />
-        <div className="cta-in">
-          <span className="eyebrow">Sumate a la plataforma</span>
-          <h2>Tu espacio puede ser parte de la plataforma inmersiva de Mendoza Bureau</h2>
-          <p>Mostralo mejor. Explicalo mejor. Hacelo recorrible.</p>
-          <div className="hero-cta center">
-            <a href={FORM_SOCIO} className="btn btn-primary btn-lg">Quiero virtualizar mi espacio <ArrowRight size={18} /></a>
-            <a href="#ejemplos" className="btn btn-outline">Ver ejemplos</a>
-          </div>
-          <a href={WA} target="_blank" rel="noopener noreferrer" className="btn-link btn-link-light hero-wa">
-            <MessageCircle size={16} /> Consultar por WhatsApp
-          </a>
-        </div>
-      </section>
-
       {/* ── Footer ── */}
       <footer className="foot">
         <div className="foot-grid">
           <div className="foot-brand">
-            <BrandLogos logos={['bureau']} size={96} />
+            <BrandLogos logos={['bureau']} size={58} />
             <p className="foot-desc">Plataforma inmersiva institucional para los socios de Mendoza Bureau.</p>
           </div>
           <div className="foot-col">
             <h4>Explorar</h4>
-            <a href="#que-es">El proyecto</a>
+            <a href="#proyecto">El proyecto</a>
             <a href="#ejemplos">Ejemplos</a>
             <a href="#servicios">Servicios</a>
             <a href="#faq">Preguntas frecuentes</a>
@@ -520,8 +400,9 @@ export default function PlataformaLanding() {
         </div>
       </footer>
 
-      <a href={WA} target="_blank" rel="noopener noreferrer" className="wa-float" aria-label="WhatsApp"><MessageCircle size={24} /></a>
-      <a href={FORM_SOCIO} className="sticky-cta">Quiero virtualizar mi espacio</a>
+      {/* ── Flotantes (aparecen en el segundo scroll) ── */}
+      <a href={WA} target="_blank" rel="noopener noreferrer" className={`wa-float ${showFloat ? 'show' : ''}`} aria-label="WhatsApp"><MessageCircle size={24} /></a>
+      <a href={FORM_SOCIO} className={`sticky-cta ${showFloat ? 'show' : ''}`}>Quiero virtualizar mi espacio</a>
     </div>
   )
 }
@@ -530,273 +411,205 @@ const CSS = `
 .mb-landing{
   --o:#ff6a3d;--o2:#ffb37a;--bg:#0e0a0c;--bg2:#151011;--panel:#1b1416;
   --text:#f5ede7;--muted:#a99e97;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.14);
-  --wine:#7a1f38;
   background:var(--bg);color:var(--text);
   font-family:var(--font-sans),ui-sans-serif,system-ui,-apple-system,sans-serif;
   -webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.5}
 .mb-landing *{box-sizing:border-box}
-.mb-landing h1,.mb-landing h2,.mb-landing h3{margin:0;font-family:var(--font-display),Georgia,serif;letter-spacing:-.015em;line-height:1.06;font-weight:700}
+.mb-landing h1,.mb-landing h2,.mb-landing h3{margin:0;font-family:var(--font-display),Georgia,serif;letter-spacing:-.015em;line-height:1.08;font-weight:700}
 .mb-landing h4{margin:0;font-family:var(--font-sans)}
 .mb-landing p{margin:0}
 .mb-landing a{color:inherit;text-decoration:none}
 .mb-landing b{color:var(--text)}
 .ital{font-style:italic;color:var(--o2);font-weight:600}
-.anchor{display:block;position:relative;top:-90px;visibility:hidden}
-
-/* grano cinematográfico global */
-.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.06;mix-blend-mode:overlay;
-  background-image:${GRAIN};background-size:180px}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-weight:700;font-size:15px;
   padding:14px 26px;border-radius:999px;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,background .18s;border:none}
 .btn-primary{background:linear-gradient(135deg,#ff6a3d,#ffa057);color:#241209;box-shadow:0 12px 30px rgba(255,106,61,.34)}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(255,106,61,.46)}
 .btn-lg{padding:17px 32px;font-size:16px}
-.btn-outline{background:rgba(255,255,255,.05);color:var(--text);border:1.5px solid var(--line2);backdrop-filter:blur(6px)}
-.btn-outline:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.4)}
+.btn-outline{background:rgba(255,255,255,.06);color:var(--text);border:1.5px solid var(--line2);backdrop-filter:blur(6px)}
+.btn-outline:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.4)}
 .btn-link{color:var(--o);font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:6px}
 .btn-link-light{color:var(--text);opacity:.9}.btn-link-light:hover{opacity:1}
-.center{display:flex;justify-content:center;flex-wrap:wrap;gap:14px}
+.center{display:flex;justify-content:center;flex-wrap:wrap;gap:14px;margin-top:36px}
 
 /* nav */
 .nav{position:sticky;top:0;z-index:50;transition:background .3s,box-shadow .3s,border-color .3s;border-bottom:1px solid transparent}
 .nav-solid{background:rgba(14,10,12,.82);backdrop-filter:blur(16px);border-bottom-color:var(--line)}
-.nav-in{max-width:1220px;margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:20px;min-height:78px}
+.nav-in{max-width:1220px;margin:0 auto;padding:8px 22px;display:flex;align-items:center;gap:20px;min-height:70px}
 .nav-logo{display:flex;align-items:center;transition:opacity .2s}
-.nav-links{display:flex;gap:24px;margin-left:auto;font-size:14px;font-weight:600;color:var(--muted)}
+.nav-links{display:flex;gap:22px;margin-left:auto;font-size:14px;font-weight:600;color:var(--muted)}
 .nav-links a{position:relative;padding:4px 0;transition:color .15s}
 .nav-links a::after{content:"";position:absolute;left:0;right:100%;bottom:-2px;height:2px;background:var(--o);transition:right .22s}
 .nav-links a:hover{color:var(--text)}.nav-links a:hover::after{right:0}
-.nav-cta{margin-left:8px;padding:11px 20px;font-size:14px}
+.nav-cta{margin-left:6px;padding:11px 18px;font-size:14px}
 .nav-burger{display:none;margin-left:auto;background:none;border:none;color:var(--text);cursor:pointer}
-.nav-mobile{display:flex;flex-direction:column;gap:16px;padding:18px 24px 24px;background:var(--bg2);border-top:1px solid var(--line);font-weight:600}
+.nav-mobile{display:flex;flex-direction:column;gap:16px;padding:18px 22px 24px;background:var(--bg2);border-top:1px solid var(--line);font-weight:600}
 
 /* hero */
 .hero{position:relative;min-height:100vh;display:flex;align-items:center;overflow:hidden}
 .hero-bg{position:absolute;inset:-10% 0;background-size:cover;background-position:center;will-change:transform;z-index:0;filter:saturate(1.05)}
 .hero-mesh{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.85;
-  background:radial-gradient(60% 60% at 12% 20%,rgba(255,106,61,.35),transparent 60%),
-  radial-gradient(50% 50% at 90% 85%,rgba(122,31,56,.5),transparent 60%);animation:mesh 16s ease-in-out infinite alternate}
-@keyframes mesh{to{transform:translate3d(0,-3%,0) scale(1.08)}}
+  background:radial-gradient(60% 60% at 12% 20%,rgba(255,106,61,.3),transparent 60%),
+  radial-gradient(50% 50% at 90% 85%,rgba(122,31,56,.5),transparent 60%)}
 .hero-veil{position:absolute;inset:0;z-index:2;background:
-  linear-gradient(90deg,rgba(14,10,12,.94),rgba(14,10,12,.7) 45%,rgba(14,10,12,.35) 80%,rgba(14,10,12,.15)),
-  linear-gradient(180deg,rgba(14,10,12,.6),transparent 30%,rgba(14,10,12,0) 70%,var(--bg))}
-.hero-in{position:relative;z-index:3;max-width:1220px;margin:0 auto;padding:140px 24px;width:100%}
-.hero-copy{max-width:760px;will-change:transform,opacity}
-.hero h1{font-size:clamp(40px,6.4vw,80px);font-weight:900;letter-spacing:-.025em;text-shadow:0 4px 40px rgba(0,0,0,.4)}
+  linear-gradient(90deg,rgba(14,10,12,.92),rgba(14,10,12,.68) 45%,rgba(14,10,12,.34) 80%,rgba(14,10,12,.14)),
+  linear-gradient(180deg,rgba(14,10,12,.55),transparent 30%,rgba(14,10,12,0) 68%,var(--bg))}
+.hero-in{position:relative;z-index:3;max-width:1220px;margin:0 auto;padding:120px 22px;width:100%}
+.hero-copy{max-width:760px}
+.hero h1{font-size:clamp(38px,6vw,74px);font-weight:900;letter-spacing:-.025em;text-shadow:0 4px 40px rgba(0,0,0,.4)}
 .hl{color:var(--o2);font-style:italic}
-.lead{font-size:clamp(16px,1.6vw,20px);color:rgba(245,237,231,.86);line-height:1.66;margin:34px 0 40px;max-width:580px}
-.hero-cta{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
-.hero-wa{display:inline-flex;margin-top:22px}
-.hero-scroll{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);z-index:3;width:24px;height:40px;
+.lead{font-size:clamp(16px,1.6vw,20px);color:rgba(245,237,231,.9);line-height:1.62;margin:28px 0 34px;max-width:560px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.hero-wa{display:inline-flex;margin-top:18px}
+.hero-scroll{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:3;width:24px;height:40px;
   border:2px solid rgba(255,255,255,.45);border-radius:14px;display:flex;justify-content:center;padding-top:7px}
 .hero-scroll span{width:4px;height:9px;border-radius:2px;background:#fff;animation:scrolldot 1.6s ease-in-out infinite}
 @keyframes scrolldot{0%{opacity:0;transform:translateY(-4px)}40%{opacity:1}80%{opacity:0;transform:translateY(10px)}}
 
-/* marquee */
-.marquee{position:relative;z-index:2;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
-  background:var(--bg2);padding:20px 0}
-.marquee-track{display:flex;width:max-content;animation:scrollx 34s linear infinite}
-.marquee-track span{display:inline-flex}
-.marquee em{display:inline-flex;align-items:center;font-family:var(--font-display),serif;font-style:italic;
-  font-size:clamp(22px,3vw,34px);color:var(--muted);font-weight:600;white-space:nowrap}
-.marquee em i{color:var(--o);font-style:normal;margin:0 26px}
-@keyframes scrollx{to{transform:translateX(-50%)}}
-
 /* secciones */
-.sec{position:relative;z-index:2;max-width:1220px;margin:0 auto;padding:120px 24px}
-.sec-head{max-width:780px;margin:0 auto 72px;text-align:center}
-.sec-head-left{text-align:left;margin-left:0}
-.kicker{display:block;font-size:12px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;color:var(--o);margin-bottom:24px}
+.sec{position:relative;z-index:2;max-width:1220px;margin:0 auto;padding:96px 22px}
+.sec-soft{background:var(--bg2);max-width:none}
+.sec-soft>*{max-width:1220px;margin-left:auto;margin-right:auto}
+.sec-head{max-width:780px;margin:0 auto 56px;text-align:center}
+.kicker{display:block;font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--o);margin-bottom:18px}
 .kicker-left{text-align:left}
-.sec-head h2,.sec h2{font-size:clamp(30px,4.4vw,52px);font-weight:700;text-wrap:balance;line-height:1.05}
-.sec-head .sub{margin:28px auto 0}
+.sec-head h2,.sec h2{font-size:clamp(28px,3.8vw,44px);font-weight:700;text-wrap:balance;line-height:1.06}
+.sec-head .sub{margin:22px auto 0}
 .h2-left{text-align:left!important;margin:0!important}
 .sub{color:var(--muted);font-size:17px;max-width:660px;margin:0 auto;line-height:1.7}
-.sub-tight{margin-top:20px}
-.p-lg{font-size:17px;color:#cdc3bc;line-height:1.8;margin-top:24px}
+.p-lg{font-size:17px;color:#cdc3bc;line-height:1.8;margin-top:22px}
 
-/* bento */
-.bento{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
-.bento-cell{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px;
-  display:flex;flex-direction:column;gap:12px;transition:transform .2s,border-color .2s,background .2s}
-.bento-cell:hover{transform:translateY(-4px);border-color:var(--line2);background:#211719}
-.bento-cell h3{font-size:20px;margin-top:6px}
-.bento-cell p{color:var(--muted);font-size:14.5px;line-height:1.65}
-.bento-lg{grid-column:span 2;grid-row:span 2;justify-content:flex-end;
-  background:linear-gradient(160deg,#231619,#170f11);border-color:var(--line2)}
-.bento-lg h3{font-size:clamp(24px,2.4vw,32px)}
-.bento-lg p{font-size:16px}
-.bento-wide{grid-column:span 2}
+.cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:28px;transition:transform .18s,box-shadow .18s,border-color .18s;display:flex;flex-direction:column}
+.card:hover{transform:translateY(-4px);box-shadow:0 22px 46px rgba(0,0,0,.4);border-color:var(--line2)}
+.card-ic{display:inline-flex;width:48px;height:48px;border-radius:14px;background:rgba(255,106,61,.12);align-items:center;justify-content:center;margin-bottom:14px}
+.card h3{font-size:20px;margin-bottom:9px}
+.card p{color:var(--muted);font-size:14.5px;line-height:1.65}
 
-/* scroll story */
-.story{position:relative;z-index:2;max-width:1220px;margin:0 auto;padding:120px 24px}
-.story-in{display:grid;grid-template-columns:.92fr 1.08fr;gap:60px;align-items:start}
-.story-sticky{position:sticky;top:110px;height:fit-content}
-.story-card{background:linear-gradient(160deg,#231619,#160e10);border:1px solid var(--line2);border-radius:28px;
-  padding:44px;min-height:420px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
-.story-card::before{content:"";position:absolute;top:-40%;right:-20%;width:70%;height:80%;
-  background:radial-gradient(circle,rgba(255,106,61,.28),transparent 70%);filter:blur(10px)}
-.story-num{position:relative;font-family:var(--font-display),serif;font-weight:900;font-size:120px;line-height:1;
-  color:transparent;-webkit-text-stroke:1.5px rgba(255,179,122,.5);margin-bottom:8px}
-.story-ic{position:relative;width:96px;height:96px;border-radius:24px;background:rgba(255,106,61,.12);
-  border:1px solid rgba(255,106,61,.3);display:flex;align-items:center;justify-content:center;margin-bottom:22px}
-.story-card h3{position:relative;font-size:28px;margin-bottom:12px}
-.story-card p{position:relative;color:var(--muted);font-size:16px;line-height:1.7;max-width:420px}
-.story-dots{position:relative;display:flex;gap:8px;margin-top:28px}
-.story-dots span{width:26px;height:4px;border-radius:2px;background:rgba(255,255,255,.14);transition:background .3s}
-.story-dots span.on{background:var(--o)}
-.story-steps{display:flex;flex-direction:column;gap:20px}
-.story-step{display:flex;gap:20px;padding:28px;border-radius:20px;border:1px solid var(--line);
-  background:var(--panel);opacity:.42;transition:opacity .3s,border-color .3s,transform .3s}
-.story-step.active{opacity:1;border-color:rgba(255,106,61,.4);transform:translateX(6px)}
-.story-step-n{flex:none;width:48px;height:48px;border-radius:14px;background:rgba(255,106,61,.1);
-  display:flex;align-items:center;justify-content:center}
-.story-step h4{font-family:var(--font-display),serif;font-size:19px;font-weight:700;margin-bottom:6px}
-.story-step p{color:var(--muted);font-size:14.5px;line-height:1.6}
+/* pasos (cómo funciona) — todas iguales */
+.pasos{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;align-items:stretch}
+.paso{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:26px 22px;
+  display:flex;flex-direction:column;transition:transform .18s,border-color .18s}
+.paso:hover{transform:translateY(-4px);border-color:rgba(255,106,61,.4)}
+.paso-n{position:absolute;top:18px;right:20px;font-family:var(--font-display),serif;font-weight:900;font-size:30px;
+  color:transparent;-webkit-text-stroke:1px rgba(255,179,122,.4);line-height:1}
+.paso-ic{display:inline-flex;width:46px;height:46px;border-radius:13px;background:rgba(255,106,61,.12);align-items:center;justify-content:center;margin-bottom:16px}
+.paso h3{font-size:16px;margin-bottom:8px}
+.paso p{color:var(--muted);font-size:13.5px;line-height:1.55}
+
+/* split (tour base) */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center}
+.incluye{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:32px}
+.incluye-t{font-weight:800;text-transform:uppercase;letter-spacing:.14em;font-size:12px;color:var(--o);margin-bottom:20px}
+.incluye-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.incluye-grid span{display:inline-flex;align-items:center;gap:9px;font-size:14px;color:#cdc3bc}
 
 /* ejemplos */
-.ejemplos{display:grid;grid-template-columns:1fr 1fr;gap:26px;max-width:980px;margin:0 auto}
-.ejemplo{border:1px solid var(--line);border-radius:24px;overflow:hidden;background:var(--panel);
-  transition:transform .2s,box-shadow .2s,border-color .2s;display:block}
-.ejemplo:hover{transform:translateY(-5px);box-shadow:0 34px 70px rgba(0,0,0,.5);border-color:var(--line2)}
-.ejemplo-img{position:relative;height:250px;background-size:cover;background-position:center;
-  display:flex;align-items:center;justify-content:center;transition:transform .4s}
+.ejemplos{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:980px;margin:0 auto}
+.ejemplo{border:1px solid var(--line);border-radius:24px;overflow:hidden;background:var(--panel);transition:transform .18s,box-shadow .18s,border-color .18s;display:block}
+.ejemplo:hover{transform:translateY(-4px);box-shadow:0 30px 60px rgba(0,0,0,.5);border-color:var(--line2)}
+.ejemplo-img{position:relative;height:230px;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;transition:transform .4s}
 .ejemplo:hover .ejemplo-img{transform:scale(1.04)}
 .ejemplo-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,10,12,.1),rgba(14,10,12,.6))}
-.ej-play{position:relative;z-index:1;width:66px;height:66px;border-radius:50%;
-  background:linear-gradient(135deg,#ff6a3d,#ffa057);display:flex;align-items:center;justify-content:center;
-  box-shadow:0 16px 36px rgba(0,0,0,.5)}
-.ej-360{position:absolute;top:16px;right:16px;z-index:1;background:rgba(14,10,12,.7);backdrop-filter:blur(6px);
-  color:#fff;font-weight:800;font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--line2)}
-.ejemplo-body{padding:26px}
+.ej-play{position:relative;z-index:1;width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#ff6a3d,#ffa057);display:flex;align-items:center;justify-content:center;box-shadow:0 16px 36px rgba(0,0,0,.5)}
+.ej-360{position:absolute;top:16px;right:16px;z-index:1;background:rgba(14,10,12,.7);backdrop-filter:blur(6px);color:#fff;font-weight:800;font-size:12px;padding:5px 12px;border-radius:999px;border:1px solid var(--line2)}
+.ejemplo-body{padding:24px}
 .ejemplo-body h3{font-size:22px}
 .ejemplo-body p{color:var(--muted);font-size:14px;margin:8px 0 16px}
 
-/* split */
-.split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
-.incluye{background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:32px}
-.incluye-t{font-weight:800;text-transform:uppercase;letter-spacing:.14em;font-size:12px;color:var(--o);margin-bottom:22px}
-.incluye-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.incluye-grid span{display:inline-flex;align-items:center;gap:9px;font-size:14px;color:#cdc3bc}
-
-/* ampliá */
-.ampliar-panel{background:linear-gradient(160deg,#2a1a13,#1a1010);border:1px solid rgba(255,106,61,.28);
-  border-radius:30px;padding:44px;box-shadow:0 30px 70px rgba(255,106,61,.1);margin-bottom:80px}
-.ampliar-head{text-align:center;max-width:660px;margin:0 auto 40px}
-.ampliar-badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
-  color:#241209;background:linear-gradient(135deg,#ff6a3d,#ffa057);padding:7px 16px;border-radius:999px;margin-bottom:20px}
-.ampliar-head h3{font-size:clamp(26px,3.4vw,38px)}
-.ampliar-head p{color:var(--muted);font-size:16px;margin-top:16px;line-height:1.7}
-.sub-block{margin-top:8px}
-.mini-title{text-align:center;font-size:clamp(22px,2.8vw,30px);font-weight:700}
-
-.cards-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
-.cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:44px}
-.cards-tight{margin-top:0}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px;transition:transform .2s,box-shadow .2s,border-color .2s}
-.card:hover{transform:translateY(-5px);box-shadow:0 26px 54px rgba(0,0,0,.4);border-color:var(--line2)}
-.card-ic{display:inline-flex;width:48px;height:48px;border-radius:14px;background:rgba(255,106,61,.12);
-  align-items:center;justify-content:center;margin-bottom:6px}
-.card h3,.card .card-h{font-size:20px;margin:16px 0 10px;font-family:var(--font-display),serif;font-weight:700}
-.card p{color:var(--muted);font-size:14px;line-height:1.65}
-.card-tier .tier-tag{display:inline-block;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;
-  color:var(--o);background:rgba(255,106,61,.12);padding:7px 14px;border-radius:999px;margin-bottom:16px}
-.card-tier h3{font-size:22px}
-.card-tier-hl{background:linear-gradient(160deg,#2a1a13,#1a1010);border-color:rgba(255,106,61,.35);box-shadow:0 26px 58px rgba(255,106,61,.14)}
-
 /* feature (experiencias) */
-.sec-feature{position:relative;z-index:2;background:linear-gradient(180deg,#160e10,#0e0a0c);
-  border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:130px 24px;text-align:center}
+.sec-feature{position:relative;z-index:2;background:radial-gradient(120% 120% at 80% 0%,#2a1424,#160e10 60%,#0e0a0c);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:110px 22px;text-align:center}
 .feature-in{max-width:980px;margin:0 auto}
-.eyebrow{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--o2);
-  background:rgba(255,106,61,.12);border:1px solid rgba(255,106,61,.32);padding:7px 16px;border-radius:999px;margin-bottom:26px}
+.eyebrow{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--o2);background:rgba(255,106,61,.12);border:1px solid rgba(255,106,61,.32);padding:7px 16px;border-radius:999px;margin-bottom:24px}
 .h2-light{font-size:clamp(28px,4vw,46px)}
-.sub-light{margin:26px auto 0;color:rgba(245,237,231,.72)}
-.exp-grid{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:44px 0 38px}
-.exp-chip{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.05);border:1px solid var(--line);
-  color:#e7ddd6;border-radius:999px;padding:11px 18px;font-size:14px;font-weight:500;transition:border-color .2s,background .2s}
+.sub-light{margin:24px auto 0;color:rgba(245,237,231,.72)}
+.exp-grid{display:flex;flex-wrap:wrap;gap:11px;justify-content:center;margin:40px 0 34px}
+.exp-chip{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:#e7ddd6;border-radius:999px;padding:11px 18px;font-size:14px;font-weight:500;transition:border-color .2s,background .2s}
 .exp-chip:hover{border-color:rgba(255,106,61,.4);background:rgba(255,106,61,.08)}
-.exp-ex{color:rgba(245,237,231,.9);font-size:clamp(18px,2.1vw,23px);line-height:1.7;font-style:italic;
-  font-family:var(--font-display),serif;margin:0 auto 40px;max-width:740px}
+.exp-ex{color:rgba(245,237,231,.9);font-size:clamp(17px,2vw,21px);line-height:1.7;font-style:italic;font-family:var(--font-display),serif;margin:0 auto 34px;max-width:720px}
 
-.benef{display:flex;align-items:center;gap:16px;background:var(--panel);border:1px solid var(--line);border-radius:18px;
-  padding:22px;font-weight:600;color:#cdc3bc;transition:transform .2s,border-color .2s}
-.benef:hover{transform:translateY(-3px);border-color:var(--line2)}
-.benef .card-ic{margin-bottom:0;width:42px;height:42px;flex:none}
-.pay-note{max-width:800px;margin:44px auto 0;text-align:center;color:var(--muted);font-size:14px;line-height:1.8}
+/* pagos */
+.pagos{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:960px;margin:0 auto}
+.pago-card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px}
+.pago-card h3{font-size:20px;margin-bottom:18px}
+.pago-card ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.pago-card li{display:flex;gap:11px;align-items:flex-start;color:#cdc3bc;font-size:15px;line-height:1.55}
+.pago-card li svg{flex:none;margin-top:3px}
+.medios{display:flex;flex-direction:column;gap:12px}
+.medios span{display:inline-flex;align-items:center;gap:10px;font-size:15px;color:#cdc3bc}
+.pago-note{margin-top:20px;color:var(--muted);font-size:13.5px;line-height:1.6}
 
+/* cta final */
+.cta-final{position:relative;z-index:2;overflow:hidden;text-align:center;padding:130px 22px}
+.cta-bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
+.cta-veil{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(14,10,12,.86),rgba(14,10,12,.92)),radial-gradient(60% 60% at 50% 30%,rgba(255,106,61,.26),transparent 70%)}
+.cta-in{position:relative;z-index:2;max-width:800px;margin:0 auto}
+.cta-final h2{font-size:clamp(30px,4.6vw,50px);font-weight:700;margin:18px auto 16px;text-wrap:balance}
+.cta-final p{color:rgba(245,237,231,.82);font-size:18px;line-height:1.6}
+
+/* faq */
 .faq{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
 .faq-item{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:2px 24px;transition:border-color .2s}
 .faq-item[open]{border-color:var(--line2)}
-.faq-item summary{cursor:pointer;font-weight:700;font-size:16px;padding:20px 0;list-style:none;
-  display:flex;justify-content:space-between;align-items:center;gap:18px}
+.faq-item summary{cursor:pointer;font-weight:700;font-size:16px;padding:20px 0;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:18px}
 .faq-item summary::-webkit-details-marker{display:none}
 .faq-item summary::after{content:"+";color:var(--o);font-size:26px;font-weight:300;line-height:1;flex:none}
 .faq-item[open] summary::after{content:"–"}
 .faq-item p{color:var(--muted);font-size:15px;line-height:1.75;padding:0 0 22px}
 
-/* CTA final */
-.cta-final{position:relative;z-index:2;overflow:hidden;text-align:center;padding:150px 24px}
-.cta-bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
-.cta-veil{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(14,10,12,.86),rgba(14,10,12,.9)),
-  radial-gradient(60% 60% at 50% 30%,rgba(255,106,61,.28),transparent 70%)}
-.cta-in{position:relative;z-index:2;max-width:860px;margin:0 auto}
-.cta-final h2{font-size:clamp(30px,4.8vw,52px);font-weight:700;margin:20px auto 20px;text-wrap:balance}
-.cta-final p{color:rgba(245,237,231,.82);font-size:19px;margin-bottom:38px}
-.cta-final .hero-wa{margin-top:22px}
-
 /* footer */
-.foot{position:relative;z-index:2;background:#0a0708;color:#a99e97;padding:72px 24px 34px;border-top:1px solid var(--line)}
-.foot-grid{max-width:1220px;margin:0 auto;display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;
-  padding-bottom:40px;border-bottom:1px solid var(--line)}
+.foot{position:relative;z-index:2;background:#0a0708;color:#a99e97;padding:64px 22px 30px;border-top:1px solid var(--line)}
+.foot-grid{max-width:1220px;margin:0 auto;display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;padding-bottom:36px;border-bottom:1px solid var(--line)}
 .foot-brand>div{justify-content:flex-start!important}
-.foot-brand .foot-desc{margin-top:22px;font-size:14px;line-height:1.65;max-width:340px;color:#8a7f78}
-.foot-col h4{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--text);margin-bottom:18px;font-weight:700}
-.foot-col{display:flex;flex-direction:column;gap:12px;font-size:14px}
+.foot-brand .foot-desc{margin-top:20px;font-size:14px;line-height:1.65;max-width:340px;color:#8a7f78}
+.foot-col h4{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--text);margin-bottom:16px;font-weight:700}
+.foot-col{display:flex;flex-direction:column;gap:11px;font-size:14px}
 .foot-col a{color:#a99e97;transition:color .15s}.foot-col a:hover{color:var(--o2)}
-.foot-bottom{max-width:1220px;margin:30px auto 0;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
-.foot-copy{font-size:12.5px;color:#6f655f}
-.foot-power{display:inline-flex;align-items:center;gap:14px;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#6f655f;font-weight:600}
+.foot-bottom{max-width:1220px;margin:26px auto 0;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.foot-copy{font-size:12.5px;color:#7d7268}
+.foot-power{display:inline-flex;align-items:center;gap:14px;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#7d7268;font-weight:600}
 
-.wa-float{position:fixed;right:22px;bottom:22px;width:56px;height:56px;border-radius:50%;background:#25D366;color:#fff;
-  display:flex;align-items:center;justify-content:center;box-shadow:0 12px 32px rgba(37,211,102,.5);z-index:60;transition:transform .18s}
+/* flotantes (ocultos hasta el 2do scroll) */
+.wa-float{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:#25D366;color:#fff;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 12px 32px rgba(37,211,102,.5);z-index:60;
+  opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .3s,transform .3s}
+.wa-float.show{opacity:1;transform:none;pointer-events:auto}
 .wa-float:hover{transform:scale(1.08)}
 .sticky-cta{display:none}
 
-.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
 .reveal.in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){
-  .reveal{opacity:1;transform:none;transition:none}
-  .hero-bg,.hero-mesh{transform:none!important;animation:none}
-  .marquee-track{animation:none}.hero-scroll{display:none}
-}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.hero-bg{transform:none!important}.hero-scroll{display:none}}
 
 @media(max-width:960px){
-  .bento{grid-template-columns:1fr 1fr}
-  .bento-lg{grid-column:span 2;grid-row:auto}
-  .story-in{grid-template-columns:1fr;gap:32px}
-  .story-sticky{position:static}
-  .story-card{min-height:auto}
-  .split,.ejemplos{grid-template-columns:1fr;gap:36px}
-  .steps{grid-template-columns:1fr 1fr}
-  .cards-4,.cards-3{grid-template-columns:1fr 1fr}
+  .cards-3{grid-template-columns:1fr 1fr}
+  .pasos{grid-template-columns:1fr 1fr 1fr}
+  .split,.ejemplos,.pagos{grid-template-columns:1fr;gap:32px}
   .nav-links,.nav-cta{display:none}
   .nav-burger{display:block}
   .foot-grid{grid-template-columns:1fr 1fr}
-  .ampliar-panel{padding:28px}
 }
 @media(max-width:560px){
-  .bento,.cards-4,.cards-3,.incluye-grid,.foot-grid{grid-template-columns:1fr}
+  /* logo del header más contenido en celular */
+  .nav-logo img{height:48px!important}
+  .nav-in{min-height:60px;padding:6px 18px}
+  /* hero: menos espacio arriba, contenido arriba y no centrado */
+  .hero{min-height:auto;align-items:flex-start}
+  .hero-in{padding:96px 20px 64px}
+  .hero h1{font-size:clamp(32px,9vw,44px)}
+  .cards-3,.pasos,.incluye-grid,.foot-grid{grid-template-columns:1fr}
   .btn{width:100%}
   .hero-cta{flex-direction:column;align-items:stretch}
-  .hero-in{padding:120px 22px 90px}
-  .sec,.story,.sec-feature{padding:80px 20px}
-  .sec-head{margin-bottom:48px}
+  .sec,.sec-feature,.cta-final{padding:64px 18px}
+  .sec-head{margin-bottom:40px}
   .foot-bottom{flex-direction:column;align-items:flex-start}
+  /* CTA fija inferior — también aparece en el 2do scroll */
   .sticky-cta{display:block;position:fixed;left:12px;right:12px;bottom:12px;z-index:59;text-align:center;
     background:linear-gradient(135deg,#ff6a3d,#ffa057);color:#241209;font-weight:700;padding:15px;border-radius:14px;
-    box-shadow:0 12px 30px rgba(255,106,61,.45)}
+    box-shadow:0 12px 30px rgba(255,106,61,.45);opacity:0;transform:translateY(16px);pointer-events:none;transition:opacity .3s,transform .3s}
+  .sticky-cta.show{opacity:1;transform:none;pointer-events:auto}
   .wa-float{bottom:78px}
 }
 `
