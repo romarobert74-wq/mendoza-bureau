@@ -98,6 +98,7 @@ export default function PlataformaLanding() {
         <div className="hero-veil" aria-hidden />
         <div className="hero-in">
           <div className="hero-copy">
+            <div className="hero-logo"><BrandLogos logos={['bureau']} size={70} /></div>
             <h1>Mostrá tu espacio dentro de la plataforma <span className="hl">inmersiva de Mendoza Bureau</span></h1>
             <p className="lead">
               Junto a El Faro 360 virtualizamos tu bodega, hotel, restaurante o servicio en un recorrido
@@ -308,23 +309,27 @@ export default function PlataformaLanding() {
           <h2>Simple y flexible</h2>
         </div>
         <div className="pagos">
-          <div className="pago-card">
-            <h3>Cómo se abona</h3>
-            <ul>
-              <li><CheckCircle2 size={15} color={O} /> Tour base: <b>50% para comenzar</b> y 50% contra entrega.</li>
-              <li><CheckCircle2 size={15} color={O} /> Recorrido ampliado y producciones: <b>financiación hasta 60 días</b> según los servicios.</li>
-              <li><CheckCircle2 size={15} color={O} /> Valores de referencia en dólares, se abonan en pesos a la cotización del día.</li>
-            </ul>
-          </div>
-          <div className="pago-card">
-            <h3>Medios de pago</h3>
-            <div className="medios">
-              {['Transferencia bancaria', 'Efectivo', 'Mercado Pago', 'Cheque'].map(m => (
-                <span key={m}><CheckCircle2 size={14} color={O} /> {m}</span>
-              ))}
+          <details className="pago-acc" open>
+            <summary>Cómo se abona</summary>
+            <div className="pago-body">
+              <ul>
+                <li><CheckCircle2 size={15} color={O} /> Tour base: <b>50% para comenzar</b> y 50% contra entrega.</li>
+                <li><CheckCircle2 size={15} color={O} /> Recorrido ampliado y producciones: <b>financiación hasta 60 días</b> según los servicios.</li>
+                <li><CheckCircle2 size={15} color={O} /> Valores de referencia en dólares, se abonan en pesos a la cotización del día.</li>
+              </ul>
             </div>
-            <p className="pago-note">Consultanos por las alternativas de financiación para tu proyecto.</p>
-          </div>
+          </details>
+          <details className="pago-acc">
+            <summary>Medios de pago</summary>
+            <div className="pago-body">
+              <div className="medios">
+                {['Transferencia bancaria', 'Efectivo', 'Mercado Pago', 'Cheque'].map(m => (
+                  <span key={m}><CheckCircle2 size={14} color={O} /> {m}</span>
+                ))}
+              </div>
+              <p className="pago-note">Consultanos por las alternativas de financiación para tu proyecto.</p>
+            </div>
+          </details>
         </div>
       </section>
 
@@ -457,9 +462,10 @@ const CSS = `
   linear-gradient(180deg,rgba(14,10,12,.55),transparent 30%,rgba(14,10,12,0) 68%,var(--bg))}
 .hero-in{position:relative;z-index:3;max-width:1220px;margin:0 auto;padding:120px 22px;width:100%}
 .hero-copy{max-width:760px}
+.hero-logo{display:flex;margin-bottom:30px}
 .hero h1{font-size:clamp(38px,6vw,74px);font-weight:900;letter-spacing:-.025em;text-shadow:0 4px 40px rgba(0,0,0,.4)}
 .hl{color:var(--o2);font-style:italic}
-.lead{font-size:clamp(16px,1.6vw,20px);color:rgba(245,237,231,.9);line-height:1.62;margin:28px 0 34px;max-width:560px}
+.lead{font-size:clamp(16px,1.6vw,20px);color:rgba(245,237,231,.9);line-height:1.7;margin:36px 0 40px;max-width:560px}
 .hero-cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
 .hero-wa{display:inline-flex;margin-top:18px}
 .hero-scroll{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);z-index:3;width:24px;height:40px;
@@ -477,7 +483,7 @@ const CSS = `
 .sec-head h2,.sec h2{font-size:clamp(28px,3.8vw,44px);font-weight:700;text-wrap:balance;line-height:1.06}
 .sec-head .sub{margin:22px auto 0}
 .h2-left{text-align:left!important;margin:0!important}
-.sub{color:var(--muted);font-size:17px;max-width:660px;margin:0 auto;line-height:1.7}
+.sub{color:var(--muted);font-size:17px;max-width:660px;margin:0 auto;line-height:1.7;text-align:center}
 .p-lg{font-size:17px;color:#cdc3bc;line-height:1.8;margin-top:22px}
 
 .cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch}
@@ -524,22 +530,27 @@ const CSS = `
 .feature-in{max-width:980px;margin:0 auto}
 .eyebrow{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--o2);background:rgba(255,106,61,.12);border:1px solid rgba(255,106,61,.32);padding:7px 16px;border-radius:999px;margin-bottom:24px}
 .h2-light{font-size:clamp(28px,4vw,46px)}
-.sub-light{margin:24px auto 0;color:rgba(245,237,231,.72)}
+.sub-light{margin:26px auto 0;color:rgba(245,237,231,.72);text-align:center}
 .exp-grid{display:flex;flex-wrap:wrap;gap:11px;justify-content:center;margin:40px 0 34px}
 .exp-chip{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:#e7ddd6;border-radius:999px;padding:11px 18px;font-size:14px;font-weight:500;transition:border-color .2s,background .2s}
 .exp-chip:hover{border-color:rgba(255,106,61,.4);background:rgba(255,106,61,.08)}
 .exp-ex{color:rgba(245,237,231,.9);font-size:clamp(17px,2vw,21px);line-height:1.7;font-style:italic;font-family:var(--font-display),serif;margin:0 auto 34px;max-width:720px}
 
-/* pagos */
-.pagos{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:960px;margin:0 auto}
-.pago-card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px}
-.pago-card h3{font-size:20px;margin-bottom:18px}
-.pago-card ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
-.pago-card li{display:flex;gap:11px;align-items:flex-start;color:#cdc3bc;font-size:15px;line-height:1.55}
-.pago-card li svg{flex:none;margin-top:3px}
-.medios{display:flex;flex-direction:column;gap:12px}
-.medios span{display:inline-flex;align-items:center;gap:10px;font-size:15px;color:#cdc3bc}
-.pago-note{margin-top:20px;color:var(--muted);font-size:13.5px;line-height:1.6}
+/* pagos — desplegables */
+.pagos{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.pago-acc{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:2px 24px;transition:border-color .2s}
+.pago-acc[open]{border-color:rgba(255,106,61,.4)}
+.pago-acc summary{cursor:pointer;font-weight:700;font-size:17px;padding:20px 0;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:16px}
+.pago-acc summary::-webkit-details-marker{display:none}
+.pago-acc summary::after{content:"+";color:var(--o);font-size:26px;font-weight:300;line-height:1;flex:none}
+.pago-acc[open] summary::after{content:"–"}
+.pago-body{padding:0 0 22px}
+.pago-body ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.pago-body li{display:flex;gap:11px;align-items:flex-start;color:#cdc3bc;font-size:15px;line-height:1.55}
+.pago-body li svg{flex:none;margin-top:3px}
+.medios{display:flex;flex-wrap:wrap;gap:12px 24px}
+.medios span{display:inline-flex;align-items:center;gap:9px;font-size:15px;color:#cdc3bc}
+.pago-note{margin-top:18px;color:var(--muted);font-size:13.5px;line-height:1.6}
 
 /* cta final */
 .cta-final{position:relative;z-index:2;overflow:hidden;text-align:center;padding:130px 22px}
