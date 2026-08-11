@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Fraunces, Manrope } from 'next/font/google'
 import { BrandLogos } from '@/components/BrandLogos'
+import SplashCursor from '@/components/SplashCursor'
 import {
   Menu, X, Camera, Compass, MapPin, Sparkles, Video, Plane, Images,
   Film, CheckCircle2, MessageCircle, ArrowRight, Eye, TrendingUp,
@@ -38,6 +39,7 @@ export default function PlataformaLanding() {
   const [menu, setMenu] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [showFloat, setShowFloat] = useState(false)
+  const [fxOn, setFxOn] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const heroBgRef = useRef<HTMLDivElement>(null)
 
@@ -55,6 +57,13 @@ export default function PlataformaLanding() {
     apply()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => { window.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf) }
+  }, [])
+
+  // Efecto de fluido (SplashCursor): solo desktop y si no se pidió menos movimiento
+  useEffect(() => {
+    const okMotion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const desktop = window.matchMedia('(min-width: 900px)').matches
+    setFxOn(okMotion && desktop)
   }, [])
 
   useEffect(() => {
@@ -96,6 +105,7 @@ export default function PlataformaLanding() {
         <div ref={heroBgRef} className="hero-bg" style={{ backgroundImage: `url(${IMG_HERO})` }} aria-hidden />
         <div className="hero-mesh" aria-hidden />
         <div className="hero-veil" aria-hidden />
+        {fxOn && <div className="hero-fx" aria-hidden><SplashCursor SPLAT_FORCE={5200} DENSITY_DISSIPATION={4} /></div>}
         <div className="hero-in">
           <div className="hero-copy">
             <div className="hero-logo"><BrandLogos logos={['bureau']} size={70} forceFilter /></div>
@@ -457,6 +467,7 @@ const CSS = `
 .hero-mesh{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.85;
   background:radial-gradient(60% 60% at 12% 20%,rgba(255,106,61,.3),transparent 60%),
   radial-gradient(50% 50% at 90% 85%,rgba(122,31,56,.5),transparent 60%)}
+.hero-fx{position:absolute;inset:0;z-index:2;pointer-events:none;mix-blend-mode:screen;opacity:.9}
 .hero-veil{position:absolute;inset:0;z-index:2;background:
   linear-gradient(90deg,rgba(14,10,12,.92),rgba(14,10,12,.68) 45%,rgba(14,10,12,.34) 80%,rgba(14,10,12,.14)),
   linear-gradient(180deg,rgba(14,10,12,.55),transparent 30%,rgba(14,10,12,0) 68%,var(--bg))}
