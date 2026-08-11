@@ -35,6 +35,20 @@ const NAV = [
   ['Cómo funciona', '#como'], ['Servicios', '#servicios'], ['Pagos', '#pagos'], ['FAQ', '#faq'],
 ] as const
 
+/* Botón con borde "estrella" animado (StarBorder de React Bits), adaptado a
+   nuestras pills naranjas. */
+function StarButton({ href, children, target, color = '#ffe0cc', speed = '6s' }: {
+  href: string; children: React.ReactNode; target?: string; color?: string; speed?: string
+}) {
+  return (
+    <a href={href} target={target} rel={target ? 'noopener noreferrer' : undefined} className="star-btn">
+      <span className="star-b star-bottom" style={{ background: `radial-gradient(circle, ${color}, transparent 10%)`, animationDuration: speed }} aria-hidden />
+      <span className="star-b star-top" style={{ background: `radial-gradient(circle, ${color}, transparent 10%)`, animationDuration: speed }} aria-hidden />
+      <span className="star-inner">{children}</span>
+    </a>
+  )
+}
+
 export default function PlataformaLanding() {
   const [menu, setMenu] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -115,7 +129,7 @@ export default function PlataformaLanding() {
               360°, para que tus clientes lo conozcan y lo recorran antes de llegar.
             </p>
             <div className="hero-cta">
-              <a href={FORM_SOCIO} className="btn btn-primary btn-lg">Quiero virtualizar mi espacio <ArrowRight size={18} /></a>
+              <StarButton href={FORM_SOCIO}>Quiero virtualizar mi espacio <ArrowRight size={18} /></StarButton>
               <a href="#ejemplos" className="btn btn-outline">Ver ejemplos</a>
             </div>
             <a href={WA} target="_blank" rel="noopener noreferrer" className="btn-link btn-link-light hero-wa">
@@ -352,7 +366,7 @@ export default function PlataformaLanding() {
           <h2>Sumarte es muy simple</h2>
           <p>Completá el formulario con los datos de tu espacio y coordinamos el relevamiento. Del resto nos ocupamos nosotros.</p>
           <div className="hero-cta center">
-            <a href={FORM_SOCIO} className="btn btn-primary btn-lg">Completar mi inscripción <ArrowRight size={18} /></a>
+            <StarButton href={FORM_SOCIO}>Completar mi inscripción <ArrowRight size={18} /></StarButton>
             <a href={WA} target="_blank" rel="noopener noreferrer" className="btn btn-outline">Consultar por WhatsApp</a>
           </div>
         </div>
@@ -444,6 +458,17 @@ const CSS = `
 .btn-lg{padding:17px 32px;font-size:16px}
 .btn-outline{background:rgba(255,255,255,.06);color:var(--text);border:1.5px solid var(--line2);backdrop-filter:blur(6px)}
 .btn-outline:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.4)}
+/* StarButton (borde estrella animado) */
+.star-btn{display:inline-flex;position:relative;border-radius:999px;overflow:hidden;padding:2px;isolation:isolate;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease;box-shadow:0 12px 30px rgba(255,106,61,.3)}
+.star-btn:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(255,106,61,.46)}
+.star-b{position:absolute;width:300%;height:50%;opacity:.75;border-radius:50%;z-index:0}
+.star-bottom{bottom:-11px;right:-250%;animation:star-mov-b linear infinite alternate}
+.star-top{top:-11px;left:-250%;animation:star-mov-t linear infinite alternate}
+.star-inner{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  background:linear-gradient(135deg,#ff6a3d,#ffa057);color:#241209;font-weight:700;font-size:16px;
+  padding:16px 30px;border-radius:999px;white-space:nowrap}
+@keyframes star-mov-b{0%{transform:translate(0,0);opacity:1}100%{transform:translate(-100%,0);opacity:0}}
+@keyframes star-mov-t{0%{transform:translate(0,0);opacity:1}100%{transform:translate(100%,0);opacity:0}}
 .btn-link{color:var(--o);font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:6px}
 .btn-link-light{color:var(--text);opacity:.9}.btn-link-light:hover{opacity:1}
 .center{display:flex;justify-content:center;flex-wrap:wrap;gap:14px;margin-top:36px}
@@ -475,7 +500,19 @@ const CSS = `
 .hero-copy{max-width:760px}
 .hero-logo{display:flex;margin-bottom:30px}
 .hero h1{font-size:clamp(38px,6vw,74px);font-weight:900;letter-spacing:-.025em;text-shadow:0 4px 40px rgba(0,0,0,.4)}
-.hl{color:var(--o2);font-style:italic}
+/* brillo animado en la parte destacada del título */
+.hl{font-style:italic;background:linear-gradient(110deg,#ff8149 25%,#ffe0cc 48%,#ff8149 62%);
+  background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-fill-color:transparent;animation:shine 5.5s linear infinite}
+@keyframes shine{to{background-position:-220% center}}
+/* revelado escalonado del hero al cargar */
+.hero-copy>*{animation:heroUp .85s cubic-bezier(.2,.7,.2,1) both}
+.hero-logo{animation-delay:.02s}
+.hero h1{animation-delay:.1s}
+.lead{animation-delay:.22s}
+.hero-cta{animation-delay:.34s}
+.hero-wa{animation-delay:.44s}
+@keyframes heroUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 .lead{font-size:clamp(16px,1.6vw,20px);color:rgba(245,237,231,.9);line-height:1.7;margin:36px 0 40px;max-width:560px}
 .hero-cta{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
 .hero-wa{display:inline-flex;margin-top:18px}
@@ -603,7 +640,13 @@ const CSS = `
 
 .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
 .reveal.in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.hero-bg{transform:none!important}.hero-scroll{display:none}}
+@media(prefers-reduced-motion:reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+  .hero-bg{transform:none!important}.hero-scroll{display:none}
+  .hero-copy>*{animation:none!important}
+  .hl{animation:none;color:var(--o2);-webkit-text-fill-color:var(--o2)}
+  .star-b{animation:none!important}
+}
 
 @media(max-width:960px){
   .cards-3{grid-template-columns:1fr 1fr}
@@ -622,7 +665,8 @@ const CSS = `
   .hero-in{padding:96px 20px 64px}
   .hero h1{font-size:clamp(32px,9vw,44px)}
   .cards-3,.pasos,.incluye-grid,.foot-grid{grid-template-columns:1fr}
-  .btn{width:100%}
+  .btn,.star-btn{width:100%}
+  .star-inner{width:100%}
   .hero-cta{flex-direction:column;align-items:stretch}
   .sec,.sec-feature,.cta-final{padding:64px 18px}
   .sec-head{margin-bottom:40px}
