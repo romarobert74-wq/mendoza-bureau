@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Fraunces, Manrope } from 'next/font/google'
-import { BrandLogos } from '@/components/BrandLogos'
 import {
   Menu, X, Camera, Compass, MapPin, Sparkles, Video, Plane, Images,
   Film, CheckCircle2, MessageCircle, ArrowRight, Eye, TrendingUp,
@@ -26,8 +25,9 @@ const TOUR_MARGOT = 'https://elfaro360.com/tour-virtuales/bodegas/destacadas/mar
 const TOUR_PALOMA = 'https://elfaro360.com/tour-virtuales/gastronomia/cafeterias/paloma/'
 const O = '#ff6a3d'
 
-// Fondo del hero (stock; se puede cambiar por /ejemplos/portada.jpg cuando esté subida)
-const IMG_HERO = 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=1900&q=72'
+// Fondo del hero (foto propia subida a public/ejemplos/)
+const IMG_HERO = '/ejemplos/portada.jpg'
+const LOGO_BUREAU = '/ejemplos/logo-bureau.png'
 // Portadas de ejemplos: archivos locales en public/ejemplos/ (subir por repo)
 const IMG_VIAMONTE = '/ejemplos/viamonte.jpg'
 const IMG_MARGOT = '/ejemplos/margot.jpg'
@@ -92,7 +92,7 @@ export default function PlataformaLanding() {
       {/* ── Navbar ── */}
       <header className={`nav ${scrolled ? 'nav-solid' : ''}`}>
         <div className="nav-in">
-          <a href="#top" className="nav-logo"><BrandLogos logos={['bureau']} size={scrolled ? 54 : 92} forceFilter /></a>
+          <a href="#top" className="nav-logo"><img src={LOGO_BUREAU} alt="Mendoza Bureau" style={{ height: scrolled ? 46 : 66 }} /></a>
           <nav className="nav-links">
             {NAV.map(([t, h]) => <a key={h} href={h}>{t}</a>)}
           </nav>
@@ -116,7 +116,7 @@ export default function PlataformaLanding() {
         <div className="hero-veil" aria-hidden />
         <div className="hero-in">
           <div className="hero-copy">
-            <div className="hero-logo"><BrandLogos logos={['bureau']} size={70} forceFilter /></div>
+            <div className="hero-logo"><img src={LOGO_BUREAU} alt="Mendoza Bureau" style={{ height: 92 }} /></div>
             <h1>Mostrá tu espacio dentro de la plataforma <span className="hl">inmersiva de Mendoza Bureau</span></h1>
             <p className="lead">
               Junto a El Faro 360 virtualizamos tu bodega, hotel, restaurante o servicio en un recorrido
