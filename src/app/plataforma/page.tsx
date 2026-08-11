@@ -74,7 +74,7 @@ export default function PlataformaLanding() {
       {/* ── Navbar ── */}
       <header className={`nav ${scrolled ? 'nav-solid' : ''}`}>
         <div className="nav-in">
-          <a href="#top" className="nav-logo"><BrandLogos logos={['bureau']} size={scrolled ? 54 : 92} /></a>
+          <a href="#top" className="nav-logo"><BrandLogos logos={['bureau']} size={scrolled ? 54 : 92} forceFilter /></a>
           <nav className="nav-links">
             {NAV.map(([t, h]) => <a key={h} href={h}>{t}</a>)}
           </nav>
@@ -98,7 +98,7 @@ export default function PlataformaLanding() {
         <div className="hero-veil" aria-hidden />
         <div className="hero-in">
           <div className="hero-copy">
-            <div className="hero-logo"><BrandLogos logos={['bureau']} size={70} /></div>
+            <div className="hero-logo"><BrandLogos logos={['bureau']} size={70} forceFilter /></div>
             <h1>Mostrá tu espacio dentro de la plataforma <span className="hl">inmersiva de Mendoza Bureau</span></h1>
             <p className="lead">
               Junto a El Faro 360 virtualizamos tu bodega, hotel, restaurante o servicio en un recorrido
@@ -379,7 +379,7 @@ export default function PlataformaLanding() {
       <footer className="foot">
         <div className="foot-grid">
           <div className="foot-brand">
-            <BrandLogos logos={['bureau']} size={58} />
+            <BrandLogos logos={['bureau']} size={58} forceFilter />
             <p className="foot-desc">Plataforma inmersiva institucional para los socios de Mendoza Bureau.</p>
           </div>
           <div className="foot-col">
@@ -400,7 +400,7 @@ export default function PlataformaLanding() {
           <span className="foot-copy">© {new Date().getFullYear()} Mendoza Bureau. Todos los derechos reservados.</span>
           <span className="foot-power">
             <span>Producido por</span>
-            <BrandLogos logos={['faro']} size={40} />
+            <BrandLogos logos={['faro']} size={40} forceFilter />
           </span>
         </div>
       </footer>

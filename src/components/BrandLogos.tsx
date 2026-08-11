@@ -10,13 +10,16 @@ import { getConfigSistema } from '@/lib/firestore'
      se usa la versión a color volviéndola blanca con un filtro.
    - label: texto antes de los logos (ej: "Power by"). */
 export function BrandLogos({
-  variant = 'header', logos = ['bureau', 'faro'], size, label, color = false,
+  variant = 'header', logos = ['bureau', 'faro'], size, label, color = false, forceFilter = false,
 }: {
   variant?: 'header' | 'footer'
   logos?: ('bureau' | 'faro')[]
   size?: number
   label?: string
   color?: boolean
+  // forceFilter: ignora la versión "blanca" subida y siempre usa el logo a
+  // color pasado a blanco con filtro (el mismo método del panel, más confiable).
+  forceFilter?: boolean
 }) {
   const [cfg, setCfg] = useState<{ bureau: string; faro: string; bureauBlanco: string; faroBlanco: string } | null>(null)
 
@@ -34,7 +37,10 @@ export function BrandLogos({
     const base = l === 'bureau' ? cfg.bureau : cfg.faro
     const blanco = l === 'bureau' ? cfg.bureauBlanco : cfg.faroBlanco
     if (color) return base ? { src: base, filtrar: false } : null
-    // queremos blanco: preferimos la versión blanca subida (sin filtro)
+    // queremos blanco:
+    // - forceFilter: siempre logo a color pasado a blanco con filtro (método confiable)
+    if (forceFilter) return base ? { src: base, filtrar: true } : (blanco ? { src: blanco, filtrar: false } : null)
+    // - si no, preferimos la versión blanca subida (sin filtro)
     if (blanco) return { src: blanco, filtrar: false }
     if (base) return { src: base, filtrar: true }
     return null
