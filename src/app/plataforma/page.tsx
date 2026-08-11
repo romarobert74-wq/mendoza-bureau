@@ -21,13 +21,17 @@ const sans = Manrope({ subsets: ['latin'], weight: ['400', '500', '600', '700', 
 const FORM_SOCIO = '/form/socio'
 const SERVICIOS = '/servicios-adicionales'
 const WA = 'https://wa.me/5492616657058'
+const TOUR_VIAMONTE = 'https://elfaro360.com/tour-virtuales/alojamientos/temporales/viamontelodge/'
 const TOUR_MARGOT = 'https://elfaro360.com/tour-virtuales/bodegas/destacadas/margot/'
 const TOUR_PALOMA = 'https://elfaro360.com/tour-virtuales/gastronomia/cafeterias/paloma/'
 const O = '#ff6a3d'
 
+// Fondo del hero (stock; se puede cambiar por /ejemplos/portada.jpg cuando esté subida)
 const IMG_HERO = 'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=1900&q=72'
-const IMG_MARGOT = 'https://images.unsplash.com/photo-1474722883778-792e7990302f?auto=format&fit=crop&w=1000&q=74'
-const IMG_PALOMA = 'https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=1000&q=74'
+// Portadas de ejemplos: archivos locales en public/ejemplos/ (subir por repo)
+const IMG_VIAMONTE = '/ejemplos/viamonte.jpg'
+const IMG_MARGOT = '/ejemplos/margot.jpg'
+const IMG_PALOMA = '/ejemplos/paloma.jpg'
 
 const NAV = [
   ['El proyecto', '#proyecto'], ['Beneficios', '#beneficios'], ['Ejemplos', '#ejemplos'],
@@ -194,8 +198,9 @@ export default function PlataformaLanding() {
           <h2>Mirá cómo se vive un recorrido 360°</h2>
           <p className="sub">Recorridos producidos por El Faro 360. Tocá para explorarlos.</p>
         </div>
-        <div className="ejemplos">
+        <div className="ejemplos ejemplos-3">
           {[
+            ['Viamonte Lodge', 'Alojamiento de primer nivel · 360°', TOUR_VIAMONTE, IMG_VIAMONTE],
             ['Bodega Margot', 'Enoturismo · recorrido inmersivo', TOUR_MARGOT, IMG_MARGOT],
             ['Café Paloma', 'Gastronomía · experiencia 360°', TOUR_PALOMA, IMG_PALOMA],
           ].map(([nom, desc, url, img]) => (
@@ -575,9 +580,10 @@ const CSS = `
 
 /* ejemplos */
 .ejemplos{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:980px;margin:0 auto}
+.ejemplos-3{grid-template-columns:repeat(3,1fr);max-width:1120px}
 .ejemplo{border:1px solid var(--line);border-radius:24px;overflow:hidden;background:var(--panel);transition:transform .18s,box-shadow .18s,border-color .18s;display:block}
 .ejemplo:hover{transform:translateY(-4px);box-shadow:0 30px 60px rgba(0,0,0,.5);border-color:var(--line2)}
-.ejemplo-img{position:relative;height:230px;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;transition:transform .4s}
+.ejemplo-img{position:relative;height:230px;background-color:#2a1420;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;transition:transform .4s}
 .ejemplo:hover .ejemplo-img{transform:scale(1.04)}
 .ejemplo-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(14,10,12,.1),rgba(14,10,12,.6))}
 .ej-play{position:relative;z-index:1;width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#ff6a3d,#ffa057);display:flex;align-items:center;justify-content:center;box-shadow:0 16px 36px rgba(0,0,0,.5)}
