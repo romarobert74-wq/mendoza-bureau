@@ -1,18 +1,23 @@
 'use client'
 
+import { Fraunces, Manrope } from 'next/font/google'
 import { useEffect, useMemo, useState } from 'react'
 import { getLandingServicios } from '@/lib/firestore'
 import type { LandingConfig } from '@/lib/serviciosAdicionales'
-import { BrandLogos } from '@/components/BrandLogos'
 
 /* ─────────────────────────────────────────────────────────────
    EL FARO 360 · Servicios adicionales para socios de Mendoza Bureau
-   Landing con selector interactivo → total en vivo → envío por WhatsApp
-   Colores de la plataforma: naranja #f15a24 sobre oscuro premium.
+   Misma identidad que la landing principal: Fraunces + Manrope,
+   terracota #ff6a3d sobre oscuro premium.
    ───────────────────────────────────────────────────────────── */
 
+const display = Fraunces({ subsets: ['latin'], weight: ['400', '600', '700', '900'], style: ['normal', 'italic'], variable: '--font-display', display: 'swap' })
+const sans = Manrope({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-sans', display: 'swap' })
+const FONT_DISPLAY = 'var(--font-display), Georgia, serif'
+const LOGO_BUREAU = '/ejemplos/logo-bureau.png'
+
 const WA = '5492616657058' // WhatsApp El Faro 360
-const ORANGE = '#f15a24'
+const ORANGE = '#ff6a3d'
 
 type Servicio = {
   id: string
@@ -200,27 +205,29 @@ export default function ServiciosAdicionales() {
   }
 
   return (
-    <div style={{ background: '#0a0b10', color: '#f1f5f9', minHeight: '100vh', overflowX: 'hidden' }}>
+    <div className={`${display.variable} ${sans.variable}`} style={{ background: '#0e0a0c', color: '#f5ede7', minHeight: '100vh', overflowX: 'hidden', fontFamily: 'var(--font-sans), ui-sans-serif, system-ui, sans-serif' }}>
       {/* fondo con glow */}
       <div style={{
         position: 'fixed', inset: 0, pointerEvents: 'none',
-        background: `radial-gradient(700px 500px at 80% -10%, ${ORANGE}22, transparent 60%), radial-gradient(600px 400px at 0% 20%, #3b82f61a, transparent 60%)`,
+        background: `radial-gradient(700px 500px at 80% -10%, ${ORANGE}22, transparent 60%), radial-gradient(600px 400px at 0% 20%, rgba(122,31,56,0.18), transparent 60%)`,
       }} />
 
       <div style={{ position: 'relative', maxWidth: 1000, margin: '0 auto', padding: '0 20px' }}>
 
-        {/* ── Logos ── */}
-        <div style={{ paddingTop: 30 }}><BrandLogos variant="header" /></div>
+        {/* ── Logo ── */}
+        <div style={{ paddingTop: 28, display: 'flex', justifyContent: 'center' }}>
+          <img src={LOGO_BUREAU} alt="Mendoza Bureau" style={{ height: 80, maxWidth: '100%', objectFit: 'contain' }} />
+        </div>
 
         {/* ── Hero ── */}
-        <header style={{ paddingTop: 34, paddingBottom: 40, textAlign: 'center' }}>
+        <header style={{ paddingTop: 30, paddingBottom: 40, textAlign: 'center' }}>
           <span style={{
             display: 'inline-block', fontSize: 12, fontWeight: 700, letterSpacing: 1.5,
             textTransform: 'uppercase', color: ORANGE, border: `1px solid ${ORANGE}55`,
             borderRadius: 999, padding: '5px 14px', marginBottom: 22, background: `${ORANGE}12`,
           }}>El Faro 360 · para socios de Mendoza Bureau</span>
-          <h1 style={{ fontSize: 'clamp(30px,6vw,52px)', fontWeight: 800, lineHeight: 1.05, margin: '0 0 18px', letterSpacing: -1 }}>
-            Potenciá tu recorrido dentro<br />de <span style={{ color: ORANGE }}>Mendoza Bureau</span>
+          <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: 'clamp(30px,6vw,52px)', fontWeight: 900, lineHeight: 1.06, margin: '0 0 18px', letterSpacing: '-0.02em' }}>
+            Potenciá tu recorrido dentro<br />de <span style={{ color: ORANGE, fontStyle: 'italic', fontWeight: 700 }}>Mendoza Bureau</span>
           </h1>
           <p style={{ fontSize: 'clamp(15px,2.4vw,19px)', color: '#94a3b8', maxWidth: 620, margin: '0 auto 30px', lineHeight: 1.6 }}>
             Tu tour base incluye 5 panoramas. Ahora podés sumar más espacios, experiencias
@@ -407,8 +414,11 @@ export default function ServiciosAdicionales() {
         </section>
 
         <footer style={{ textAlign: 'center', padding: '10px 0 50px' }}>
-          <BrandLogos variant="footer" />
-          <p style={{ color: '#475569', fontSize: 12, marginTop: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+            <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#7d7268', fontWeight: 600 }}>Producido por</span>
+            <img src="/ejemplos/logo-faro.png" alt="El Faro 360" style={{ height: 30, objectFit: 'contain' }} />
+          </div>
+          <p style={{ color: '#7d7268', fontSize: 12, marginTop: 14 }}>
             El Faro 360 · Contenido inmersivo para Mendoza Bureau
           </p>
         </footer>
@@ -429,10 +439,10 @@ const card: React.CSSProperties = {
   borderRadius: 18, padding: 20, transition: 'all .2s',
   boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
 }
-const h2: React.CSSProperties = { fontSize: 'clamp(22px,4vw,30px)', fontWeight: 800, textAlign: 'center', margin: '10px 0 6px', letterSpacing: -0.5 }
-const sub: React.CSSProperties = { textAlign: 'center', color: '#94a3b8', fontSize: 14, margin: '0 0 22px' }
+const h2: React.CSSProperties = { fontFamily: FONT_DISPLAY, fontSize: 'clamp(22px,4vw,30px)', fontWeight: 700, textAlign: 'center', margin: '10px 0 6px', letterSpacing: '-0.01em' }
+const sub: React.CSSProperties = { textAlign: 'center', color: '#a99e97', fontSize: 14, margin: '0 0 22px' }
 const btnPrimary: React.CSSProperties = {
-  display: 'inline-block', background: `linear-gradient(135deg, ${ORANGE}, #ff7a45)`,
+  display: 'inline-block', background: `linear-gradient(135deg, ${ORANGE}, #ffa057)`,
   color: '#fff', fontWeight: 700, fontSize: 15, padding: '13px 26px', borderRadius: 999,
   textDecoration: 'none', cursor: 'pointer', boxShadow: `0 8px 24px ${ORANGE}44`,
 }

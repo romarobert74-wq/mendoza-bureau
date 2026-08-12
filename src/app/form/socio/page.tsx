@@ -27,7 +27,7 @@ const LOGO_BUREAU = '/ejemplos/logo-bureau.png'
 const LOGO_FARO = '/ejemplos/logo-faro.png'
 
 // ── Shared inline styles ──────────────────────────────────────────────────────
-const ORANGE = '#f15a24'
+const ORANGE = '#ff6a3d'
 
 const inp: React.CSSProperties = {
   width: '100%',
@@ -129,7 +129,7 @@ function ImageUploadField({ label, hint, value, onChange, storageId, aspect }: {
               <Loader2 size={24} color={ORANGE} style={{ animation: 'spin 0.8s linear infinite' }} />
               <span style={{ fontSize: '13px', color: '#94a3b8' }}>Subiendo... {progress}%</span>
               <div style={{ width: '100%', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '99px' }}>
-                <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg,#f15a24,#ff7a45)', borderRadius: '99px', transition: 'width 0.2s' }} />
+                <div style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg,#ff6a3d,#ffa057)', borderRadius: '99px', transition: 'width 0.2s' }} />
               </div>
             </>
           ) : (
@@ -274,7 +274,7 @@ function FormSocio() {
   // ── Pantalla de éxito ──────────────────────────────────────────────────────
   if (done) {
     return (
-      <div className={`${display.variable} ${sans.variable}`} style={{ minHeight: '100vh', background: '#0a0b10', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '18px', padding: '40px 20px', fontFamily: 'var(--font-sans), ui-sans-serif, system-ui, sans-serif' }}>
+      <div className={`${display.variable} ${sans.variable}`} style={{ minHeight: '100vh', background: '#0e0a0c', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '18px', padding: '40px 20px', fontFamily: 'var(--font-sans), ui-sans-serif, system-ui, sans-serif' }}>
         <img src={LOGO_BUREAU} alt="Mendoza Bureau" style={{ height: 72, maxWidth: '100%', objectFit: 'contain', marginBottom: 4 }} />
         <div style={{ width: 82, height: 82, borderRadius: '50%', background: 'rgba(34,197,94,0.1)', border: '2px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <CheckCircle size={42} color="#4ade80" />
@@ -287,7 +287,7 @@ function FormSocio() {
           Antes de irte: <b style={{ color: ORANGE }}>coordiná el día de tu relevamiento</b> y descubrí cómo potenciar tu recorrido con más panoramas, videos y experiencias.
         </p>
         <a href="/servicios-adicionales"
-          style={{ marginTop: 10, display: 'inline-block', background: `linear-gradient(135deg, ${ORANGE}, #ff7a45)`, color: '#fff', fontWeight: 700, fontSize: '15px', padding: '14px 28px', borderRadius: 999, textDecoration: 'none', boxShadow: `0 8px 24px ${ORANGE}44` }}>
+          style={{ marginTop: 10, display: 'inline-block', background: `linear-gradient(135deg, ${ORANGE}, #ffa057)`, color: '#fff', fontWeight: 700, fontSize: '15px', padding: '14px 28px', borderRadius: 999, textDecoration: 'none', boxShadow: `0 8px 24px ${ORANGE}44` }}>
           Coordinar relevamiento y ver servicios →
         </a>
         <p style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>Te llevamos ahí en unos segundos…</p>
@@ -300,7 +300,7 @@ function FormSocio() {
 
   return (
     <div className={`${display.variable} ${sans.variable}`} style={{
-      minHeight: '100vh', background: '#0a0b10', color: '#f1f5f9', colorScheme: 'dark',
+      minHeight: '100vh', background: '#0e0a0c', color: '#f1f5f9', colorScheme: 'dark',
       fontFamily: 'var(--font-sans), ui-sans-serif, system-ui, sans-serif',
       // los .input (CategoryEditor, SalonesEditor) heredan estos tokens → quedan oscuros
       ['--bg-input' as string]: '#171a24',
@@ -310,7 +310,7 @@ function FormSocio() {
     } as React.CSSProperties}>
 
       {/* ── Hero ── */}
-      <div style={{ background: 'radial-gradient(700px 400px at 50% -20%, rgba(241,90,36,0.18), transparent 60%), linear-gradient(160deg, #10121a 0%, #0a0b10 70%)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '40px 20px 48px', textAlign: 'center' }}>
+      <div style={{ background: 'radial-gradient(700px 400px at 50% -20%, rgba(241,90,36,0.18), transparent 60%), linear-gradient(160deg, #10121a 0%, #0e0a0c 70%)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '40px 20px 48px', textAlign: 'center' }}>
         <div style={{ maxWidth: '620px', margin: '0 auto' }}>
           <div style={{ marginBottom: 26, display: 'flex', justifyContent: 'center' }}>
             <img src={LOGO_BUREAU} alt="Mendoza Bureau" style={{ height: 92, maxWidth: '100%', objectFit: 'contain' }} />
@@ -321,7 +321,7 @@ function FormSocio() {
           <h1 style={{ fontFamily: FONT_DISPLAY, fontStyle: 'italic', fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 700, color: ORANGE, margin: '0 0 20px', lineHeight: 1.06, letterSpacing: '-0.02em' }}>
             turismo inmersivo
           </h1>
-          <div style={{ width: '40px', height: '3px', background: 'linear-gradient(90deg, #f15a24, #ff7a45)', borderRadius: '99px', margin: '0 auto 24px' }} />
+          <div style={{ width: '40px', height: '3px', background: 'linear-gradient(90deg, #ff6a3d, #ffa057)', borderRadius: '99px', margin: '0 auto 24px' }} />
           <p style={{ fontSize: '15px', color: '#64748b', maxWidth: '520px', margin: '0 auto 14px', lineHeight: 1.7 }}>
             Mendoza Bureau junto a El Faro 360 están desarrollando una plataforma inmersiva
             para que tu destino se vea en{' '}
@@ -439,7 +439,7 @@ function FormSocio() {
         )}
 
         <button type="submit" disabled={sending}
-          style={{ width: '100%', padding: '15px', borderRadius: '999px', fontWeight: 700, fontSize: '15px', color: 'white', background: 'linear-gradient(135deg, #f15a24, #ff7a45)', border: 'none', cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.7 : 1, boxShadow: '0 8px 24px rgba(241,90,36,0.35)', transition: 'opacity 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+          style={{ width: '100%', padding: '15px', borderRadius: '999px', fontWeight: 700, fontSize: '15px', color: 'white', background: 'linear-gradient(135deg, #ff6a3d, #ffa057)', border: 'none', cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.7 : 1, boxShadow: '0 8px 24px rgba(241,90,36,0.35)', transition: 'opacity 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           {sending ? 'Enviando...' : (
             <>Enviar mis datos <ChevronRight size={16} /></>
           )}
@@ -461,7 +461,7 @@ function FormSocio() {
 export default function FormSocioPage() {
   return (
     <Suspense fallback={
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0a0b10' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0e0a0c' }}>
         <div style={{ width: 32, height: 32, border: '2px solid #1e293b', borderTop: '2px solid #3b82f6', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       </div>
     }>
