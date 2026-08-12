@@ -1,5 +1,6 @@
 'use client'
 
+import { Fraunces, Manrope } from 'next/font/google'
 import { Suspense, useState, useRef, useEffect } from 'react'
 import { crearSocio, getConfigSistema } from '@/lib/firestore'
 import type { ItemLista } from '@/lib/firestore'
@@ -14,10 +15,16 @@ import {
 } from '@/types'
 import { CategoryEditor } from '@/components/CategoryEditor'
 import { SalonesEditor } from '@/components/SalonesEditor'
-import { BrandLogos } from '@/components/BrandLogos'
 import { CheckCircle, AlertCircle, ChevronRight, Upload, Loader2, X } from 'lucide-react'
 
 const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
+
+// Tipografía igual a la landing principal
+const display = Fraunces({ subsets: ['latin'], weight: ['400', '600', '700', '900'], style: ['normal', 'italic'], variable: '--font-display', display: 'swap' })
+const sans = Manrope({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-sans', display: 'swap' })
+const FONT_DISPLAY = 'var(--font-display), Georgia, serif'
+const LOGO_BUREAU = '/ejemplos/logo-bureau.png'
+const LOGO_FARO = '/ejemplos/logo-faro.png'
 
 // ── Shared inline styles ──────────────────────────────────────────────────────
 const ORANGE = '#f15a24'
@@ -267,12 +274,12 @@ function FormSocio() {
   // ── Pantalla de éxito ──────────────────────────────────────────────────────
   if (done) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a0b10', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '18px', padding: '40px 20px' }}>
-        <div style={{ marginBottom: 4 }}><BrandLogos logos={['bureau']} size={150} /></div>
+      <div className={`${display.variable} ${sans.variable}`} style={{ minHeight: '100vh', background: '#0a0b10', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', gap: '18px', padding: '40px 20px', fontFamily: 'var(--font-sans), ui-sans-serif, system-ui, sans-serif' }}>
+        <img src={LOGO_BUREAU} alt="Mendoza Bureau" style={{ height: 72, maxWidth: '100%', objectFit: 'contain', marginBottom: 4 }} />
         <div style={{ width: 82, height: 82, borderRadius: '50%', background: 'rgba(34,197,94,0.1)', border: '2px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <CheckCircle size={42} color="#4ade80" />
         </div>
-        <h2 style={{ fontSize: 'clamp(24px,5vw,34px)', fontWeight: 800, color: '#f1f5f9', margin: 0 }}>¡Gracias! Datos recibidos</h2>
+        <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: 'clamp(24px,5vw,34px)', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>¡Gracias! Datos recibidos</h2>
         <p style={{ fontSize: '15px', color: '#94a3b8', maxWidth: '440px', margin: 0, lineHeight: 1.6 }}>
           Tu información fue enviada con éxito. En breve la revisaremos y la verás reflejada en el tour virtual.
         </p>
@@ -292,8 +299,9 @@ function FormSocio() {
   const hasCategoryFields = ['hotel', 'restaurante', 'bodega', 'alojamiento', 'servicio'].includes(form.categoria)
 
   return (
-    <div style={{
+    <div className={`${display.variable} ${sans.variable}`} style={{
       minHeight: '100vh', background: '#0a0b10', color: '#f1f5f9', colorScheme: 'dark',
+      fontFamily: 'var(--font-sans), ui-sans-serif, system-ui, sans-serif',
       // los .input (CategoryEditor, SalonesEditor) heredan estos tokens → quedan oscuros
       ['--bg-input' as string]: '#171a24',
       ['--text' as string]: '#f1f5f9',
@@ -304,11 +312,13 @@ function FormSocio() {
       {/* ── Hero ── */}
       <div style={{ background: 'radial-gradient(700px 400px at 50% -20%, rgba(241,90,36,0.18), transparent 60%), linear-gradient(160deg, #10121a 0%, #0a0b10 70%)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '40px 20px 48px', textAlign: 'center' }}>
         <div style={{ maxWidth: '620px', margin: '0 auto' }}>
-          <div style={{ marginBottom: 30 }}><BrandLogos logos={['bureau']} size={210} /></div>
-          <h1 style={{ fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 800, color: '#f1f5f9', margin: '0 0 6px', lineHeight: 1.05, letterSpacing: '-1px' }}>
+          <div style={{ marginBottom: 26, display: 'flex', justifyContent: 'center' }}>
+            <img src={LOGO_BUREAU} alt="Mendoza Bureau" style={{ height: 92, maxWidth: '100%', objectFit: 'contain' }} />
+          </div>
+          <h1 style={{ fontFamily: FONT_DISPLAY, fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 900, color: '#f1f5f9', margin: '0 0 2px', lineHeight: 1.06, letterSpacing: '-0.02em' }}>
             Bienvenido al futuro del
           </h1>
-          <h1 style={{ fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 800, color: ORANGE, margin: '0 0 20px', lineHeight: 1.05, letterSpacing: '-1px' }}>
+          <h1 style={{ fontFamily: FONT_DISPLAY, fontStyle: 'italic', fontSize: 'clamp(30px, 6vw, 52px)', fontWeight: 700, color: ORANGE, margin: '0 0 20px', lineHeight: 1.06, letterSpacing: '-0.02em' }}>
             turismo inmersivo
           </h1>
           <div style={{ width: '40px', height: '3px', background: 'linear-gradient(90deg, #f15a24, #ff7a45)', borderRadius: '99px', margin: '0 auto 24px' }} />
@@ -435,9 +445,10 @@ function FormSocio() {
           )}
         </button>
 
-        {/* Power by El Faro (a color) */}
-        <div style={{ paddingTop: '18px' }}>
-          <BrandLogos logos={['faro']} size={34} label="Power by" color />
+        {/* Power by El Faro */}
+        <div style={{ paddingTop: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#7c8797', fontWeight: 600 }}>Power by</span>
+          <img src={LOGO_FARO} alt="El Faro 360" style={{ height: 30, objectFit: 'contain' }} />
         </div>
         <p style={{ textAlign: 'center', fontSize: '11px', color: '#475569', paddingBottom: '8px' }}>
           Mendoza Bureau · Convention &amp; Visitors Bureau
