@@ -553,7 +553,7 @@ const CSS = `
 .sec-head h2,.sec h2{font-size:clamp(28px,3.8vw,44px);font-weight:700;text-wrap:balance;line-height:1.06}
 .sec-head .sub{margin:22px auto 0}
 .h2-left{text-align:left!important;margin:0!important}
-.sub{color:var(--muted);font-size:17px;max-width:660px;margin:0 auto;line-height:1.7;text-align:center}
+.sub{color:var(--muted);font-size:17px;max-width:620px;margin:0 auto;line-height:1.7;text-align:center;text-wrap:balance}
 .p-lg{font-size:17px;color:#cdc3bc;line-height:1.8;margin-top:22px}
 
 .cards-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch}
