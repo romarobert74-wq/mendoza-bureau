@@ -92,7 +92,7 @@ export default function PlataformaLanding() {
       {/* ── Navbar ── */}
       <header className={`nav ${scrolled ? 'nav-solid' : ''}`}>
         <div className="nav-in">
-          <a href="#top" className="nav-logo"><img src={LOGO_BUREAU} alt="Mendoza Bureau" style={{ height: scrolled ? 70 : 150 }} /></a>
+          <a href="#top" className="nav-logo"><img src={LOGO_BUREAU} alt="Mendoza Bureau" style={{ height: scrolled ? 40 : 54 }} /></a>
           <nav className="nav-links">
             {NAV.map(([t, h]) => <a key={h} href={h}>{t}</a>)}
           </nav>
@@ -496,8 +496,8 @@ const CSS = `
 /* nav */
 .nav{position:sticky;top:0;z-index:50;transition:background .3s,box-shadow .3s,border-color .3s;border-bottom:1px solid transparent}
 .nav-solid{background:rgba(14,10,12,.82);backdrop-filter:blur(16px);border-bottom-color:var(--line)}
-.nav-in{max-width:1220px;margin:0 auto;padding:8px 22px;display:flex;align-items:center;gap:20px;min-height:166px;transition:min-height .25s}
-.nav-solid .nav-in{min-height:90px}
+.nav-in{max-width:1220px;margin:0 auto;padding:8px 22px;display:flex;align-items:center;gap:20px;min-height:72px;transition:min-height .25s}
+.nav-solid .nav-in{min-height:60px}
 .nav-logo{display:flex;align-items:center;transition:opacity .2s}
 .nav-links{display:flex;gap:22px;margin-left:auto;font-size:14px;font-weight:600;color:var(--muted)}
 .nav-links a{position:relative;padding:4px 0;transition:color .15s}
@@ -670,7 +670,7 @@ const CSS = `
 .foot-col a{color:#a99e97;transition:color .15s}.foot-col a:hover{color:var(--o2)}
 .foot-logos{max-width:1220px;margin:30px auto 0;padding-top:28px;border-top:1px solid var(--line);
   display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
-.foot-logo-b{height:150px;object-fit:contain}
+.foot-logo-b{height:82px;object-fit:contain}
 .foot-power{display:inline-flex;align-items:center;gap:14px;font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#7d7268;font-weight:600}
 .foot-logo-f{height:42px;object-fit:contain}
 .foot-copy{max-width:1220px;margin:22px auto 0;font-size:12.5px;color:#7d7268;text-align:center}
@@ -704,9 +704,9 @@ const CSS = `
 }
 @media(max-width:560px){
   /* logo del header más contenido en celular */
-  .nav-logo img{height:96px!important}
-  .foot-logo-b{height:104px}
-  .nav-in{min-height:112px;padding:6px 18px}
+  .nav-logo img{height:44px!important}
+  .foot-logo-b{height:64px}
+  .nav-in{min-height:64px;padding:6px 18px}
   /* hero: menos espacio arriba, contenido arriba y no centrado */
   .hero{min-height:auto;align-items:flex-start}
   .hero-in{padding:96px 20px 64px}
