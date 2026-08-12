@@ -518,6 +518,8 @@ export interface Socio {
   urlInternaTour: string
   urlInternaVuelta: string
   urlDrive: string
+  // Videos del socio (YouTube o Vimeo) — hasta 3, se muestran en la ficha
+  videos?: string[]
   // Datos por categoría (solo se llena el correspondiente)
   salones?: SalonIndividual[]
   hotelData?: HotelData

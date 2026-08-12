@@ -11,7 +11,7 @@ import {
   CATEGORIAS, TIPOS_SALON, TIPOS_CATERING,
   CATEGORIAS_HOTEL, RANGO_PRECIO, SUBZONAS_MENDOZA, TIPOS_ALOJAMIENTO,
 } from '@/types'
-import { Check, ChevronDown, ChevronUp, Star, MapPin, Globe, Phone, Mail, Instagram, ChevronRight } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, Star, MapPin, Globe, Phone, Mail, Instagram, ChevronRight, Play, X } from 'lucide-react'
 import { useWebframeTracking, trackEvento } from '@/lib/analytics'
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -503,7 +503,14 @@ function FichaPage() {
   const [socio, setSocio] = useState<Socio | null>(null)
   const [fotos, setFotos] = useState<FotoSocio[]>([])
   const [lightbox, setLightbox] = useState<string | null>(null)
+  const [videoModal, setVideoModal] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Cierra la ficha: avisa a 3DVista (necesita una acción que escuche el mensaje).
+  const cerrarFicha = () => {
+    try { window.parent?.postMessage({ tipo: 'mb-cerrar-ficha' }, '*') } catch { /* noop */ }
+    try { window.parent?.postMessage('closeWebFrame', '*') } catch { /* noop */ }
+  }
 
   // Analytics: cuenta la visita al tour del socio y mide el tiempo de permanencia
   useWebframeTracking(id)
@@ -559,8 +566,25 @@ function FichaPage() {
     hotel: '🏨', restaurante: '🍽️', bodega: '🍷', alojamiento: '🏡', servicio: '🎯',
   }
 
+  // Videos (YouTube / Vimeo) → { embed, thumb }
+  const parseVideo = (url: string) => {
+    const u = (url || '').trim()
+    if (!u) return null
+    let m = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/)
+    if (m) return { embed: `https://www.youtube.com/embed/${m[1]}?autoplay=1&rel=0&modestbranding=1`, thumb: `https://img.youtube.com/vi/${m[1]}/hqdefault.jpg` }
+    m = u.match(/vimeo\.com\/(?:video\/)?(\d+)/)
+    if (m) return { embed: `https://player.vimeo.com/video/${m[1]}?autoplay=1`, thumb: '' }
+    return null
+  }
+  const videosValidos = (socio.videos ?? []).map(parseVideo).filter(Boolean) as { embed: string; thumb: string }[]
+
   return (
     <div style={{ minHeight: '100vh', background: 'transparent', color: T.text, fontFamily: 'system-ui, sans-serif' }}>
+      {/* Botón para cerrar la ficha (avisa a 3DVista) */}
+      <button onClick={cerrarFicha} aria-label="Cerrar"
+        style={{ position: 'fixed', top: 12, right: 12, zIndex: 90, width: 38, height: 38, borderRadius: '50%', background: 'rgba(8,12,24,0.72)', border: `1px solid ${T.border}`, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(6px)' }}>
+        <X size={20} />
+      </button>
       <div style={{ maxWidth: '820px', margin: '0 auto', padding: '0 0 32px' }}>
 
         {/* ── Hero ── */}
@@ -674,6 +698,25 @@ function FichaPage() {
           </AccordionCard>
         )}
 
+        {/* ── Acordeón: Videos ── */}
+        {videosValidos.length > 0 && (
+          <AccordionCard emoji="🎬" title="Videos" badge={`${videosValidos.length}`} defaultOpen={true}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', paddingTop: '12px' }}>
+              {videosValidos.map((v, i) => (
+                <button key={i} type="button" onClick={() => setVideoModal(v.embed)}
+                  style={{ position: 'relative', padding: 0, border: 'none', cursor: 'pointer', aspectRatio: '16/9', borderRadius: '10px', overflow: 'hidden', background: v.thumb ? '#000' : 'linear-gradient(135deg,#7a1f38,#3a0f1c)' }}>
+                  {v.thumb && <img src={v.thumb} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                  <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.28)' }}>
+                    <span style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(241,90,36,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(0,0,0,0.45)' }}>
+                      <Play size={20} color="#fff" style={{ marginLeft: 2 }} />
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </AccordionCard>
+        )}
+
         {/* ── Reseñas ── */}
         {(socio.googleRating || socio.tripadvisorRating || socio.googleUrl || socio.tripadvisorUrl) && (
           <AccordionCard emoji="⭐" title="Reseñas" defaultOpen={true}>
@@ -725,6 +768,20 @@ function FichaPage() {
           Mendoza Bureau · Convention & Visitors Bureau
         </p>
       </div>
+
+      {/* Modal de video */}
+      {videoModal && (
+        <div onClick={() => setVideoModal(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 120, padding: '20px' }}>
+          <button onClick={() => setVideoModal(null)} aria-label="Cerrar"
+            style={{ position: 'absolute', top: 14, right: 14, width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={22} />
+          </button>
+          <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: '900px', aspectRatio: '16/9', background: '#000', borderRadius: '12px', overflow: 'hidden' }}>
+            <iframe src={videoModal} title="Video" allow="autoplay; fullscreen; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 'none' }} />
+          </div>
+        </div>
+      )}
 
       {/* Lightbox de imágenes */}
       {lightbox && (

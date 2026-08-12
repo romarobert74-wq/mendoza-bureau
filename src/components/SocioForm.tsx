@@ -98,6 +98,7 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
       fotoPortada: '',
       logoUrl: '',
       salones: [],
+      videos: ['', '', ''],
       ...defaultValues,
     },
   })
@@ -124,6 +125,7 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
       tripadvisorRating: limpiarRating(data.tripadvisorRating),
       googleUrl: data.googleUrl ?? '',
       tripadvisorUrl: data.tripadvisorUrl ?? '',
+      videos: (data.videos ?? []).map(v => (v ?? '').toString().trim()).filter(Boolean),
       salones,
       hotelData,
       restauranteData,
@@ -293,6 +295,17 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
           </div>
         </Section>
       )}
+
+      <Section title="Videos (YouTube o Vimeo)" sub="Hasta 3. Pegá el link del video; se muestran en la ficha del tour.">
+        <div className="grid grid-cols-1 gap-3">
+          {[0, 1, 2].map(i => (
+            <div key={i}>
+              <label className={lbl} style={lbl_color}>Video {i + 1}</label>
+              <input {...register(`videos.${i}` as const)} className="input" placeholder="https://youtu.be/... o https://vimeo.com/..." />
+            </div>
+          ))}
+        </div>
+      </Section>
 
       <div className="flex justify-end pt-2">
         <button type="submit" disabled={isSubmitting} className="btn-primary px-8 py-2.5 disabled:opacity-50">
