@@ -312,7 +312,7 @@ function FormSocio() {
 
       {/* ── Volver ── */}
       <div style={{ maxWidth: '620px', margin: '0 auto', padding: '16px 20px 0' }}>
-        <BackLink href="/plataforma" label="Volver a la plataforma" />
+        <BackLink href="/plataforma" label="Volver" />
       </div>
 
       {/* ── Hero ── */}
