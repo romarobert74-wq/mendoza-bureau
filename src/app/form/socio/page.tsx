@@ -23,7 +23,7 @@ const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string
 // Tipografía igual a la landing principal
 const display = Fraunces({ subsets: ['latin'], weight: ['400', '600', '700', '900'], style: ['normal', 'italic'], variable: '--font-display', display: 'swap' })
 const sans = Manrope({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-sans', display: 'swap' })
-const FONT_DISPLAY = 'var(--font-display), Georgia, serif'
+const FONT_DISPLAY = display.style.fontFamily
 const LOGO_BUREAU = '/ejemplos/logo-bureau.png'
 const LOGO_FARO = '/ejemplos/logo-faro.png'
 

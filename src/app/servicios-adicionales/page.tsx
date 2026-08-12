@@ -14,7 +14,7 @@ import { BackLink } from '@/components/BackLink'
 
 const display = Fraunces({ subsets: ['latin'], weight: ['400', '600', '700', '900'], style: ['normal', 'italic'], variable: '--font-display', display: 'swap' })
 const sans = Manrope({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-sans', display: 'swap' })
-const FONT_DISPLAY = 'var(--font-display), Georgia, serif'
+const FONT_DISPLAY = display.style.fontFamily
 const LOGO_BUREAU = '/ejemplos/logo-bureau.png'
 
 const WA = '5492616657058' // WhatsApp El Faro 360
