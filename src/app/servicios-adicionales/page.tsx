@@ -252,7 +252,7 @@ export default function ServiciosAdicionales() {
         <section style={{ ...glass, borderColor: `${ORANGE}55`, boxShadow: `0 0 0 1px ${ORANGE}33, 0 10px 40px rgba(0,0,0,0.3)` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
             <span style={{ background: ORANGE, color: '#fff', fontWeight: 800, fontSize: 13, width: 26, height: 26, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
-            <h2 style={{ fontSize: 'clamp(18px,3vw,24px)', fontWeight: 800, margin: 0 }}>Coordiná tu relevamiento</h2>
+            <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: 'clamp(18px,3vw,24px)', fontWeight: 700, margin: 0 }}>Coordiná tu relevamiento</h2>
           </div>
           <p style={{ color: '#94a3b8', fontSize: 14, margin: '0 0 16px', lineHeight: 1.6 }}>
             Elegí el día y horario en que querés que vayamos a hacer tu tour 360°. Después, si querés, sumás servicios extra (paso 2).
@@ -298,7 +298,7 @@ export default function ServiciosAdicionales() {
               }}>
                 {s.destacado && <span style={badge}>Más elegido</span>}
                 <div style={{ marginBottom: 10 }}>{s.icon}</div>
-                <h3 style={{ fontSize: 17, fontWeight: 700, margin: '0 0 4px' }}>{s.nombre}</h3>
+                <h3 style={{ fontFamily: FONT_DISPLAY, fontSize: 17, fontWeight: 700, margin: '0 0 4px' }}>{s.nombre}</h3>
                 {showPrices && <p style={{ fontSize: 22, fontWeight: 800, color: ORANGE, margin: '0 0 10px' }}>{money(s.precio)}</p>}
                 <p style={{ fontSize: 13, color: '#cbd5e1', margin: '0 0 6px', lineHeight: 1.5 }}>{s.ideal}</p>
                 {s.ejemplos && <p style={{ fontSize: 12, color: '#7c8797', margin: '0 0 16px', lineHeight: 1.5 }}>{s.ejemplos}</p>}
@@ -317,7 +317,7 @@ export default function ServiciosAdicionales() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14, marginBottom: 40 }}>
           {POR_SOCIO.map(x => (
             <div key={x.t} style={{ ...card, gap: 6 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: ORANGE, margin: 0 }}>{x.t}</h3>
+              <h3 style={{ fontFamily: FONT_DISPLAY, fontSize: 15, fontWeight: 700, color: ORANGE, margin: 0 }}>{x.t}</h3>
               <p style={{ fontSize: 13, color: '#cbd5e1', margin: 0, lineHeight: 1.5 }}>{x.d}</p>
             </div>
           ))}
@@ -345,7 +345,7 @@ export default function ServiciosAdicionales() {
           ].map(([n, t, d]) => (
             <div key={n} style={{ ...card, alignItems: 'flex-start' }}>
               <span style={{ fontSize: 26, fontWeight: 800, color: ORANGE }}>{n}</span>
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: '4px 0 2px' }}>{t}</h3>
+              <h3 style={{ fontFamily: FONT_DISPLAY, fontSize: 16, fontWeight: 700, margin: '4px 0 2px' }}>{t}</h3>
               <p style={{ fontSize: 13, color: '#cbd5e1', margin: 0, lineHeight: 1.5 }}>{d}</p>
             </div>
           ))}
@@ -410,7 +410,7 @@ export default function ServiciosAdicionales() {
 
         {/* ── CTA final ── */}
         <section style={{ ...glass, textAlign: 'center', marginBottom: 60 }}>
-          <h2 style={{ fontSize: 'clamp(22px,4vw,30px)', fontWeight: 800, margin: '0 0 10px' }}>
+          <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: 'clamp(22px,4vw,30px)', fontWeight: 700, margin: '0 0 10px' }}>
             Ya vas a estar dentro de la plataforma inmersiva
           </h2>
           <p style={{ color: '#94a3b8', margin: '0 0 22px', maxWidth: 560, marginInline: 'auto', lineHeight: 1.6 }}>
