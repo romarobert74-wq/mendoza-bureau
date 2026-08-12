@@ -92,7 +92,7 @@ export default function PlataformaLanding() {
       {/* ── Navbar ── */}
       <header className={`nav ${scrolled ? 'nav-solid' : ''}`}>
         <div className="nav-in">
-          <a href="#top" className="nav-logo"><img src={LOGO_BUREAU} alt="Mendoza Bureau" style={{ height: scrolled ? 54 : 82 }} /></a>
+          <a href="#top" className="nav-logo"><img src={LOGO_BUREAU} alt="Mendoza Bureau" style={{ height: scrolled ? 70 : 150 }} /></a>
           <nav className="nav-links">
             {NAV.map(([t, h]) => <a key={h} href={h}>{t}</a>)}
           </nav>
@@ -496,8 +496,8 @@ const CSS = `
 /* nav */
 .nav{position:sticky;top:0;z-index:50;transition:background .3s,box-shadow .3s,border-color .3s;border-bottom:1px solid transparent}
 .nav-solid{background:rgba(14,10,12,.82);backdrop-filter:blur(16px);border-bottom-color:var(--line)}
-.nav-in{max-width:1220px;margin:0 auto;padding:8px 22px;display:flex;align-items:center;gap:20px;min-height:98px;transition:min-height .25s}
-.nav-solid .nav-in{min-height:74px}
+.nav-in{max-width:1220px;margin:0 auto;padding:8px 22px;display:flex;align-items:center;gap:20px;min-height:166px;transition:min-height .25s}
+.nav-solid .nav-in{min-height:90px}
 .nav-logo{display:flex;align-items:center;transition:opacity .2s}
 .nav-links{display:flex;gap:22px;margin-left:auto;font-size:14px;font-weight:600;color:var(--muted)}
 .nav-links a{position:relative;padding:4px 0;transition:color .15s}
@@ -704,9 +704,9 @@ const CSS = `
 }
 @media(max-width:560px){
   /* logo del header más contenido en celular */
-  .nav-logo img{height:56px!important}
+  .nav-logo img{height:96px!important}
   .foot-logo-b{height:104px}
-  .nav-in{min-height:60px;padding:6px 18px}
+  .nav-in{min-height:112px;padding:6px 18px}
   /* hero: menos espacio arriba, contenido arriba y no centrado */
   .hero{min-height:auto;align-items:flex-start}
   .hero-in{padding:96px 20px 64px}
