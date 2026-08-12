@@ -598,7 +598,9 @@ const CSS = `
 /* feature (experiencias) */
 .sec-feature{position:relative;z-index:2;background:radial-gradient(120% 120% at 80% 0%,#2a1424,#160e10 60%,#0e0a0c);
   border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:110px 22px;text-align:center}
-.feature-in{max-width:980px;margin:0 auto}
+.feature-in{max-width:980px;margin:0 auto;display:flex;flex-direction:column;align-items:center}
+.feature-in>*{width:100%}
+.feature-in .eyebrow{width:auto}
 .eyebrow{display:inline-block;font-size:12px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--o2);background:rgba(255,106,61,.12);border:1px solid rgba(255,106,61,.32);padding:7px 16px;border-radius:999px;margin-bottom:24px}
 .h2-light{font-size:clamp(28px,4vw,46px)}
 .sub-light{margin:26px auto 0;color:rgba(245,237,231,.72);text-align:center}
