@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { collection, getDocs, orderBy, query, doc, getDoc } from 'firebase/firestore'
+import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { Send, Utensils, Hotel, Wrench, Package, Wine } from 'lucide-react'
 
@@ -171,9 +171,11 @@ export default function TourChatPage() {
       } catch {}
       if (cfg === CONFIG_DEFAULT) {
         try {
-          const snap = await getDoc(doc(db, 'configuracion', 'chatbot'))
-          if (snap.exists()) {
-            cfg = { ...CONFIG_DEFAULT, ...snap.data() } as ChatbotConfig
+          // Config pública (solo campos seguros; los PDFs quedan en el servidor)
+          const res = await fetch('/api/chat-config')
+          if (res.ok) {
+            const data = await res.json()
+            cfg = { ...CONFIG_DEFAULT, ...data } as ChatbotConfig
             try { localStorage.setItem(CONFIG_KEY, JSON.stringify({ data: cfg, ts: Date.now() })) } catch {}
           }
         } catch {}
