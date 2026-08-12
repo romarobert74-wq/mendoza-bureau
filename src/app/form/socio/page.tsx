@@ -15,6 +15,7 @@ import {
 } from '@/types'
 import { CategoryEditor } from '@/components/CategoryEditor'
 import { SalonesEditor } from '@/components/SalonesEditor'
+import { BackLink } from '@/components/BackLink'
 import { CheckCircle, AlertCircle, ChevronRight, Upload, Loader2, X } from 'lucide-react'
 
 const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
@@ -308,6 +309,11 @@ function FormSocio() {
       ['--border-2' as string]: 'rgba(255,255,255,0.15)',
       ['--text-faint' as string]: '#7c8797',
     } as React.CSSProperties}>
+
+      {/* ── Volver ── */}
+      <div style={{ maxWidth: '620px', margin: '0 auto', padding: '16px 20px 0' }}>
+        <BackLink href="/plataforma" label="Volver a la plataforma" />
+      </div>
 
       {/* ── Hero ── */}
       <div style={{ background: 'radial-gradient(700px 400px at 50% -20%, rgba(241,90,36,0.18), transparent 60%), linear-gradient(160deg, #10121a 0%, #0e0a0c 70%)', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '40px 20px 48px', textAlign: 'center' }}>

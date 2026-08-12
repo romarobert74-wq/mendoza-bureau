@@ -4,6 +4,7 @@ import { Fraunces, Manrope } from 'next/font/google'
 import { useEffect, useMemo, useState } from 'react'
 import { getLandingServicios } from '@/lib/firestore'
 import type { LandingConfig } from '@/lib/serviciosAdicionales'
+import { BackLink } from '@/components/BackLink'
 
 /* ─────────────────────────────────────────────────────────────
    EL FARO 360 · Servicios adicionales para socios de Mendoza Bureau
@@ -213,6 +214,11 @@ export default function ServiciosAdicionales() {
       }} />
 
       <div style={{ position: 'relative', maxWidth: 1000, margin: '0 auto', padding: '0 20px' }}>
+
+        {/* ── Volver ── */}
+        <div style={{ paddingTop: 16 }}>
+          <BackLink href="/plataforma" label="Volver" />
+        </div>
 
         {/* ── Logo ── */}
         <div style={{ paddingTop: 28, display: 'flex', justifyContent: 'center' }}>
