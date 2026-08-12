@@ -513,16 +513,28 @@ function FichaPage() {
     document.body.style.background = 'transparent'
     document.documentElement.style.background = 'transparent'
     if (!id) { setLoading(false); return }
-    getFotosSocio(id).then(setFotos).catch(() => {})
-    getDoc(doc(db, 'socios', id)).then(snap => {
-      if (snap.exists()) setSocio({ id: snap.id, ...snap.data() } as Socio)
-      setLoading(false)
-    })
+    // Una sola llamada cacheada en el edge (socio + fotos) → carga rapidísima
+    fetch(`/api/socio/${id}`)
+      .then(r => r.ok ? r.json() : Promise.reject(r))
+      .then((data: { socio: Socio; fotos: FotoSocio[] }) => {
+        if (data.socio) setSocio(data.socio)
+        if (Array.isArray(data.fotos)) setFotos(data.fotos)
+        setLoading(false)
+      })
+      .catch(() => {
+        // Fallback directo a Firestore si el endpoint falla
+        getFotosSocio(id).then(setFotos).catch(() => {})
+        getDoc(doc(db, 'socios', id)).then(snap => {
+          if (snap.exists()) setSocio({ id: snap.id, ...snap.data() } as Socio)
+          setLoading(false)
+        }).catch(() => setLoading(false))
+      })
   }, [id])
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
       <div style={{ width: 26, height: 26, border: '2px solid #1e293b', borderTop: `2px solid ${T.blue}`, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 600, letterSpacing: '.04em' }}>Cargando…</span>
     </div>
   )
 

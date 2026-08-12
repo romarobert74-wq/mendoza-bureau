@@ -140,6 +140,9 @@ export function DocumentacionSection() {
           <LinkFila label="Panel de administración" desc="Acceso del equipo Bureau / El Faro" url={`${APP}/dashboard`} copiado={copiado === 'panel'} onCopy={() => copiar(`${APP}/dashboard`, 'panel')} />
           <LinkFila label="Web institucional (pública)" desc="Sitio público de Mendoza Bureau" url={`${APP}/web_bureau`} copiado={copiado === 'web'} onCopy={() => copiar(`${APP}/web_bureau`, 'web')} />
           <LinkFila label="Ficha de socio (WebFrame 3DVista)" desc="Reemplazá {ID} por el id del socio (botón Ver → Copiar)" url={`${APP}/tour/socio/ficha?id={ID}`} copiado={copiado === 'ficha'} onCopy={() => copiar(`${APP}/tour/socio/ficha?id={ID}`, 'ficha')} />
+          <LinkFila label="Menú del tour (WebFrame flotante)" desc="Menú “Descubrí la zona” que se embebe en el tour madre" url={`${APP}/tour/menu`} copiado={copiado === 'menu'} onCopy={() => copiar(`${APP}/tour/menu`, 'menu')} />
+          <LinkFila label="Bot IA del tour (WebFrame)" desc="Asistente virtual que se embebe en el tour madre" url={`${APP}/tour/chat`} copiado={copiado === 'bot'} onCopy={() => copiar(`${APP}/tour/chat`, 'bot')} />
+          <LinkFila label="Landing principal (socios)" desc="Página comercial: el socio conoce el proyecto y carga su formulario" url={`${APP}/plataforma`} copiado={copiado === 'plataforma'} onCopy={() => copiar(`${APP}/plataforma`, 'plataforma')} />
           <LinkFila label="Landing servicios adicionales (El Faro 360)" desc="Se la enviás al socio para que sume panoramas, experiencias o contenido premium" url={`${APP}/servicios-adicionales`} copiado={copiado === 'adicionales'} onCopy={() => copiar(`${APP}/servicios-adicionales`, 'adicionales')} />
         </div>
       </section>

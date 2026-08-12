@@ -470,6 +470,7 @@ export default function TourMenuPage() {
               {loading ? (
                 // Skeleton loader
                 <div className="space-y-2 pt-1">
+                  <p className="text-center text-white/50 text-xs font-semibold tracking-wide pb-1" style={{ letterSpacing: '.04em' }}>Cargando…</p>
                   {[...Array(4)].map((_, i) => (
                     <div
                       key={i}

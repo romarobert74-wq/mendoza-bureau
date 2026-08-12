@@ -295,12 +295,13 @@ export default function TourChatPage() {
           style={{ overscrollBehavior: 'contain' }}
         >
           {!listo ? (
-            <div className="flex justify-center items-center h-full">
+            <div className="flex flex-col justify-center items-center h-full gap-2.5">
               <div className="flex gap-1">
                 {[0, 1, 2].map(i => (
                   <span key={i} className="w-2 h-2 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: `${i * 150}ms` }} />
                 ))}
               </div>
+              <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: 600, letterSpacing: '.04em' }}>Cargando…</span>
             </div>
           ) : (
             mensajes.map((m, i) => (
