@@ -101,6 +101,13 @@ service cloud.firestore {
       allow update, delete: if isElFaro();
     }
 
+    // Registro de conversaciones del bot: lo escribe la API con Admin SDK.
+    // Lectura solo interna (para curar el conocimiento); nadie escribe directo.
+    match /chat_logs/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
     // Copias de seguridad: solo el superadmin
     match /backups/{docId} {
       allow read, write: if isElFaro();

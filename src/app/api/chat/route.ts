@@ -101,16 +101,29 @@ export async function POST(req: NextRequest) {
       console.warn('[chat] no se pudieron leer los documentos:', e)
     }
 
-    const systemPrompt = [
+    // Parte ESTÁTICA del system (prompt + conocimiento .md/PDF): se cachea para
+    // abaratar los tokens en consultas repetidas (prompt caching).
+    const staticSystem = [
       config?.promptSistema ?? '',
       tonoExtra,
-      sociosContext,
       conocimientoTexto ? `\n\nBASE DE CONOCIMIENTO (documentos cargados):${conocimientoTexto}` : '',
       '\nUsá la información de los documentos adjuntos y la base de conocimiento para responder. Si la respuesta está en un documento, respondé con esos datos.',
       'Cuando el usuario pregunta por un socio, un tour, cómo contactarlo o su web, dale los datos concretos que tengas: link del tour, WhatsApp y web.',
       'Si no tenés el dato, decilo con claridad en vez de inventarlo.',
       'Respondé siempre en español.',
     ].filter(Boolean).join('\n')
+
+    // El listado de socios es dinámico (cambia al alta/edición) → va en un bloque aparte, sin cachear.
+    const systemBlocks: Anthropic.TextBlockParam[] = [
+      { type: 'text', text: staticSystem, cache_control: { type: 'ephemeral' } },
+    ]
+    if (sociosContext) systemBlocks.push({ type: 'text', text: sociosContext })
+
+    // Cacheamos también los PDFs adjuntos (si hay)
+    if (bloquesDoc.length > 0) {
+      const last = bloquesDoc[bloquesDoc.length - 1] as Anthropic.ContentBlockParam & { cache_control?: { type: 'ephemeral' } }
+      last.cache_control = { type: 'ephemeral' }
+    }
 
     const primerUserIdx = mensajes.findIndex((m: { rol: string }) => m.rol === 'user')
     const messages = mensajes.map((m: { rol: string; contenido: string }, i: number) => {
@@ -124,12 +137,30 @@ export async function POST(req: NextRequest) {
     const response = await client.messages.create({
       model: config?.modelo ?? 'claude-haiku-4-5',
       max_tokens: 1024,
-      system: systemPrompt,
+      system: systemBlocks,
       messages,
     })
 
     const respuesta =
       response.content[0]?.type === 'text' ? response.content[0].text : ''
+
+    // ── Log de la conversación (aprendizaje curado) ──
+    // Solo texto, sin llamadas extra al modelo → costo ~0. Marca "sinRespuesta"
+    // cuando el bot no supo, para saber qué sumar al .md.
+    if (admin) {
+      try {
+        const ultimaPreg = [...(mensajes as { rol: string; contenido: string }[])].reverse().find(m => m.rol === 'user')?.contenido ?? ''
+        const sinRespuesta = /no (tengo|cuento|dispongo|manejo|encontré)|no (hay|tengo) (esa|información|datos|ese dato)|no puedo (ayudarte|responder)/i.test(respuesta)
+        await admin.collection('chat_logs').add({
+          pregunta: String(ultimaPreg).slice(0, 2000),
+          respuesta: String(respuesta).slice(0, 4000),
+          sinRespuesta,
+          ts: FieldValue.serverTimestamp(),
+        })
+      } catch (logErr) {
+        console.warn('[chat] log falló:', logErr)
+      }
+    }
 
     // Track usage — best effort, non-blocking
     try {

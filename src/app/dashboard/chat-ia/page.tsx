@@ -203,8 +203,10 @@ export default function ChatIAPage() {
   const subirPDF = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.type !== 'application/pdf') {
-      toast.error('Solo se permiten archivos PDF')
+    const nombre = file.name.toLowerCase()
+    const esPermitido = file.type === 'application/pdf' || /\.(md|markdown|txt)$/.test(nombre)
+    if (!esPermitido) {
+      toast.error('Formatos permitidos: PDF, MD o TXT')
       return
     }
     if (file.size > 1_000_000) {
@@ -403,13 +405,14 @@ export default function ChatIAPage() {
           <div className="bg-[var(--bg-elev)] rounded-xl border border-[var(--border)] p-6">
             <h3 className="font-semibold text-[var(--text)] mb-1">Documentos de conocimiento</h3>
             <p className="text-[var(--text-muted)] text-sm mb-4">
-              Subí PDFs con información turística, menús, tarifas, etc. (máx. 1 MB por archivo)
+              Subí <b>.md</b> (recomendado, gasta menos tokens), .txt o PDF con info institucional,
+              tarifas, FAQ, etc. (máx. 1 MB). No hace falta cargar los socios: el bot ya los lee de la base.
             </p>
 
             <label className="flex items-center gap-2 cursor-pointer bg-[var(--bg-input)] hover:bg-[var(--bg-input)] border-2 border-dashed border-[var(--border-2)] rounded-lg px-4 py-3 text-sm font-medium text-[var(--text-2)] transition w-fit">
               <Upload size={16} />
-              Subir PDF
-              <input type="file" accept="application/pdf" onChange={subirPDF} className="hidden" />
+              Subir .md / .txt / PDF
+              <input type="file" accept=".md,.markdown,.txt,application/pdf,text/markdown,text/plain" onChange={subirPDF} className="hidden" />
             </label>
 
             {config.documentos.length === 0 ? (

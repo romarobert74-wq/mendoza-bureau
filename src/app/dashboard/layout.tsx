@@ -11,7 +11,7 @@ import { useTheme } from '@/context/ThemeContext'
 import { VersionBadge } from '@/components/VersionBadge'
 import {
   LayoutDashboard, Users, MapPin, Settings,
-  LogOut, Map, Bot, Globe, DatabaseBackup,
+  LogOut, Map, Bot, Globe, DatabaseBackup, MessagesSquare,
 } from 'lucide-react'
 import type { Rol } from '@/types'
 
@@ -21,6 +21,7 @@ const navItems = [
   { href: '/dashboard/tour-madre',    label: 'Tour Madre',        icon: Map,              roles: ['el_faro'] as Rol[] },
   { href: '/dashboard/web-bureau',    label: 'Web Institucional', icon: Globe,            roles: ['el_faro', 'bureau'] as Rol[] },
   { href: '/dashboard/chat-ia',       label: 'Chat IA',           icon: Bot,              roles: ['el_faro'] as Rol[] },
+  { href: '/dashboard/conversaciones', label: 'Conversaciones',    icon: MessagesSquare,   roles: ['el_faro'] as Rol[] },
   { href: '/dashboard/usuarios',      label: 'Usuarios',          icon: Users,            roles: ['el_faro'] as Rol[] },
   { href: '/dashboard/backups',       label: 'Copias de seguridad', icon: DatabaseBackup, roles: ['el_faro'] as Rol[] },
   { href: '/dashboard/configuracion', label: 'Configuración',     icon: Settings,         roles: ['el_faro'] as Rol[] },

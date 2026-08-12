@@ -10,6 +10,7 @@ import {
   query,
   where,
   orderBy,
+  limit,
   serverTimestamp,
   setDoc,
 } from 'firebase/firestore'
@@ -199,6 +200,30 @@ export async function getConfigSistema(): Promise<ConfigSistema | null> {
     logoBureauBlanco: (d.logoBureauBlanco ?? '') as string,
     logoElFaroBlanco: (d.logoElFaroBlanco ?? '') as string,
   }
+}
+
+// ── Conversaciones del bot (para curar el conocimiento) ──
+export interface ChatLog {
+  id: string
+  pregunta: string
+  respuesta: string
+  sinRespuesta: boolean
+  ts?: Date
+}
+
+export async function getChatLogs(max = 200): Promise<ChatLog[]> {
+  const q = query(collection(db, 'chat_logs'), orderBy('ts', 'desc'), limit(max))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => {
+    const x = d.data() as { pregunta?: string; respuesta?: string; sinRespuesta?: boolean; ts?: { toDate?: () => Date } }
+    return {
+      id: d.id,
+      pregunta: x.pregunta ?? '',
+      respuesta: x.respuesta ?? '',
+      sinRespuesta: !!x.sinRespuesta,
+      ts: x.ts?.toDate?.(),
+    }
+  })
 }
 
 export async function setConfigSistema(data: ConfigSistema) {
