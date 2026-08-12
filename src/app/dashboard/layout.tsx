@@ -27,12 +27,6 @@ const navItems = [
   { href: '/dashboard/configuracion', label: 'Configuración',     icon: Settings,         roles: ['el_faro'] as Rol[] },
 ]
 
-const ROL_LABEL: Record<Rol, string> = {
-  el_faro: 'El Faro',
-  bureau: 'Bureau',
-  socio: 'Socio',
-}
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, usuario, loading } = useAuth()
   const { theme } = useTheme()
@@ -51,9 +45,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (cfg?.logoElFaroUrl) setLogoElFaroUrl(cfg.logoElFaroUrl)
     }).catch(() => {})
   }, [])
-
-  // Logos con letras oscuras se muestran en blanco automáticamente en tema oscuro
-  const logoFilter = theme === 'dark' ? 'brightness(0) invert(1)' : 'none'
 
   if (loading) {
     return (
@@ -91,24 +82,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         background: 'var(--bg-elev)',
         borderRight: '1px solid var(--border)',
       }}>
-        {/* Logo */}
+        {/* Logo — versión blanca para tema oscuro; color para claro */}
         <div className="px-5 pt-6 pb-5" style={{ borderBottom: '1px solid var(--border)' }}>
-          <div className="mb-3">
-            {logoUrl ? (
-              <img src={logoUrl} alt="Mendoza Bureau" className="w-full object-contain"
-                style={{ maxHeight: '56px', filter: logoFilter }} />
-            ) : (
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center"
-                  style={{ background: 'linear-gradient(135deg,#f15a24,#ff7a45)', border: '1px solid #ff7a45', boxShadow: '0 0 14px rgba(241,90,36,0.4)' }}>
-                  <span className="text-white text-sm font-black">MB</span>
-                </div>
-                <span className="font-bold text-base tracking-wide" style={{ color: 'var(--text)' }}>Mendoza Bureau</span>
-              </div>
-            )}
+          <div className="mb-2 flex justify-center">
+            <img
+              src={theme === 'dark' ? '/ejemplos/logo-bureau.png' : (logoUrl || '/ejemplos/logo-bureau.png')}
+              alt="Mendoza Bureau" className="object-contain"
+              style={{ maxHeight: '88px', maxWidth: '100%' }} />
           </div>
-          <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{usuario.email}</p>
-          <span className="badge badge-orange mt-2">{ROL_LABEL[usuario.rol]}</span>
+          <p className="text-xs truncate text-center" style={{ color: 'var(--text-muted)' }}>{usuario.email}</p>
         </div>
 
         {/* Nav */}
@@ -146,7 +128,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex items-center justify-center gap-1.5 mt-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
               <span className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--text-faint)' }}>Desarrollado por</span>
               <img src={logoElFaroUrl} alt="El Faro 360" className="h-4 object-contain opacity-70"
-                style={{ filter: logoFilter }} />
+                style={{ filter: theme === 'dark' ? 'brightness(0) invert(1)' : 'none' }} />
             </div>
           )}
         </div>
