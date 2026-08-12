@@ -330,12 +330,19 @@ export default function PlataformaLanding() {
           <details className="pago-acc" open>
             <summary>Formas de pago</summary>
             <div className="pago-body">
+              <div className="pay-bono">
+                <span className="pay-bono-tag"><Gift size={15} /> Bonus por pago contado o transferencia</span>
+                <p>
+                  En <b>cualquier servicio</b>: si abonás de contado o por transferencia, sumás un
+                  <b> mini reel para historia</b> + un <b>flyer para redes</b> anunciando que ya contás con tu recorrido 360°.
+                </p>
+              </div>
               <div className="pay-cards">
                 {[
-                  ['Tour Base', '5 panoramas', '50% inicio + 50% entrega', 'Pago anticipado: 5 fotos Express'],
-                  ['Base + Pack 3', '8 panoramas', '50% inicio + 50% a 30 días (+3%)', '10 fotos Express'],
-                  ['Base + Pack 5', '10 panoramas', '50% inicio + 25% a 30 días (+3%) + 25% a 60 días (+6%)', 'Reel vertical 30 s'],
-                  ['Base + Pack 10', '15 panoramas', '50% inicio + 25% a 30 días (+3%) + 25% a 60 días (+6%)', 'Reel + “Tesoro escondido”'],
+                  ['Tour Base', '5 panoramas', '50% inicio + 50% contra entrega', '5 fotos Express'],
+                  ['Base + Pack 3', '8 panoramas', '50% inicio + 50% a 30 días · ajuste por financiación 3%', '10 fotos Express'],
+                  ['Base + Pack 5', '10 panoramas', '50% inicio + 25% a 30 días + 25% a 60 días · ajuste 3% / 6%', 'Reel vertical 30 s'],
+                  ['Base + Pack 10', '15 panoramas', '50% inicio + 25% a 30 días + 25% a 60 días · ajuste 3% / 6%', 'Reel + “Tesoro escondido”'],
                 ].map(([tit, pan, pago, bonus]) => (
                   <div key={tit} className="pay-card">
                     <div className="pay-card-top">
@@ -348,8 +355,8 @@ export default function PlataformaLanding() {
                 ))}
               </div>
               <p className="pago-note">
-                Financiación mediante <b>ECHEQ</b> propio del contratante. Los recargos se aplican
-                únicamente sobre las cuotas financiadas.
+                Financiación con <b>ECHEQ</b>. El <b>ajuste por financiación</b> se aplica únicamente sobre
+                la cuota financiada y cubre la actualización del plazo.
               </p>
             </div>
           </details>
@@ -619,6 +626,13 @@ const CSS = `
 .pago-acc[open] summary::after{content:"–"}
 .pago-body{padding:0 0 22px}
 .pago-note{margin-top:18px;color:var(--muted);font-size:13.5px;line-height:1.6}
+
+/* bono por pago contado */
+.pay-bono{background:linear-gradient(160deg,#2a1a13,#1a1010);border:1px solid rgba(255,106,61,.35);
+  border-radius:16px;padding:18px 20px;margin-bottom:16px;box-shadow:0 14px 34px rgba(255,106,61,.1)}
+.pay-bono-tag{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:12.5px;color:var(--o2);
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:9px}
+.pay-bono p{color:#cdc3bc;font-size:14.5px;line-height:1.6}
 
 /* tarjetas de formas de pago */
 .pay-cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}
