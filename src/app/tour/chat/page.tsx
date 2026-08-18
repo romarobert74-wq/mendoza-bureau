@@ -182,16 +182,10 @@ export default function TourChatPage() {
       }
       setConfig(cfg)
 
-      // Initial greeting with category buttons
-      const cats = Array.from(new Set(sociosData.map(s => s.categoria))).filter(c => CAT_LABELS[c])
+      // Saludo inicial sin chips (las categorías quedan solo en la barra de abajo)
       setMensajes([{
         rol: 'assistant',
         contenido: cfg.bienvenida,
-        botones: [
-          ...cats.map(c => ({ label: `${CAT_LABELS[c]}`, valor: `Mostrame los ${CAT_LABELS[c].toLowerCase()}` })),
-          { label: '¿Cómo llego?', valor: '¿Cómo llego a los socios?' },
-          { label: 'Recomendame algo', valor: 'Recomendame un lugar para visitar en Mendoza' },
-        ],
       }])
       setListo(true)
     }
