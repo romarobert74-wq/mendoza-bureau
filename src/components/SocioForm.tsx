@@ -1,13 +1,13 @@
 'use client'
 
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm, useWatch, useFieldArray } from 'react-hook-form'
 import { useRef, useState } from 'react'
 import type {
   SocioFormData, CategoriaSocio, SalonIndividual,
   HotelData, RestauranteData, BodegaData, AlojamientoData, ServicioData,
 } from '@/types'
 import {
-  CATEGORIAS,
+  CATEGORIAS, ICONOS_BOTONERA,
   HOTEL_VACIO, RESTAURANTE_VACIO, BODEGA_VACIA, ALOJAMIENTO_VACIO, SERVICIO_VACIO,
 } from '@/types'
 import { useAuth } from '@/context/AuthContext'
@@ -15,7 +15,9 @@ import { SocioFotos } from './SocioFotos'
 import { SalonesEditor } from './SalonesEditor'
 import { CategoryEditor } from './CategoryEditor'
 import { uploadImage } from '@/lib/storage'
-import { Upload, Loader2, X } from 'lucide-react'
+import { Upload, Loader2, X, Plus, ArrowUp, ArrowDown, Compass } from 'lucide-react'
+
+const ICONOS_OPTS = Object.entries(ICONOS_BOTONERA) as [string, string][]
 
 const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
 const lbl = 'block text-xs font-semibold uppercase tracking-wide mb-1.5'
@@ -99,9 +101,12 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
       logoUrl: '',
       salones: [],
       videos: ['', '', ''],
+      botonera: [],
       ...defaultValues,
     },
   })
+
+  const botonera = useFieldArray({ control, name: 'botonera' })
 
   const fotoPortada = useWatch({ control, name: 'fotoPortada' }) ?? ''
   const logoUrl = useWatch({ control, name: 'logoUrl' }) ?? ''
@@ -126,6 +131,14 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
       googleUrl: data.googleUrl ?? '',
       tripadvisorUrl: data.tripadvisorUrl ?? '',
       videos: (data.videos ?? []).map(v => (v ?? '').toString().trim()).filter(Boolean),
+      botonera: (data.botonera ?? [])
+        .map(b => ({
+          etiqueta: (b.etiqueta ?? '').toString().trim(),
+          panorama: (b.panorama ?? '').toString().trim(),
+          icono: (b.icono ?? '').toString().trim(),
+          grupo: (b.grupo ?? '').toString().trim(),
+        }))
+        .filter(b => b.etiqueta && b.panorama),
       salones,
       hotelData,
       restauranteData,
@@ -304,6 +317,75 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
               <input {...register(`videos.${i}` as const)} className="input" placeholder="https://youtu.be/... o https://vimeo.com/..." />
             </div>
           ))}
+        </div>
+      </Section>
+
+      <Section
+        title="Botonera del tour — “Ir a”"
+        sub="Botones que aparecen dentro del tour 3DVista para saltar a cada panorama. El nombre del panorama debe coincidir EXACTO con el que le pusiste en 3DVista (sin acentos, ej: recepcion, sala-cata)."
+      >
+        <div className="flex flex-col gap-3">
+          {botonera.fields.length === 0 && (
+            <p className="text-xs" style={{ color: '#64748b' }}>
+              Todavía no hay botones. Agregá uno con el botón de abajo.
+            </p>
+          )}
+
+          {botonera.fields.map((f, i) => (
+            <div key={f.id} className="rounded-lg p-3 flex flex-col md:flex-row md:items-end gap-2"
+              style={{ background: '#0f1729', border: '1px solid #1e293b' }}>
+              <div className="flex-1">
+                <label className={lbl} style={lbl_color}>Texto del botón</label>
+                <input {...register(`botonera.${i}.etiqueta` as const)} className="input" placeholder="Recepción" />
+              </div>
+              <div className="flex-1">
+                <label className={lbl} style={lbl_color}>Panorama en 3DVista</label>
+                <input {...register(`botonera.${i}.panorama` as const)} className="input" placeholder="recepcion" />
+              </div>
+              <div style={{ minWidth: 150 }}>
+                <label className={lbl} style={lbl_color}>Ícono</label>
+                <select {...register(`botonera.${i}.icono` as const)} className="input">
+                  <option value="">— sin ícono —</option>
+                  {ICONOS_OPTS.map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </div>
+              <div style={{ minWidth: 130 }}>
+                <label className={lbl} style={lbl_color}>Grupo (opcional)</label>
+                <input {...register(`botonera.${i}.grupo` as const)} className="input" placeholder="Hotel" />
+              </div>
+              <div className="flex gap-1 pb-0.5">
+                <button type="button" title="Subir" disabled={i === 0} onClick={() => botonera.move(i, i - 1)}
+                  className="w-8 h-9 rounded-lg flex items-center justify-center disabled:opacity-30"
+                  style={{ background: '#1a2235', border: '1px solid #1e293b', color: '#94a3b8' }}>
+                  <ArrowUp size={14} />
+                </button>
+                <button type="button" title="Bajar" disabled={i === botonera.fields.length - 1} onClick={() => botonera.move(i, i + 1)}
+                  className="w-8 h-9 rounded-lg flex items-center justify-center disabled:opacity-30"
+                  style={{ background: '#1a2235', border: '1px solid #1e293b', color: '#94a3b8' }}>
+                  <ArrowDown size={14} />
+                </button>
+                <button type="button" title="Eliminar" onClick={() => botonera.remove(i)}
+                  className="w-8 h-9 rounded-lg flex items-center justify-center"
+                  style={{ background: '#2a1520', border: '1px solid #7f1d1d', color: '#f87171' }}>
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
+          ))}
+
+          <button type="button"
+            onClick={() => botonera.append({ etiqueta: '', panorama: '', icono: '', grupo: '' })}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition w-fit"
+            style={{ background: '#1a2235', border: '1px solid #1e293b', color: '#94a3b8' }}>
+            <Plus size={14} /> Agregar botón
+          </button>
+
+          {socioId && (
+            <p className="text-xs flex items-center gap-1.5" style={{ color: '#64748b' }}>
+              <Compass size={13} /> URL del webframe para 3DVista:&nbsp;
+              <code style={{ color: '#93c5fd' }}>https://mendoza-bureau.vercel.app/tour/ir-a/{socioId}</code>
+            </p>
+          )}
         </div>
       </Section>
 

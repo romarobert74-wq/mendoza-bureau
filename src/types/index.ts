@@ -492,6 +492,34 @@ export interface Usuario {
   creadoEn: Timestamp
 }
 
+// Botón de la botonera "Ir a" del tour (navegación entre panoramas)
+export interface BotonPano {
+  etiqueta: string   // texto visible (ej: "Recepción")
+  panorama: string   // nombre EXACTO del panorama en 3DVista (ej: "recepcion")
+  icono?: string     // clave de ícono (ver ICONOS_BOTONERA)
+  grupo?: string     // solapa/categoría opcional (ej: "Bodega")
+}
+
+// Íconos disponibles para la botonera (clave → etiqueta en el panel)
+export const ICONOS_BOTONERA: Record<string, string> = {
+  puerta: 'Entrada / Recepción',
+  cama: 'Habitación',
+  pileta: 'Piscina',
+  copa: 'Cata / Bar',
+  vinedo: 'Viñedos',
+  cubiertos: 'Restaurante',
+  spa: 'Spa / Relax',
+  gimnasio: 'Gimnasio',
+  salon: 'Salón / Eventos',
+  sillon: 'Lobby / Estar',
+  galeria: 'Galería',
+  atardecer: 'Sunset / Exterior',
+  terraza: 'Terraza / Patio',
+  tienda: 'Tienda',
+  pin: 'Ubicación',
+  estrella: 'Destacado',
+}
+
 export interface Socio {
   id: string
   razonSocial: string
@@ -520,6 +548,8 @@ export interface Socio {
   urlDrive: string
   // Videos del socio (YouTube o Vimeo) — hasta 3, se muestran en la ficha
   videos?: string[]
+  // Botonera "Ir a" del tour: navega a panoramas dentro del mismo tour 3DVista
+  botonera?: BotonPano[]
   // Datos por categoría (solo se llena el correspondiente)
   salones?: SalonIndividual[]
   hotelData?: HotelData
