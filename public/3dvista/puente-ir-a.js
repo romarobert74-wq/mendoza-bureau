@@ -122,10 +122,10 @@
     responder(source, { tipo: 'mb-dump', info: info });
   }
 
-  // Oculta el webframe de la botonera "Ir a" (una pasada).
-  function ocultarBotoneraUnaVez() {
-    var hecho = false;
-    // Vía 1 — API de 3DVista: ocultar el/los componentes WebFrame de la botonera.
+  // Cierra la botonera usando la MISMA propiedad de visibilidad de 3DVista,
+  // para que el botón "Ir a" (toggle) la pueda volver a abrir sin problema.
+  // No tocamos el DOM: eso rompía la reapertura.
+  function cerrarBotonera() {
     try {
       var player = getPlayer();
       if (player && player.getByClassName) {
@@ -134,55 +134,12 @@
           var url = '';
           try { url = wfs[i].get('url') || ''; } catch (e) {}
           if (!url || url.indexOf('/tour/ir-a') >= 0) {
-            try { wfs[i].set('visible', false); hecho = true; } catch (e) {}
+            try { wfs[i].set('visible', false); } catch (e) {}
           }
         }
       }
     } catch (e) {}
-    // Vía 2 — respaldo DOM: ocultar el iframe cuya URL sea la botonera.
-    try {
-      var ifr = document.getElementsByTagName('iframe');
-      for (var j = 0; j < ifr.length; j++) {
-        if ((ifr[j].src || '').indexOf('/tour/ir-a') >= 0) {
-          var cont = ifr[j].closest ? ifr[j].closest('.WebFrame, [data-name]') : null;
-          (cont || ifr[j]).style.display = 'none';
-          hecho = true;
-        }
-      }
-    } catch (e) {}
-    return hecho;
   }
-
-  // Cierra la botonera e INSISTE unos segundos, para ganarle al re-mostrado
-  // automático que hace 3DVista al cambiar de panorama.
-  var guardTimer = null;
-  function cerrarBotonera() {
-    ocultarBotoneraUnaVez();
-    if (guardTimer) clearInterval(guardTimer);
-    var hasta = Date.now() + 3500;
-    guardTimer = setInterval(function () {
-      ocultarBotoneraUnaVez();
-      if (Date.now() > hasta) { clearInterval(guardTimer); guardTimer = null; }
-    }, 200);
-  }
-
-  // Si el usuario reabre la botonera (botón "Ir a"), cancelamos la insistencia
-  // y volvemos a mostrar el iframe que el respaldo DOM pudo haber ocultado.
-  function reabrirBotonera() {
-    if (guardTimer) { clearInterval(guardTimer); guardTimer = null; }
-    try {
-      var ifr = document.getElementsByTagName('iframe');
-      for (var j = 0; j < ifr.length; j++) {
-        if ((ifr[j].src || '').indexOf('/tour/ir-a') >= 0) {
-          var cont = ifr[j].closest ? ifr[j].closest('.WebFrame, [data-name]') : null;
-          (cont || ifr[j]).style.display = '';
-        }
-      }
-    } catch (e) {}
-  }
-  // Exponemos por si querés llamarla desde el botón "Ir a" de 3DVista:
-  //   window.MB_abrirIrA && window.MB_abrirIrA();
-  window.MB_abrirIrA = reabrirBotonera;
 
   window.addEventListener('message', function (ev) {
     var d = ev.data;
