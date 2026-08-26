@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prueba webframe</title>
+  <style>
+    html,body{margin:0;height:100%;font-family:system-ui,Arial,sans-serif}
+    body{display:grid;place-items:center;background:#0e0a0c;color:#f5ede7;text-align:center}
+    .box{padding:28px 34px;border-radius:18px;background:rgba(27,20,22,.92);
+      border:1px solid rgba(255,255,255,.12);box-shadow:0 20px 50px rgba(0,0,0,.5)}
+    h1{margin:0 0 6px;font-size:28px;color:#ff8a4d}
+    p{margin:4px 0;font-size:15px;color:#cbb}
+    #js{color:#8a8a8a}
+    #js.ok{color:#7CFFB2;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>WEBFRAME OK ✅</h1>
+    <p>El webframe cargó esta página.</p>
+    <p id="js">JavaScript: comprobando…</p>
+  </div>
+  <script>
+    var el = document.getElementById('js');
+    el.textContent = 'JavaScript: ACTIVO ✅';
+    el.className = 'ok';
+    // Avisa al tour que el webframe vive (por si el puente escucha)
+    try { window.parent.postMessage({ source:'bureau-ir-a', tipo:'mb-ping' }, '*'); } catch(e){}
+  </script>
+</body>
+</html>
