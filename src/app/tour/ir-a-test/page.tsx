@@ -56,8 +56,9 @@ export default function IrATest() {
       addLog(`← recibido: ${JSON.stringify(d)}`, 'in')
       if (d.tipo === 'mb-pong') setPong(true)
       if (d.tipo === 'mb-panoramas' && Array.isArray(d.lista)) setPanoramas(d.lista)
-      if (d.tipo === 'mb-ir-a-ok') addLog(`✓ 3DVista saltó a: ${d.panorama}`, 'in')
-      if (d.tipo === 'mb-ir-a-fail') addLog(`✗ 3DVista NO encontró: ${d.panorama}`, 'in')
+      if (d.tipo === 'mb-ir-a-ok') addLog(`✓ saltó a "${d.panorama}" · método: ${d.metodo} · playlist ${d.playlist} idx ${d.indice}`, 'in')
+      if (d.tipo === 'mb-ir-a-fail') addLog(`✗ falló "${d.panorama}" (playlists detectadas: ${d.playlists ?? '?'})`, 'in')
+      if (d.tipo === 'mb-dump') addLog(`🔎 DUMP: ${JSON.stringify(d.info)}`, 'in')
     }
     window.addEventListener('message', onMsg)
     addLog('Banco de pruebas listo. Esperando al tour…', 'info')
@@ -103,6 +104,9 @@ export default function IrATest() {
           </span>
           <button className="btn-mini" onClick={() => emitir({ tipo: 'mb-listar' })}>
             Listar panoramas
+          </button>
+          <button className="btn-mini" onClick={() => emitir({ tipo: 'mb-dump' })}>
+            Dump API
           </button>
         </div>
 

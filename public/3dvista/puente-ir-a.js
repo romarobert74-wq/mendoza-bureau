@@ -2,28 +2,21 @@
  * PUENTE 3DVista ⇄ Sistema Mendoza Bureau  —  navegación "Ir a" por NOMBRE
  * =============================================================================
  *
- * QUÉ HACE
- *   Escucha los mensajes que manda el webframe (la botonera) y hace que el tour
- *   salte al panorama cuyo NOMBRE coincida. También responde para diagnóstico.
- *
  * DÓNDE SE PEGA (una sola vez por tour)
- *   3DVista → seleccioná el TOUR (no un panorama) → pestaña de acciones →
- *   evento "Al comenzar / Begin" → acción "Ejecutar JavaScript / Execute JS"
- *   → pegá TODO este contenido.
- *   (No hace falta subir el archivo; es solo para tenerlo versionado acá.)
+ *   3DVista → seleccioná el TOUR → evento "Al comenzar / Begin" →
+ *   acción "Ejecutar JavaScript" → pegá TODO este contenido.
  *
- * CÓMO NOMBRAR LOS PANORAMAS
- *   En 3DVista, a cada panorama ponele un "label" simple y sin acentos:
+ * NOMBRES DE PANORAMAS
+ *   En 3DVista poné a cada panorama un label simple y sin acentos:
  *   recepcion, habitaciones, piscina, sala-cata, sunset...
- *   Ese mismo nombre es el que cargás en el panel del sistema.
+ *   Ese mismo nombre se carga en el panel del sistema.
  *
- * IMPORTANTE: distintas versiones de 3DVista exponen la API distinto. Por eso
- * este script prueba varias vías y te avisa en el banco de pruebas cuál anduvo.
+ * Este script prueba VARIAS formas de navegar (según la versión de 3DVista)
+ * y avisa por el registro cuál funcionó (campo "metodo").
  * ========================================================================== */
 (function () {
   'use strict';
 
-  // Respuesta hacia el/los webframes (todos los iframes hijos + el emisor)
   function responder(source, msg) {
     var payload = Object.assign({ source: 'bureau-tour' }, msg);
     try { if (source) source.postMessage(payload, '*'); } catch (e) {}
@@ -35,14 +28,27 @@
     } catch (e) {}
   }
 
-  // Devuelve la lista de "items" de reproducción del tour, según la versión.
-  function getItems() {
-    try { if (window.tour && tour.mainPlayList) return tour.mainPlayList.get('items') || []; } catch (e) {}
-    try { if (window.tour && tour.player) { var p = tour.player.getByClassName('PlayList'); if (p && p[0]) return p[0].get('items'); } } catch (e) {}
-    return [];
+  function getPlayer() {
+    if (window.tour && tour.player) return tour.player;
+    if (window.player) return window.player;
+    if (window.tour) return window.tour;
+    return null;
   }
 
-  // Nombre "legible" de un item (probamos varios campos posibles).
+  // Devuelve TODAS las playlists del tour (puede haber más de una).
+  function todasLasPlaylists() {
+    var pls = [];
+    try { if (window.tour && tour.mainPlayList) pls.push(tour.mainPlayList); } catch (e) {}
+    try {
+      var p = getPlayer();
+      if (p && p.getByClassName) {
+        var arr = p.getByClassName('PlayList') || [];
+        for (var i = 0; i < arr.length; i++) if (pls.indexOf(arr[i]) < 0) pls.push(arr[i]);
+      }
+    } catch (e) {}
+    return pls;
+  }
+
   function nombreDe(item) {
     var m; try { m = item.get('media'); } catch (e) { m = null; }
     var cands = [];
@@ -50,35 +56,70 @@
     try { cands.push(m && m.get('data') && m.get('data').label); } catch (e) {}
     try { cands.push(m && m.get('id')); } catch (e) {}
     try { cands.push(item && item.get('id')); } catch (e) {}
-    for (var i = 0; i < cands.length; i++) {
-      if (cands[i]) return String(cands[i]);
-    }
+    for (var i = 0; i < cands.length; i++) if (cands[i]) return String(cands[i]);
     return '';
   }
 
   function normalizar(s) {
     return String(s || '')
       .toLowerCase()
-      .normalize('NFD').replace(/[̀-ͯ]/g, '') // saca acentos
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
       .replace(/\s+/g, '-')
       .trim();
   }
 
   function irA(nombre, source) {
     var objetivo = normalizar(nombre);
-    var items = getItems();
-    for (var i = 0; i < items.length; i++) {
-      if (normalizar(nombreDe(items[i])) === objetivo) {
-        var ok = false;
-        // Vía 1: cambiar selectedIndex del playlist
-        try { tour.mainPlayList.set('selectedIndex', i); ok = true; } catch (e) {}
-        // Vía 2: setMediaByIndex (algunas versiones)
-        if (!ok) { try { tour.setMediaByIndex(tour.mainPlayList, i); ok = true; } catch (e) {} }
-        responder(source, { tipo: ok ? 'mb-ir-a-ok' : 'mb-ir-a-fail', panorama: nombre });
-        return;
+    var pls = todasLasPlaylists();
+    var player = getPlayer();
+    var encontrado = false, metodos = [], idx = -1, plUsada = -1;
+
+    for (var p = 0; p < pls.length; p++) {
+      var items; try { items = pls[p].get('items') || []; } catch (e) { items = []; }
+      for (var i = 0; i < items.length; i++) {
+        if (normalizar(nombreDe(items[i])) === objetivo) {
+          encontrado = true; idx = i; plUsada = p;
+
+          // Método A — player.setMediaByIndex(playlist, index)  (mueve el visor)
+          try { if (player && player.setMediaByIndex) { player.setMediaByIndex(pls[p], i); metodos.push('setMediaByIndex(pl,i)'); } } catch (e) {}
+          // Método B — player.setMediaByIndex(index)  (firma corta)
+          if (!metodos.length) { try { if (player && player.setMediaByIndex) { player.setMediaByIndex(i); metodos.push('setMediaByIndex(i)'); } } catch (e) {} }
+          // Método C — selectedIndex de ESTA playlist
+          try { pls[p].set('selectedIndex', i); metodos.push('selectedIndex#' + p); } catch (e) {}
+          // Método D — openMedia con el objeto media
+          try {
+            var media = items[i].get('media');
+            if (player && player.openMedia && media) { player.openMedia(media); metodos.push('openMedia'); }
+          } catch (e) {}
+
+          responder(source, {
+            tipo: metodos.length ? 'mb-ir-a-ok' : 'mb-ir-a-fail',
+            panorama: nombre, metodo: metodos.join(' + ') || '(ninguno)',
+            playlist: plUsada, indice: idx, playlists: pls.length,
+          });
+          return;
+        }
       }
     }
-    responder(source, { tipo: 'mb-ir-a-fail', panorama: nombre });
+    responder(source, { tipo: 'mb-ir-a-fail', panorama: nombre, playlists: pls.length });
+  }
+
+  // Diagnóstico: qué expone este 3DVista
+  function dump(source) {
+    var player = getPlayer();
+    var pls = todasLasPlaylists();
+    var info = {
+      hayTour: !!window.tour,
+      hayPlayer: !!player,
+      playlists: pls.length,
+      itemsPorPlaylist: pls.map(function (pl) { try { return (pl.get('items') || []).length; } catch (e) { return -1; } }),
+      metodosPlayer: [],
+    };
+    try {
+      ['setMediaByIndex', 'openMedia', 'setMediaByName', 'getByClassName', 'getMainViewer', 'set']
+        .forEach(function (m) { if (player && typeof player[m] === 'function') info.metodosPlayer.push(m); });
+    } catch (e) {}
+    responder(source, { tipo: 'mb-dump', info: info });
   }
 
   window.addEventListener('message', function (ev) {
@@ -88,17 +129,21 @@
     if (d.tipo === 'mb-ping') {
       responder(ev.source, { tipo: 'mb-pong' });
     } else if (d.tipo === 'mb-listar') {
-      var items = getItems(), lista = [];
-      for (var i = 0; i < items.length; i++) {
-        var n = normalizar(nombreDe(items[i]));
-        if (n) lista.push(n);
+      var pls = todasLasPlaylists(), lista = [];
+      for (var p = 0; p < pls.length; p++) {
+        var items; try { items = pls[p].get('items') || []; } catch (e) { items = []; }
+        for (var i = 0; i < items.length; i++) {
+          var n = normalizar(nombreDe(items[i]));
+          if (n && lista.indexOf(n) < 0) lista.push(n);
+        }
       }
       responder(ev.source, { tipo: 'mb-panoramas', lista: lista });
+    } else if (d.tipo === 'mb-dump') {
+      dump(ev.source);
     } else if (d.tipo === 'mb-ir-a') {
       irA(d.panorama, ev.source);
     }
   });
 
-  // Aviso de que el puente cargó (por si el webframe abre después)
   responder(null, { tipo: 'mb-pong' });
 })();
