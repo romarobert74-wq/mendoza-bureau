@@ -122,11 +122,44 @@
     responder(source, { tipo: 'mb-dump', info: info });
   }
 
+  // Oculta el webframe de la botonera "Ir a" (para el botón Cerrar / al saltar).
+  function cerrarBotonera() {
+    var hecho = false;
+    // Vía 1 — API de 3DVista: ocultar el/los componentes WebFrame de la botonera.
+    try {
+      var player = getPlayer();
+      if (player && player.getByClassName) {
+        var wfs = player.getByClassName('WebFrame') || [];
+        for (var i = 0; i < wfs.length; i++) {
+          var url = '';
+          try { url = wfs[i].get('url') || ''; } catch (e) {}
+          if (!url || url.indexOf('/tour/ir-a') >= 0) {
+            try { wfs[i].set('visible', false); hecho = true; } catch (e) {}
+          }
+        }
+      }
+    } catch (e) {}
+    // Vía 2 — respaldo DOM: ocultar el iframe cuya URL sea la botonera.
+    try {
+      var ifr = document.getElementsByTagName('iframe');
+      for (var j = 0; j < ifr.length; j++) {
+        if ((ifr[j].src || '').indexOf('/tour/ir-a') >= 0) {
+          var cont = ifr[j].closest ? ifr[j].closest('.WebFrame, [data-name]') : null;
+          (cont || ifr[j]).style.display = 'none';
+          hecho = true;
+        }
+      }
+    } catch (e) {}
+    return hecho;
+  }
+
   window.addEventListener('message', function (ev) {
     var d = ev.data;
     if (!d || typeof d !== 'object' || d.source !== 'bureau-ir-a') return;
 
-    if (d.tipo === 'mb-ping') {
+    if (d.tipo === 'mb-cerrar-ir-a') {
+      cerrarBotonera();
+    } else if (d.tipo === 'mb-ping') {
       responder(ev.source, { tipo: 'mb-pong' });
     } else if (d.tipo === 'mb-listar') {
       var pls = todasLasPlaylists(), lista = [];

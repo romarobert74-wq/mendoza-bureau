@@ -1,6 +1,7 @@
 'use client'
 
 import { useForm, useWatch, useFieldArray } from 'react-hook-form'
+import type { Control, UseFormSetValue } from 'react-hook-form'
 import { useRef, useState } from 'react'
 import type {
   SocioFormData, CategoriaSocio, SalonIndividual,
@@ -15,9 +16,58 @@ import { SocioFotos } from './SocioFotos'
 import { SalonesEditor } from './SalonesEditor'
 import { CategoryEditor } from './CategoryEditor'
 import { uploadImage } from '@/lib/storage'
-import { Upload, Loader2, X, Plus, ArrowUp, ArrowDown, Compass } from 'lucide-react'
+import {
+  Upload, Loader2, X, Plus, ArrowUp, ArrowDown, Compass, ChevronDown,
+  DoorOpen, BedDouble, Waves, Wine, Grape, Utensils, Flower2, Dumbbell,
+  PartyPopper, Sofa, Images, Sunset, Umbrella, ShoppingBag, MapPin, Sparkles,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 const ICONOS_OPTS = Object.entries(ICONOS_BOTONERA) as [string, string][]
+
+const ICONO_COMP: Record<string, LucideIcon> = {
+  puerta: DoorOpen, cama: BedDouble, pileta: Waves, copa: Wine, vinedo: Grape,
+  cubiertos: Utensils, spa: Flower2, gimnasio: Dumbbell, salon: PartyPopper,
+  sillon: Sofa, galeria: Images, atardecer: Sunset, terraza: Umbrella,
+  tienda: ShoppingBag, pin: MapPin, estrella: Sparkles,
+}
+
+// Selector visual de ícono (muestra el dibujo + el nombre)
+function IconoPicker({ value, onChange }: { value: string; onChange: (k: string) => void }) {
+  const Actual = value ? ICONO_COMP[value] : undefined
+  return (
+    <details className="relative">
+      <summary className="input flex items-center gap-2 cursor-pointer list-none" style={{ userSelect: 'none' }}>
+        {Actual ? <Actual size={16} /> : <span style={{ color: '#64748b' }}>—</span>}
+        <span className="flex-1 truncate" style={{ fontSize: 13 }}>
+          {value ? ICONOS_BOTONERA[value] : 'Sin ícono'}
+        </span>
+        <ChevronDown size={14} style={{ color: '#64748b' }} />
+      </summary>
+      <div className="absolute z-20 mt-1 p-2 rounded-lg grid grid-cols-4 gap-1 shadow-xl"
+        style={{ background: '#0f1729', border: '1px solid #1e293b', width: 260, maxHeight: 240, overflowY: 'auto' }}>
+        <button type="button" onClick={e => { onChange(''); (e.currentTarget.closest('details') as HTMLDetailsElement).open = false }}
+          className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-slate-700/40"
+          title="Sin ícono" style={{ color: '#94a3b8' }}>
+          <X size={18} /><span style={{ fontSize: 9 }}>Ninguno</span>
+        </button>
+        {ICONOS_OPTS.map(([k, label]) => {
+          const Ic = ICONO_COMP[k]
+          const on = k === value
+          return (
+            <button key={k} type="button" title={label}
+              onClick={e => { onChange(k); (e.currentTarget.closest('details') as HTMLDetailsElement).open = false }}
+              className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-slate-700/40"
+              style={{ color: on ? '#ff8a4d' : '#cbd5e1', background: on ? 'rgba(255,106,61,.12)' : 'transparent' }}>
+              <Ic size={18} />
+              <span style={{ fontSize: 9, textAlign: 'center', lineHeight: 1.1 }}>{label.split(' / ')[0]}</span>
+            </button>
+          )
+        })}
+      </div>
+    </details>
+  )
+}
 
 const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
 const lbl = 'block text-xs font-semibold uppercase tracking-wide mb-1.5'
@@ -84,6 +134,19 @@ function ImageUpload({ label, hint, value, onChange, storagePath, aspect }: {
       <input ref={inputRef} type="file" accept="image/*" className="hidden"
         onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
     </div>
+  )
+}
+
+// Conecta el IconoPicker con react-hook-form (lee/escribe botonera.i.icono)
+function BotonIcono({ control, index, setValue }: {
+  control: Control<SocioFormData>; index: number; setValue: UseFormSetValue<SocioFormData>
+}) {
+  const value = (useWatch({ control, name: `botonera.${index}.icono` }) as string) ?? ''
+  return (
+    <IconoPicker
+      value={value}
+      onChange={k => setValue(`botonera.${index}.icono`, k, { shouldDirty: true })}
+    />
   )
 }
 
@@ -342,12 +405,9 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
                 <label className={lbl} style={lbl_color}>Panorama en 3DVista</label>
                 <input {...register(`botonera.${i}.panorama` as const)} className="input" placeholder="recepcion" />
               </div>
-              <div style={{ minWidth: 150 }}>
+              <div style={{ minWidth: 170 }}>
                 <label className={lbl} style={lbl_color}>Ícono</label>
-                <select {...register(`botonera.${i}.icono` as const)} className="input">
-                  <option value="">— sin ícono —</option>
-                  {ICONOS_OPTS.map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                </select>
+                <BotonIcono control={control} index={i} setValue={setValue} />
               </div>
               <div style={{ minWidth: 130 }}>
                 <label className={lbl} style={lbl_color}>Grupo (opcional)</label>

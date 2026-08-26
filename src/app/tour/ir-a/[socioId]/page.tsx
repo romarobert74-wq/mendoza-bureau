@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   DoorOpen, BedDouble, Waves, Wine, Grape, Utensils, Flower2, Dumbbell,
   PartyPopper, Sofa, Images, Sunset, Umbrella, ShoppingBag, MapPin, Sparkles,
-  ChevronRight,
+  ChevronRight, X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { BotonPano } from '@/types'
@@ -26,6 +26,7 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
   const [botones, setBotones] = useState<BotonPano[] | null>(null)
   const [error, setError] = useState(false)
   const [grupoActivo, setGrupoActivo] = useState<string>('')
+  const [saliendo, setSaliendo] = useState(false)
 
   useEffect(() => {
     let vivo = true
@@ -37,10 +38,26 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
   }, [params.socioId])
 
   // Puente con 3DVista (mismo patrón que el resto del sistema)
-  const irA = (panorama: string) => {
-    const payload = { source: 'bureau-ir-a', tipo: 'mb-ir-a', panorama }
+  const emitir = (msg: Record<string, unknown>) => {
+    const payload = { source: 'bureau-ir-a', ...msg }
     try { window.parent?.postMessage(payload, '*') } catch {}
     try { if (window.top && window.top !== window.parent) window.top.postMessage(payload, '*') } catch {}
+  }
+
+  // Avisa a 3DVista que oculte/cierre el webframe (acción del lado del tour).
+  // Reseteamos el fade para que, si el webframe se vuelve a mostrar, esté visible.
+  const cerrar = () => {
+    setSaliendo(true)
+    emitir({ tipo: 'mb-cerrar-ir-a' })
+    setTimeout(() => setSaliendo(false), 700)
+  }
+
+  // Salta al panorama y cierra suavemente la botonera
+  const irA = (panorama: string) => {
+    emitir({ tipo: 'mb-ir-a', panorama })
+    setSaliendo(true)
+    setTimeout(() => emitir({ tipo: 'mb-cerrar-ir-a' }), 260)
+    setTimeout(() => setSaliendo(false), 700)
   }
 
   const grupos = useMemo(() => {
@@ -65,10 +82,13 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
   return (
     <div style={S.wrap}>
       <style>{CSS}</style>
-      <div style={S.card}>
+      <div style={S.card} className={saliendo ? 'card saliendo' : 'card'}>
+        <button className="cerrar" onClick={cerrar} aria-label="Cerrar">
+          <X size={18} />
+        </button>
         <div style={S.head}>
-          <div style={S.title}>Explorá el recorrido</div>
-          <div style={S.sub}>Navegación rápida</div>
+          <div style={S.title}>¿A dónde querés ir?</div>
+          <div style={S.sub}>Elegí un lugar del recorrido</div>
         </div>
 
         {botones === null && !error && <div style={S.info}>Cargando…</div>}
@@ -112,6 +132,7 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
 const S: Record<string, React.CSSProperties> = {
   wrap: { minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 16, background: 'transparent' },
   card: {
+    position: 'relative',
     width: 'min(560px, 96vw)', borderRadius: 24, padding: 22,
     background: 'rgba(20,15,17,.74)', backdropFilter: 'blur(22px)',
     border: '1px solid rgba(255,255,255,.10)', color: '#f5ede7',
@@ -128,6 +149,12 @@ const S: Record<string, React.CSSProperties> = {
 }
 
 const CSS = `
+  .card{ transition:opacity .25s ease, transform .25s ease; }
+  .card.saliendo{ opacity:0; transform:translateY(8px) scale(.98); pointer-events:none; }
+  .cerrar{ position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:999px;
+    display:grid; place-items:center; cursor:pointer; color:#f5ede7;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); transition:.15s; }
+  .cerrar:hover{ background:rgba(255,106,61,.18); border-color:rgba(255,106,61,.45); color:#ffb37a; }
   .btn-go{ display:flex; align-items:center; justify-content:space-between; gap:8px;
     padding:15px 16px; border-radius:15px; cursor:pointer; font-size:15px; font-weight:600;
     color:#f5ede7; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10);
