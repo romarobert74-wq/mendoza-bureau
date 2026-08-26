@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   DoorOpen, BedDouble, Waves, Wine, Grape, Utensils, Flower2, Dumbbell,
   PartyPopper, Sofa, Images, Sunset, Umbrella, ShoppingBag, MapPin, Sparkles,
-  ChevronRight, X,
+  ChevronRight,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { BotonPano } from '@/types'
@@ -44,14 +44,6 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
     try { if (window.top && window.top !== window.parent) window.top.postMessage(payload, '*') } catch {}
   }
 
-  // Avisa a 3DVista que oculte/cierre el webframe (acción del lado del tour).
-  // Reseteamos el fade para que, si el webframe se vuelve a mostrar, esté visible.
-  const cerrar = () => {
-    setSaliendo(true)
-    emitir({ tipo: 'mb-cerrar-ir-a' })
-    setTimeout(() => setSaliendo(false), 700)
-  }
-
   // Salta al panorama y cierra suavemente la botonera
   const irA = (panorama: string) => {
     emitir({ tipo: 'mb-ir-a', panorama })
@@ -83,9 +75,6 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
     <div style={S.wrap}>
       <style>{CSS}</style>
       <div style={S.card} className={saliendo ? 'card saliendo' : 'card'}>
-        <button className="cerrar" onClick={cerrar} aria-label="Cerrar">
-          <X size={18} />
-        </button>
         <div style={S.head}>
           <div style={S.title}>¿A dónde querés ir?</div>
           <div style={S.sub}>Elegí un lugar del recorrido</div>
@@ -151,10 +140,6 @@ const S: Record<string, React.CSSProperties> = {
 const CSS = `
   .card{ transition:opacity .25s ease, transform .25s ease; }
   .card.saliendo{ opacity:0; transform:translateY(8px) scale(.98); pointer-events:none; }
-  .cerrar{ position:absolute; top:14px; right:14px; width:34px; height:34px; border-radius:999px;
-    display:grid; place-items:center; cursor:pointer; color:#f5ede7;
-    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); transition:.15s; }
-  .cerrar:hover{ background:rgba(255,106,61,.18); border-color:rgba(255,106,61,.45); color:#ffb37a; }
   .btn-go{ display:flex; align-items:center; justify-content:space-between; gap:8px;
     padding:15px 16px; border-radius:15px; cursor:pointer; font-size:15px; font-weight:600;
     color:#f5ede7; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.10);
