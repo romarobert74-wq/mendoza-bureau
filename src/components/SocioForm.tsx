@@ -17,7 +17,7 @@ import { SalonesEditor } from './SalonesEditor'
 import { CategoryEditor } from './CategoryEditor'
 import { uploadImage } from '@/lib/storage'
 import {
-  Upload, Loader2, X, Plus, ArrowUp, ArrowDown, Compass, ChevronDown,
+  Upload, Loader2, X, Plus, ArrowUp, ArrowDown, Compass, ChevronDown, Copy, Check,
   DoorOpen, BedDouble, Waves, Wine, Grape, Utensils, Flower2, Dumbbell,
   PartyPopper, Sofa, Images, Sunset, Umbrella, ShoppingBag, MapPin, Sparkles,
 } from 'lucide-react'
@@ -133,6 +133,34 @@ function ImageUpload({ label, hint, value, onChange, storagePath, aspect }: {
       </div>
       <input ref={inputRef} type="file" accept="image/*" className="hidden"
         onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
+    </div>
+  )
+}
+
+// Muestra la URL del webframe "Ir a" con botón para copiarla al portapapeles
+function CopiarLinkWebframe({ socioId }: { socioId: string }) {
+  const url = `https://mendoza-bureau.vercel.app/tour/ir-a/${socioId}`
+  const [copiado, setCopiado] = useState(false)
+  const copiar = async () => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 1800)
+    } catch { /* algunos navegadores bloquean clipboard sin gesto */ }
+  }
+  return (
+    <div className="flex items-center gap-2 flex-wrap rounded-lg p-2.5"
+      style={{ background: '#0b1220', border: '1px solid #1e293b' }}>
+      <Compass size={14} style={{ color: '#64748b', flexShrink: 0 }} />
+      <span className="text-xs" style={{ color: '#64748b' }}>URL del webframe (3DVista):</span>
+      <code className="text-xs flex-1 truncate" style={{ color: '#93c5fd', minWidth: 120 }}>{url}</code>
+      <button type="button" onClick={copiar}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition"
+        style={copiado
+          ? { background: '#052e16', border: '1px solid #16a34a', color: '#4ade80' }
+          : { background: '#1a2235', border: '1px solid #1e293b', color: '#93c5fd' }}>
+        {copiado ? <><Check size={13} /> ¡Copiado!</> : <><Copy size={13} /> Copiar link</>}
+      </button>
     </div>
   )
 }
@@ -440,12 +468,7 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
             <Plus size={14} /> Agregar botón
           </button>
 
-          {socioId && (
-            <p className="text-xs flex items-center gap-1.5" style={{ color: '#64748b' }}>
-              <Compass size={13} /> URL del webframe para 3DVista:&nbsp;
-              <code style={{ color: '#93c5fd' }}>https://mendoza-bureau.vercel.app/tour/ir-a/{socioId}</code>
-            </p>
-          )}
+          {socioId && <CopiarLinkWebframe socioId={socioId} />}
         </div>
       </Section>
 
