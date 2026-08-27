@@ -35,7 +35,6 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
   const [categoria, setCategoria] = useState<CategoriaSocio>('otro')
   const [error, setError] = useState(false)
   const [grupoActivo, setGrupoActivo] = useState<string>('')
-  const [saliendo, setSaliendo] = useState(false)
 
   useEffect(() => {
     let vivo = true
@@ -65,12 +64,10 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
     try { if (window.top && window.top !== window.parent) window.top.postMessage(payload, '*') } catch {}
   }
 
-  // Salta al panorama y cierra suavemente la botonera
+  // Salta al panorama. El abrir/cerrar de la botonera lo maneja 3DVista
+  // (botón "Ir a" en modo alternar). El código NO oculta el webframe.
   const irA = (panorama: string) => {
     emitir({ tipo: 'mb-ir-a', panorama })
-    setSaliendo(true)
-    setTimeout(() => emitir({ tipo: 'mb-cerrar-ir-a' }), 260)
-    setTimeout(() => setSaliendo(false), 700)
   }
 
   const grupos = useMemo(() => {
@@ -95,7 +92,7 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
   return (
     <div style={{ ...S.wrap, ...catVars }}>
       <style>{CSS}</style>
-      <div style={S.card} className={saliendo ? 'card saliendo' : 'card'}>
+      <div style={S.card} className="card">
         <div style={S.head}>
           <div style={S.title}>¿A dónde querés ir?</div>
           <div style={S.sub}>Elegí un lugar del recorrido</div>
