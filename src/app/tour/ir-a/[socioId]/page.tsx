@@ -64,10 +64,11 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
     try { if (window.top && window.top !== window.parent) window.top.postMessage(payload, '*') } catch {}
   }
 
-  // Salta al panorama. El abrir/cerrar de la botonera lo maneja 3DVista
-  // (botón "Ir a" en modo alternar). El código NO oculta el webframe.
+  // Salta al panorama y cierra la botonera (el puente oculta el CONTENEDOR
+  // BOTONERA-PPAL, no el webframe, para que el botón "Ir a" la pueda reabrir).
   const irA = (panorama: string) => {
     emitir({ tipo: 'mb-ir-a', panorama })
+    setTimeout(() => emitir({ tipo: 'mb-cerrar-ir-a' }), 120)
   }
 
   const grupos = useMemo(() => {

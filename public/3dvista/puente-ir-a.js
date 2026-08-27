@@ -122,21 +122,44 @@
     responder(source, { tipo: 'mb-dump', info: info });
   }
 
-  // Cierra la botonera usando la MISMA propiedad de visibilidad de 3DVista,
-  // para que el botón "Ir a" (toggle) la pueda volver a abrir sin problema.
-  // No tocamos el DOM: eso rompía la reapertura.
+  // Nombre del CONTENEDOR de la botonera en 3DVista (el que muestra/oculta el
+  // botón "Ir a"). Debe llamarse así en tu skin. Si algún día lo renombrás,
+  // agregá el nuevo nombre a esta lista.
+  var NOMBRES_CONTENEDOR = ['BOTONERA-PPAL', 'BOTONERA-PRINCIPAL', 'BOTONERA'];
+
+  // Busca un componente por su nombre/etiqueta entre varias clases de 3DVista.
+  function hallarPorNombre(nombres) {
+    var player = getPlayer();
+    if (!player || !player.getByClassName) return null;
+    var clases = ['Container', 'Group', 'ViewerArea', 'WebFrame', 'Image',
+                  'IconButton', 'ImageButton', 'TextBox', 'FlatPanoramaPlayer'];
+    var objetivos = nombres.map(function (n) { return String(n).toLowerCase(); });
+    for (var c = 0; c < clases.length; c++) {
+      var arr = [];
+      try { arr = player.getByClassName(clases[c]) || []; } catch (e) {}
+      for (var i = 0; i < arr.length; i++) {
+        var lab = '';
+        try { lab = (arr[i].get('data') && arr[i].get('data').label) || ''; } catch (e) {}
+        if (!lab) { try { lab = arr[i].get('id') || ''; } catch (e) {} }
+        if (lab && objetivos.indexOf(String(lab).toLowerCase()) >= 0) return arr[i];
+      }
+    }
+    return null;
+  }
+
+  // Cierra la botonera ocultando el CONTENEDOR (no el webframe interno), que es
+  // el mismo objeto que muestra el botón "Ir a". Así se puede reabrir siempre.
   function cerrarBotonera() {
+    var cont = hallarPorNombre(NOMBRES_CONTENEDOR);
+    if (cont) { try { cont.set('visible', false); return; } catch (e) {} }
+    // Respaldo: si no encontró el contenedor, oculta el webframe de la botonera.
     try {
       var player = getPlayer();
-      if (player && player.getByClassName) {
-        var wfs = player.getByClassName('WebFrame') || [];
-        for (var i = 0; i < wfs.length; i++) {
-          var url = '';
-          try { url = wfs[i].get('url') || ''; } catch (e) {}
-          if (!url || url.indexOf('/tour/ir-a') >= 0) {
-            try { wfs[i].set('visible', false); } catch (e) {}
-          }
-        }
+      var wfs = (player && player.getByClassName) ? (player.getByClassName('WebFrame') || []) : [];
+      for (var i = 0; i < wfs.length; i++) {
+        var url = '';
+        try { url = wfs[i].get('url') || ''; } catch (e) {}
+        if (url.indexOf('/tour/ir-a') >= 0) { try { wfs[i].set('visible', false); } catch (e) {} }
       }
     } catch (e) {}
   }
