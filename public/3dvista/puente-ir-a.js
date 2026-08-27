@@ -169,9 +169,21 @@
     if (!d || typeof d !== 'object' || d.source !== 'bureau-ir-a') return;
 
     if (d.tipo === 'mb-abrir') {
-      // Muestra un contenedor por nombre (botones flotantes: Info / Ir a)
+      // Muestra un contenedor por nombre (botones flotantes: Info / Ir a),
+      // junto con sus hijos (para que también aparezca el webframe interno).
       var comp = hallarPorNombre([d.objetivo]);
-      if (comp) { try { comp.set('visible', true); } catch (e) {} }
+      if (comp) {
+        try { comp.set('visible', true); } catch (e) {}
+        var kids = null;
+        try { kids = comp.get('children'); } catch (e) {}
+        if (!kids) { try { kids = comp.get('components'); } catch (e) {} }
+        if (!kids) { try { kids = comp.get('items'); } catch (e) {} }
+        if (kids && kids.length) {
+          for (var k = 0; k < kids.length; k++) {
+            try { kids[k].set('visible', true); } catch (e) {}
+          }
+        }
+      }
     } else if (d.tipo === 'mb-cerrar-ir-a') {
       cerrarBotonera();
     } else if (d.tipo === 'mb-ping') {
