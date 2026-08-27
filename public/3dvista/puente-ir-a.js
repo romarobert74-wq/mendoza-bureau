@@ -168,7 +168,11 @@
     var d = ev.data;
     if (!d || typeof d !== 'object' || d.source !== 'bureau-ir-a') return;
 
-    if (d.tipo === 'mb-cerrar-ir-a') {
+    if (d.tipo === 'mb-abrir') {
+      // Muestra un contenedor por nombre (botones flotantes: Info / Ir a)
+      var comp = hallarPorNombre([d.objetivo]);
+      if (comp) { try { comp.set('visible', true); } catch (e) {} }
+    } else if (d.tipo === 'mb-cerrar-ir-a') {
       cerrarBotonera();
     } else if (d.tipo === 'mb-ping') {
       responder(ev.source, { tipo: 'mb-pong' });
