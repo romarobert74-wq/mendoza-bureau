@@ -1,7 +1,7 @@
 'use client'
 
 import { useForm, useWatch, useFieldArray } from 'react-hook-form'
-import type { Control, UseFormSetValue } from 'react-hook-form'
+import type { Control, UseFormSetValue, UseFormRegister } from 'react-hook-form'
 import { useRef, useState } from 'react'
 import type {
   SocioFormData, CategoriaSocio, SalonIndividual,
@@ -20,6 +20,7 @@ import {
   Upload, Loader2, X, Plus, ArrowUp, ArrowDown, Compass, ChevronDown, Copy, Check,
   DoorOpen, BedDouble, Waves, Wine, Grape, Utensils, Flower2, Dumbbell,
   PartyPopper, Sofa, Images, Sunset, Umbrella, ShoppingBag, MapPin, Sparkles,
+  MessageCircle, CalendarDays,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -30,6 +31,7 @@ const ICONO_COMP: Record<string, LucideIcon> = {
   cubiertos: Utensils, spa: Flower2, gimnasio: Dumbbell, salon: PartyPopper,
   sillon: Sofa, galeria: Images, atardecer: Sunset, terraza: Umbrella,
   tienda: ShoppingBag, pin: MapPin, estrella: Sparkles,
+  whatsapp: MessageCircle, calendario: CalendarDays,
 }
 
 // Selector visual de ícono (muestra el dibujo + el nombre)
@@ -178,6 +180,91 @@ function BotonIcono({ control, index, setValue }: {
   )
 }
 
+// Una fila de la botonera. Según la acción muestra el campo panorama o el aviso
+// de que el botón usa el WhatsApp del socio.
+function BotonRow({ index, register, control, setValue, isFirst, isLast, onUp, onDown, onRemove }: {
+  index: number
+  register: UseFormRegister<SocioFormData>
+  control: Control<SocioFormData>
+  setValue: UseFormSetValue<SocioFormData>
+  isFirst: boolean; isLast: boolean
+  onUp: () => void; onDown: () => void; onRemove: () => void
+}) {
+  const tipo = (useWatch({ control, name: `botonera.${index}.tipo` }) as string) || 'panorama'
+  const esWhats = tipo === 'whatsapp'
+  const btnMini = { background: '#1a2235', border: '1px solid #1e293b', color: '#94a3b8' } as const
+
+  return (
+    <div className="rounded-lg p-3 flex flex-col gap-2"
+      style={{ background: '#0f1729', border: `1px solid ${esWhats ? '#14532d' : '#1e293b'}` }}>
+      {/* Selector de acción */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className={lbl} style={{ ...lbl_color, marginBottom: 0 }}>Acción:</span>
+        {(['panorama', 'whatsapp'] as const).map(op => (
+          <button key={op} type="button"
+            onClick={() => setValue(`botonera.${index}.tipo`, op, { shouldDirty: true })}
+            className="px-2.5 py-1 rounded-md text-xs font-semibold transition"
+            style={tipo === op
+              ? (op === 'whatsapp'
+                ? { background: '#052e16', border: '1px solid #16a34a', color: '#4ade80' }
+                : { background: '#1e293b', border: '1px solid #3b82f6', color: '#93c5fd' })
+              : { background: 'transparent', border: '1px solid #1e293b', color: '#64748b' }}>
+            {op === 'panorama' ? 'Ir a panorama' : 'WhatsApp del socio'}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-col md:flex-row md:items-end gap-2">
+        <div className="flex-1">
+          <label className={lbl} style={lbl_color}>Texto del botón</label>
+          <input {...register(`botonera.${index}.etiqueta` as const)} className="input"
+            placeholder={esWhats ? 'Reservar ahora' : 'Recepción'} />
+        </div>
+
+        <div className="flex-1">
+          {esWhats ? (
+            <>
+              <label className={lbl} style={lbl_color}>Destino</label>
+              <div className="input flex items-center gap-1.5" style={{ color: '#4ade80', background: '#0b1220' }}>
+                <MessageCircle size={14} /> <span style={{ fontSize: 12 }}>Usa el WhatsApp del socio</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <label className={lbl} style={lbl_color}>Panorama en 3DVista</label>
+              <input {...register(`botonera.${index}.panorama` as const)} className="input" placeholder="recepcion" />
+            </>
+          )}
+        </div>
+
+        <div style={{ minWidth: 170 }}>
+          <label className={lbl} style={lbl_color}>Ícono</label>
+          <BotonIcono control={control} index={index} setValue={setValue} />
+        </div>
+        <div style={{ minWidth: 130 }}>
+          <label className={lbl} style={lbl_color}>Grupo (opcional)</label>
+          <input {...register(`botonera.${index}.grupo` as const)} className="input" placeholder="Hotel" />
+        </div>
+        <div className="flex gap-1 pb-0.5">
+          <button type="button" title="Subir" disabled={isFirst} onClick={onUp}
+            className="w-8 h-9 rounded-lg flex items-center justify-center disabled:opacity-30" style={btnMini}>
+            <ArrowUp size={14} />
+          </button>
+          <button type="button" title="Bajar" disabled={isLast} onClick={onDown}
+            className="w-8 h-9 rounded-lg flex items-center justify-center disabled:opacity-30" style={btnMini}>
+            <ArrowDown size={14} />
+          </button>
+          <button type="button" title="Eliminar" onClick={onRemove}
+            className="w-8 h-9 rounded-lg flex items-center justify-center"
+            style={{ background: '#2a1520', border: '1px solid #7f1d1d', color: '#f87171' }}>
+            <X size={14} />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Main form ─────────────────────────────────────────────────────────────────
 export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Props) {
   const { usuario } = useAuth()
@@ -228,8 +315,10 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
           panorama: (b.panorama ?? '').toString().trim(),
           icono: (b.icono ?? '').toString().trim(),
           grupo: (b.grupo ?? '').toString().trim(),
+          tipo: (b.tipo === 'whatsapp' ? 'whatsapp' : 'panorama') as 'panorama' | 'whatsapp',
         }))
-        .filter(b => b.etiqueta && b.panorama),
+        // Panorama: requiere nombre. WhatsApp: solo requiere etiqueta.
+        .filter(b => b.etiqueta && (b.tipo === 'whatsapp' || b.panorama)),
       salones,
       hotelData,
       restauranteData,
@@ -423,50 +512,28 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
           )}
 
           {botonera.fields.map((f, i) => (
-            <div key={f.id} className="rounded-lg p-3 flex flex-col md:flex-row md:items-end gap-2"
-              style={{ background: '#0f1729', border: '1px solid #1e293b' }}>
-              <div className="flex-1">
-                <label className={lbl} style={lbl_color}>Texto del botón</label>
-                <input {...register(`botonera.${i}.etiqueta` as const)} className="input" placeholder="Recepción" />
-              </div>
-              <div className="flex-1">
-                <label className={lbl} style={lbl_color}>Panorama en 3DVista</label>
-                <input {...register(`botonera.${i}.panorama` as const)} className="input" placeholder="recepcion" />
-              </div>
-              <div style={{ minWidth: 170 }}>
-                <label className={lbl} style={lbl_color}>Ícono</label>
-                <BotonIcono control={control} index={i} setValue={setValue} />
-              </div>
-              <div style={{ minWidth: 130 }}>
-                <label className={lbl} style={lbl_color}>Grupo (opcional)</label>
-                <input {...register(`botonera.${i}.grupo` as const)} className="input" placeholder="Hotel" />
-              </div>
-              <div className="flex gap-1 pb-0.5">
-                <button type="button" title="Subir" disabled={i === 0} onClick={() => botonera.move(i, i - 1)}
-                  className="w-8 h-9 rounded-lg flex items-center justify-center disabled:opacity-30"
-                  style={{ background: '#1a2235', border: '1px solid #1e293b', color: '#94a3b8' }}>
-                  <ArrowUp size={14} />
-                </button>
-                <button type="button" title="Bajar" disabled={i === botonera.fields.length - 1} onClick={() => botonera.move(i, i + 1)}
-                  className="w-8 h-9 rounded-lg flex items-center justify-center disabled:opacity-30"
-                  style={{ background: '#1a2235', border: '1px solid #1e293b', color: '#94a3b8' }}>
-                  <ArrowDown size={14} />
-                </button>
-                <button type="button" title="Eliminar" onClick={() => botonera.remove(i)}
-                  className="w-8 h-9 rounded-lg flex items-center justify-center"
-                  style={{ background: '#2a1520', border: '1px solid #7f1d1d', color: '#f87171' }}>
-                  <X size={14} />
-                </button>
-              </div>
-            </div>
+            <BotonRow
+              key={f.id} index={i} register={register} control={control} setValue={setValue}
+              isFirst={i === 0} isLast={i === botonera.fields.length - 1}
+              onUp={() => botonera.move(i, i - 1)} onDown={() => botonera.move(i, i + 1)}
+              onRemove={() => botonera.remove(i)}
+            />
           ))}
 
-          <button type="button"
-            onClick={() => botonera.append({ etiqueta: '', panorama: '', icono: '', grupo: '' })}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition w-fit"
-            style={{ background: '#1a2235', border: '1px solid #1e293b', color: '#94a3b8' }}>
-            <Plus size={14} /> Agregar botón
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button"
+              onClick={() => botonera.append({ etiqueta: '', panorama: '', icono: '', grupo: '', tipo: 'panorama' })}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition w-fit"
+              style={{ background: '#1a2235', border: '1px solid #1e293b', color: '#94a3b8' }}>
+              <Plus size={14} /> Agregar botón
+            </button>
+            <button type="button"
+              onClick={() => botonera.append({ etiqueta: 'Reservar ahora', panorama: '', icono: 'whatsapp', grupo: '', tipo: 'whatsapp' })}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition w-fit"
+              style={{ background: '#052e16', border: '1px solid #16a34a', color: '#4ade80' }}>
+              <MessageCircle size={14} /> Agregar botón “Reservar” (WhatsApp)
+            </button>
+          </div>
 
           {socioId && <CopiarLinkWebframe socioId={socioId} />}
         </div>

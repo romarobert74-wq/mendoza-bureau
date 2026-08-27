@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   DoorOpen, BedDouble, Waves, Wine, Grape, Utensils, Flower2, Dumbbell,
   PartyPopper, Sofa, Images, Sunset, Umbrella, ShoppingBag, MapPin, Sparkles,
-  ChevronRight,
+  MessageCircle, CalendarDays, ChevronRight,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { BotonPano, CategoriaSocio } from '@/types'
@@ -21,6 +21,7 @@ const ICON: Record<string, LucideIcon> = {
   cubiertos: Utensils, spa: Flower2, gimnasio: Dumbbell, salon: PartyPopper,
   sillon: Sofa, galeria: Images, atardecer: Sunset, terraza: Umbrella,
   tienda: ShoppingBag, pin: MapPin, estrella: Sparkles,
+  whatsapp: MessageCircle, calendario: CalendarDays,
 }
 
 // Convierte #rrggbb a rgba(r,g,b,alpha) para los fondos translúcidos del rollover
@@ -33,6 +34,8 @@ function rgba(hex: string, a: number) {
 export default function IrASocio({ params }: { params: { socioId: string } }) {
   const [botones, setBotones] = useState<BotonPano[] | null>(null)
   const [categoria, setCategoria] = useState<CategoriaSocio>('otro')
+  const [whatsapp, setWhatsapp] = useState('')
+  const [nombre, setNombre] = useState('')
   const [error, setError] = useState(false)
   const [grupoActivo, setGrupoActivo] = useState<string>('')
 
@@ -44,6 +47,8 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
         if (!vivo) return
         setBotones((d?.socio?.botonera ?? []) as BotonPano[])
         if (d?.socio?.categoria) setCategoria(d.socio.categoria as CategoriaSocio)
+        setWhatsapp(d?.socio?.contacto?.whatsapp ?? '')
+        setNombre(d?.socio?.razonSocial ?? '')
       })
       .catch(() => { if (vivo) setError(true) })
     return () => { vivo = false }
@@ -69,6 +74,23 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
   const irA = (panorama: string) => {
     emitir({ tipo: 'mb-ir-a', panorama })
     setTimeout(() => emitir({ tipo: 'mb-cerrar-ir-a' }), 120)
+  }
+
+  // Abre el WhatsApp del socio con un mensaje pre-cargado, en pestaña nueva.
+  const abrirWhatsapp = () => {
+    const num = whatsapp.replace(/[^\d]/g, '')
+    if (!num) return
+    const msg = encodeURIComponent(
+      `Hola${nombre ? ` ${nombre}` : ''}, vi el tour 360° y quiero hacer una consulta / reserva.`
+    )
+    const url = `https://wa.me/${num}?text=${msg}`
+    try { window.open(url, '_blank', 'noopener') } catch { /* noop */ }
+    emitir({ tipo: 'mb-cerrar-ir-a' })
+  }
+
+  const onBoton = (b: BotonPano) => {
+    if (b.tipo === 'whatsapp') abrirWhatsapp()
+    else irA(b.panorama)
   }
 
   const grupos = useMemo(() => {
@@ -119,9 +141,10 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
         {visibles.length > 0 && (
           <div className="grid">
             {visibles.map((b, i) => {
-              const Ic = b.icono ? ICON[b.icono] : undefined
+              const esWhats = b.tipo === 'whatsapp'
+              const Ic = esWhats ? MessageCircle : (b.icono ? ICON[b.icono] : undefined)
               return (
-                <button key={i} className="btn-go" onClick={() => irA(b.panorama)}>
+                <button key={i} className={esWhats ? 'btn-go wa' : 'btn-go'} onClick={() => onBoton(b)}>
                   <span style={S.left}>
                     {Ic && <span className="ic"><Ic size={20} /></span>}
                     <span>{b.etiqueta}</span>
@@ -169,6 +192,14 @@ const CSS = `
     box-shadow:0 8px 22px -10px var(--cat); }
   .btn-go:hover .ic, .btn-go:hover .chev{ color:var(--cat); }
   .btn-go:active{ transform:translateY(0); }
+
+  /* Botón WhatsApp / Reservar: CTA verde a ancho completo */
+  .btn-go.wa{ grid-column:1 / -1; justify-content:center;
+    background:linear-gradient(135deg,#25D366,#128C7E); border:none; color:#04120b; font-weight:800; }
+  .btn-go.wa:hover{ background:linear-gradient(135deg,#2ee06f,#149c8c); box-shadow:0 10px 26px -8px #25D366;
+    transform:translateY(-1px); }
+  .btn-go.wa .ic, .btn-go.wa .chev{ color:#04120b; }
+  .btn-go.wa .chev{ display:none; }
 
   .ic{ display:grid; place-items:center; color:var(--cat); transition:.15s; }
   .chev{ opacity:.5; transition:.15s; }

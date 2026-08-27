@@ -492,12 +492,15 @@ export interface Usuario {
   creadoEn: Timestamp
 }
 
-// Botón de la botonera "Ir a" del tour (navegación entre panoramas)
+// Botón de la botonera "Ir a" del tour.
+// tipo 'panorama' (default): salta a un panorama del tour.
+// tipo 'whatsapp': abre el WhatsApp del socio (CTA "Reservar ahora").
 export interface BotonPano {
-  etiqueta: string   // texto visible (ej: "Recepción")
-  panorama: string   // nombre EXACTO del panorama en 3DVista (ej: "recepcion")
+  etiqueta: string   // texto visible (ej: "Recepción", "Reservar ahora")
+  panorama: string   // nombre EXACTO del panorama en 3DVista (solo si tipo panorama)
   icono?: string     // clave de ícono (ver ICONOS_BOTONERA)
   grupo?: string     // solapa/categoría opcional (ej: "Bodega")
+  tipo?: 'panorama' | 'whatsapp'  // acción del botón (default: panorama)
 }
 
 // Íconos disponibles para la botonera (clave → etiqueta en el panel)
@@ -518,6 +521,8 @@ export const ICONOS_BOTONERA: Record<string, string> = {
   tienda: 'Tienda',
   pin: 'Ubicación',
   estrella: 'Destacado',
+  whatsapp: 'WhatsApp / Reservar',
+  calendario: 'Reserva / Fecha',
 }
 
 export interface Socio {
