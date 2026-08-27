@@ -26,7 +26,7 @@ const T = {
   label: '#64748b',     // labels de campos — mínimo visible
   border: 'rgba(255,255,255,0.1)',
   divider: 'rgba(255,255,255,0.07)',
-  cardBg: '#0d1225',
+  cardBg: 'rgba(38,28,32,0.55)',
   glass: 'rgba(255,255,255,0.04)',
   row: 'rgba(255,255,255,0.03)',
 }
@@ -506,12 +506,6 @@ function FichaPage() {
   const [videoModal, setVideoModal] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Cierra la ficha: avisa a 3DVista (necesita una acción que escuche el mensaje).
-  const cerrarFicha = () => {
-    try { window.parent?.postMessage({ tipo: 'mb-cerrar-ficha' }, '*') } catch { /* noop */ }
-    try { window.parent?.postMessage('closeWebFrame', '*') } catch { /* noop */ }
-  }
-
   // Analytics: cuenta la visita al tour del socio y mide el tiempo de permanencia
   useWebframeTracking(id)
 
@@ -579,20 +573,16 @@ function FichaPage() {
   const videosValidos = (socio.videos ?? []).map(parseVideo).filter(Boolean) as { embed: string; thumb: string }[]
 
   return (
-    <div style={{ minHeight: '100vh', background: 'transparent', color: T.text, fontFamily: 'system-ui, sans-serif' }}>
-      {/* Botón para cerrar la ficha (avisa a 3DVista) */}
-      <button onClick={cerrarFicha} aria-label="Cerrar"
-        style={{ position: 'fixed', top: 12, right: 12, zIndex: 90, width: 38, height: 38, borderRadius: '50%', background: 'rgba(8,12,24,0.72)', border: `1px solid ${T.border}`, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(6px)' }}>
-        <X size={20} />
-      </button>
-      <div style={{ maxWidth: '820px', margin: '0 auto', padding: '0 0 32px' }}>
+    <div style={{ minHeight: '100vh', background: 'transparent', color: T.text, fontFamily: 'system-ui, sans-serif', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '18px 14px 28px' }}>
+      {/* Panel glass (mismo estilo que la botonera "Ir a") */}
+      <div style={{ width: '100%', maxWidth: '820px', borderRadius: '24px', overflow: 'hidden', background: 'rgba(20,15,17,0.72)', backdropFilter: 'blur(22px)', border: '1px solid rgba(255,255,255,0.10)', boxShadow: '0 24px 60px rgba(0,0,0,0.45)', padding: '0 14px 22px' }}>
 
-        {/* ── Hero ── */}
+        {/* ── Hero (a sangre dentro del panel) ── */}
         {socio.fotoPortada && (
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', margin: '0 -14px' }}>
             <img src={socio.fotoPortada} alt={socio.razonSocial}
               style={{ width: '100%', height: '200px', objectFit: 'cover', display: 'block' }} />
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(8,12,24,0.95) 100%)' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 30%, rgba(20,15,17,0.92) 100%)' }} />
             {/* Title overlay on hero */}
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '16px 18px', display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
               {socio.logoUrl && (
