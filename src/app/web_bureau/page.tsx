@@ -60,14 +60,28 @@ const CONFIG_DEFAULT: Config = {
   heroTitulo: 'Bienvenidos a Mendoza Bureau',
   heroSubtitulo: 'Convention & Visitors Bureau — El destino corporativo líder de Argentina',
   heroImagen: '',
-  sobreNosotros: 'Somos una asociación que agrupa a los principales actores del turismo corporativo y de reuniones de Mendoza, trabajando en sinergia para posicionar a la provincia como destino de primer nivel.',
+  sobreNosotros: 'Mendoza Bureau Convention & Visitors Bureau es una asociación sin fines de lucro vinculada al turismo de reuniones de Mendoza. Nuclea a empresas y prestadores del sector y trabaja para fortalecer el posicionamiento de Mendoza como destino para congresos, convenciones, eventos corporativos, incentivos y otros encuentros. Su función es promover a Mendoza como destino de turismo de reuniones, conectar a organizadores con la oferta local e internacional y colaborar en la captación de nuevos eventos, articulando con hoteles, venues, organizadores profesionales, operadores turísticos, transporte, tecnología y gastronomía.',
   colorPrimario: DEFAULT_BRAND,
   colorSecundario: DEFAULT_BRAND2,
   logoUrl: '',
-  mision: '¿Por qué elegir Mendoza como destino corporativo? Mendoza combina infraestructura de clase mundial con la majestuosidad de los Andes, una gastronomía única y bodegas de renombre internacional. Ideal para eventos, incentivos y reuniones de negocios.',
-  contactoWhatsapp: '',
-  contactoEmail: 'info@mendozabureau.com',
-  directiva: [],
+  mision: 'Nuestros objetivos: impulsar la captación de congresos y eventos, fortalecer el posicionamiento de Mendoza en el segmento del Turismo de Reuniones, promover el trabajo conjunto entre los actores del sector y generar información útil para la planificación del turismo de reuniones. Mendoza combina infraestructura para eventos, amplia oferta hotelera, conectividad aérea y terrestre, gastronomía, cultura del vino y paisajes de montaña.',
+  contactoWhatsapp: '+54 9 2616 56-4336',
+  contactoEmail: 'secretario@mendozabureau.com',
+  directiva: [
+    { nombre: 'Miguel Osimani', cargo: 'Presidente', foto: '' },
+    { nombre: 'Marcelo Rosental', cargo: 'Vicepresidente', foto: '' },
+    { nombre: 'Silvana Biagiotti', cargo: 'Secretaria', foto: '' },
+    { nombre: 'Mauricio Badaloni', cargo: 'Prosecretario', foto: '' },
+    { nombre: 'Jorgelina Avellaneda', cargo: 'Tesorera', foto: '' },
+    { nombre: 'Santiago Laugero', cargo: 'Protesorero', foto: '' },
+    { nombre: 'Miguel Urmeneta', cargo: 'Vocal Titular', foto: '' },
+    { nombre: 'Roberto Riedel', cargo: 'Vocal Titular', foto: '' },
+    { nombre: 'Julia Zuccardi', cargo: 'Vocal Suplente', foto: '' },
+    { nombre: 'Ariel Fioretti', cargo: 'Vocal Suplente', foto: '' },
+    { nombre: 'Gustavo Ledesma', cargo: 'Comisión Revisora de Cuentas (Titular)', foto: '' },
+    { nombre: 'Lilia Sance', cargo: 'Comisión Revisora de Cuentas (Titular)', foto: '' },
+    { nombre: 'Facundo Tapia', cargo: 'Comisión Revisora de Cuentas (Suplente)', foto: '' },
+  ],
 }
 
 // ── Logos Marquee ─────────────────────────────────────────────────────────────
@@ -361,7 +375,7 @@ export default function WebBureauPage() {
               style={{ background: `linear-gradient(135deg, ${BRAND}, ${BRAND2})`, boxShadow: `0 14px 40px -8px ${BRAND}` }}>
               <span className="absolute inset-0 rounded-2xl ring-2 ring-white/30 group-hover:ring-white/60 transition" />
               <Compass size={22} className="transition-transform group-hover:rotate-12" />
-              Recorré Mendoza en 360°
+              Mendoza en 360°
             </button>
             <button onClick={() => scrollTo(secRefs.socios)}
               className="px-7 py-3.5 rounded-xl font-bold text-base transition hover:scale-105 border-2 border-white/50 text-white hover:bg-white/10">
