@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { collection, getDocs, orderBy, query, doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Search, ExternalLink, FileText, ChevronDown, Mail, Phone, Globe, MapPin, Menu, X } from 'lucide-react'
+import { Search, ExternalLink, FileText, ChevronDown, Mail, Phone, Globe, MapPin, Menu, X, Compass } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -284,12 +284,13 @@ export default function WebBureauPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 shadow-md" style={{ background: BRAND }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
-            {config.logoUrl
-              ? <img src={config.logoUrl} alt="Mendoza Bureau" className="h-12 sm:h-14 w-auto object-contain" />
-              : <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center font-black text-white text-lg">M</div>
-            }
+            <img
+              src={config.logoUrl || '/ejemplos/logo-bureau-mark.png'}
+              alt="Mendoza Bureau"
+              className="h-11 sm:h-12 w-auto object-contain drop-shadow"
+            />
             <div className="leading-tight">
-              <h2 className="text-white font-bold text-xl sm:text-2xl leading-tight">Mendoza Bureau</h2>
+              <h2 className="text-white font-bold text-lg sm:text-2xl leading-tight">Mendoza Bureau</h2>
               <p className="text-white/70 text-[10px] leading-tight hidden sm:block">Convention &amp; Visitors Bureau</p>
             </div>
           </div>
@@ -352,15 +353,19 @@ export default function WebBureauPage() {
           <p className="text-lg sm:text-xl text-white/80 leading-relaxed mb-10 max-w-2xl mx-auto">
             {config.heroSubtitulo}
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button onClick={() => scrollTo(secRefs.socios)}
-              className="px-8 py-3.5 rounded-xl font-bold text-base transition hover:scale-105 shadow-lg"
-              style={{ background: 'white', color: BRAND }}>
-              Ver socios
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            {/* CTA principal: ir a la plataforma inmersiva / Tour 360 */}
+            <button
+              onClick={e => { e.preventDefault(); try { window.top!.history.back() } catch { window.history.back() } }}
+              className="cta360 group relative inline-flex items-center gap-3 px-9 py-4 rounded-2xl font-extrabold text-lg text-white transition-transform hover:scale-[1.04]"
+              style={{ background: `linear-gradient(135deg, ${BRAND}, ${BRAND2})`, boxShadow: `0 14px 40px -8px ${BRAND}` }}>
+              <span className="absolute inset-0 rounded-2xl ring-2 ring-white/30 group-hover:ring-white/60 transition" />
+              <Compass size={22} className="transition-transform group-hover:rotate-12" />
+              Recorré Mendoza en 360°
             </button>
-            <button onClick={() => scrollTo(secRefs.contacto)}
-              className="px-8 py-3.5 rounded-xl font-bold text-base transition hover:scale-105 border-2 border-white/50 text-white hover:bg-white/10">
-              Contactarnos
+            <button onClick={() => scrollTo(secRefs.socios)}
+              className="px-7 py-3.5 rounded-xl font-bold text-base transition hover:scale-105 border-2 border-white/50 text-white hover:bg-white/10">
+              Ver socios
             </button>
           </div>
         </div>
