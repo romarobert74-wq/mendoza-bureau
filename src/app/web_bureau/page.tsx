@@ -244,7 +244,17 @@ export default function WebBureauPage() {
           getDocs(query(collection(db, 'web_bureau_prensa'), orderBy('fecha', 'desc'))),
           getDocs(query(collection(db, 'web_bureau_observatorio'), orderBy('fecha', 'desc'))),
         ])
-        if (cfgSnap.exists()) setConfig({ ...CONFIG_DEFAULT, ...cfgSnap.data() } as Config)
+        if (cfgSnap.exists()) {
+          const data = cfgSnap.data() as Partial<Config>
+          const merged: Config = { ...CONFIG_DEFAULT, ...data }
+          // Los campos vacíos en Firestore NO deben pisar los textos por defecto
+          if (!data.sobreNosotros?.trim()) merged.sobreNosotros = CONFIG_DEFAULT.sobreNosotros
+          if (!data.mision?.trim()) merged.mision = CONFIG_DEFAULT.mision
+          if (!data.contactoWhatsapp?.trim()) merged.contactoWhatsapp = CONFIG_DEFAULT.contactoWhatsapp
+          if (!data.contactoEmail?.trim()) merged.contactoEmail = CONFIG_DEFAULT.contactoEmail
+          if (!Array.isArray(data.directiva) || data.directiva.length === 0) merged.directiva = CONFIG_DEFAULT.directiva
+          setConfig(merged)
+        }
         setSocios(sociosSnap.docs.map(d => ({ id: d.id, ...d.data() } as Socio)).filter(s => s.activo !== false))
         setPrensas(prensaSnap.docs.map(d => ({ id: d.id, ...d.data() } as PrensaItem)).filter(p => p.activo !== false))
         setObs(obsSnap.docs.map(d => ({ id: d.id, ...d.data() } as ObsItem)).filter(o => o.activo !== false))
@@ -299,7 +309,7 @@ export default function WebBureauPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
             <img
-              src={config.logoUrl || '/ejemplos/logo-bureau-mark.png'}
+              src="/ejemplos/logo-bureau-mark.png"
               alt="Mendoza Bureau"
               className="h-11 sm:h-12 w-auto object-contain drop-shadow"
             />
@@ -322,7 +332,7 @@ export default function WebBureauPage() {
               className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition"
               style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff' }}
             >
-              ← Tour 360°
+              ← Mendoza en 360°
             </a>
           </div>
           {/* Mobile menu toggle */}
@@ -344,7 +354,7 @@ export default function WebBureauPage() {
               onClick={e => { e.preventDefault(); try { window.top!.history.back() } catch { window.history.back() } }}
               className="block w-full text-left px-6 py-3 text-white text-sm font-semibold hover:bg-white/10 transition border-t border-white/20"
             >
-              ← Volver al Tour 360°
+              ← Mendoza en 360°
             </a>
           </div>
         )}
