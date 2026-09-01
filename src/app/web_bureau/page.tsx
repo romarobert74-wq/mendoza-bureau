@@ -3,7 +3,12 @@
 import { useEffect, useState, useMemo, useRef } from 'react'
 import { collection, getDocs, orderBy, query, doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Search, ExternalLink, FileText, ChevronDown, Mail, Phone, Globe, MapPin, Menu, X, Compass } from 'lucide-react'
+import {
+  Search, ExternalLink, FileText, ChevronDown, Mail, Phone, Globe, MapPin, Menu, X, Compass,
+  Plane, Building2, ConciergeBell, Target, Mountain, Gem, Wine, UtensilsCrossed, Landmark,
+  ShieldCheck, Handshake, Award, Lightbulb, TrendingUp, Users, Heart, Leaf, CheckCircle2,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -411,8 +416,21 @@ export default function WebBureauPage() {
             <div>
               <p className="text-gray-600 text-lg leading-relaxed mb-6">{config.sobreNosotros}</p>
               <div className="rounded-2xl p-6 text-white" style={{ background: `linear-gradient(135deg,${BRAND},${BRAND2})` }}>
-                <p className="font-bold text-lg mb-2">¿Por qué Mendoza?</p>
-                <p className="text-white/85 leading-relaxed">{config.mision}</p>
+                <p className="font-bold text-lg mb-4">Impulsamos un modelo basado en</p>
+                <ul className="space-y-2.5">
+                  {[
+                    'Innovación y transformación digital',
+                    'Uso de datos e inteligencia de mercado',
+                    'Sostenibilidad en congresos, exposiciones y eventos',
+                    'Desarrollo de nuevos segmentos',
+                    'Una red que crece',
+                  ].map(item => (
+                    <li key={item} className="flex items-start gap-2.5 text-white/90 leading-snug">
+                      <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
             <div>
@@ -454,6 +472,100 @@ export default function WebBureauPage() {
               </div>
             </>
           )}
+        </div>
+      </div>
+
+      {/* ── ¿Por qué Mendoza? ── */}
+      <div className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-14 max-w-3xl mx-auto">
+            <span className="text-sm font-bold tracking-widest uppercase" style={{ color: BRAND }}>El destino</span>
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mt-2">¿Por qué Mendoza es un destino ideal?</h2>
+            <p className="text-gray-500 mt-4 leading-relaxed">
+              Una combinación única de infraestructura, conectividad aérea, servicios de calidad,
+              experiencias premiadas y un compromiso real con la sostenibilidad.
+            </p>
+            <div className="w-16 h-1 rounded-full mx-auto mt-5" style={{ background: BRAND }} />
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {([
+              { ic: Plane, c: '#E85D04', t: 'Conectividad', d: 'Aeropuerto internacional con vuelos directos a las principales ciudades de Argentina y América Latina, más rutas nacionales e internacionales.' },
+              { ic: Building2, c: '#F59E0B', t: 'Infraestructura de primer nivel', d: 'Venues, hoteles y bodegas con más de 45.000 plazas de alojamiento, incluyendo hoteles de 4 y 5 estrellas.' },
+              { ic: ConciergeBell, c: '#F59E0B', t: 'Servicios de calidad', d: 'Amplia gama de servicios para congresos, ferias y exposiciones: tecnología audiovisual, logística, catering y team building.' },
+              { ic: Target, c: '#DC2626', t: 'Punto estratégico', d: 'Ubicación en el corredor bioceánico que une el Atlántico con el Pacífico: un punto de fácil acceso para todo el mundo.' },
+              { ic: Mountain, c: '#16A34A', t: 'Atractivos turísticos', d: 'Entorno natural incomparable: paisajes montañosos, viñedos, bodegas y actividades al aire libre.' },
+              { ic: Gem, c: '#0D9488', t: 'Esparcimiento', d: 'Museos, teatros, casinos, gastronomía, montañismo, nieve & ski, termas & spa, golf & polo y mucho más.' },
+            ] as { ic: LucideIcon; c: string; t: string; d: string }[]).map(f => (
+              <div key={f.t} className="rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition p-6 bg-white">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ background: `${f.c}1a`, color: f.c }}>
+                  <f.ic size={26} />
+                </div>
+                <h3 className="font-black text-lg mb-2" style={{ color: f.c }}>{f.t}</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">{f.d}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Distinciones */}
+          <div className="grid sm:grid-cols-3 gap-5 mt-6">
+            {([
+              { ic: Wine, t: 'Great Wine Capitals', d: 'Capital Mundial del Vino desde 2005 e integrante de la exclusiva red Great Wine Capitals (GWC).' },
+              { ic: UtensilsCrossed, t: 'Destino gastronómico premiado', d: '4 estrellas en la Guía Michelin, 3 en la categoría de restaurantes sostenibles y 18 menciones.' },
+              { ic: Landmark, t: 'Cultura', d: 'Rica cultura y patrimonio histórico: museos, teatros y naturaleza para complementar cada evento.' },
+            ] as { ic: LucideIcon; t: string; d: string }[]).map(f => (
+              <div key={f.t} className="rounded-2xl p-5 flex gap-4 items-start" style={{ background: '#7c3aed10', border: '1px solid #7c3aed22' }}>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: '#7c3aed1a', color: '#7c3aed' }}>
+                  <f.ic size={22} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-1">{f.t}</h4>
+                  <p className="text-gray-600 text-sm leading-relaxed">{f.d}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-2xl px-6 py-4 flex items-center gap-3 justify-center text-center" style={{ background: '#7c3aed10', border: '1px solid #7c3aed22' }}>
+            <Award size={20} style={{ color: '#7c3aed', flexShrink: 0 }} />
+            <p className="text-sm text-gray-700">
+              Por segundo año consecutivo, la <strong>Guía Michelin</strong> otorgó distinciones internacionales que validan a Mendoza por su talento culinario y su enfoque en la sostenibilidad.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Valores ── */}
+      <div className="py-20 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-14">
+            <span className="text-sm font-bold tracking-widest uppercase" style={{ color: BRAND }}>Cómo trabajamos</span>
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mt-2">Nuestros valores</h2>
+            <div className="w-16 h-1 rounded-full mx-auto mt-4" style={{ background: BRAND }} />
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {([
+              { ic: ShieldCheck, t: 'Ética profesional', d: 'Responsabilidad, respeto y compromiso en cada vínculo institucional y comercial.' },
+              { ic: Globe, t: 'Transparencia', d: 'Gestión clara, confiable y colaborativa entre el sector público y privado.' },
+              { ic: Handshake, t: 'Honestidad', d: 'Relaciones basadas en la confianza, la integridad y la coherencia.' },
+              { ic: Award, t: 'Excelencia', d: 'Superamos expectativas con servicios de calidad y experiencias memorables.' },
+              { ic: Lightbulb, t: 'Innovación', d: 'Nuevas ideas, herramientas y oportunidades para el turismo de reuniones.' },
+              { ic: TrendingUp, t: 'Visión comercial', d: 'Conexiones estratégicas que potencian negocios, eventos y desarrollo económico.' },
+              { ic: Users, t: 'Trabajo colaborativo', d: 'Alianzas entre empresas, instituciones y organismos para crecer en conjunto.' },
+              { ic: Heart, t: 'Hospitalidad', d: 'La identidad mendocina con calidez, profesionalismo y vocación de servicio.' },
+              { ic: Leaf, t: 'Sostenibilidad', d: 'Prácticas responsables para el desarrollo turístico, social y económico de Mendoza.' },
+            ] as { ic: LucideIcon; t: string; d: string }[]).map(v => (
+              <div key={v.t} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${BRAND}14`, color: BRAND }}>
+                    <v.ic size={20} />
+                  </div>
+                  <h3 className="font-black text-gray-900">{v.t}</h3>
+                </div>
+                <p className="text-gray-600 text-sm leading-relaxed">{v.d}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
