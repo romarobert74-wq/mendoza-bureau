@@ -300,7 +300,7 @@ export default function PlataformaLanding() {
             [Film, 'Reel vertical (30s)', 'Video vertical dinámico, listo para publicar.', 'Formato ideal para Instagram, TikTok y campañas. Atraé desde el celular.', 'https://www.pexels.com/search/videos/restaurant/?orientation=portrait'],
             [Camera, 'Video institucional', 'Video que presenta tu espacio, propuesta o experiencia.', 'Ideal para tu web y presentaciones comerciales: contá tu historia en movimiento.', 'https://www.youtube.com/results?search_query=video+institucional+bodega+hotel+mendoza'],
             [Plane, 'Tomas con drone', 'Tomas aéreas del lugar y su entorno.', 'Muestran ubicación, escala y paisaje — clave para bodegas, hoteles y venues con entorno natural.', 'https://www.pexels.com/search/videos/vineyard%20drone/'],
-          ].map(([Ic, t, quees, porque, ejemplo]) => {
+          ].map(([Ic, t, quees, porque]) => {
             const Icon = Ic as typeof Images
             return (
               <div key={t as string} className="card">
@@ -311,15 +311,6 @@ export default function PlataformaLanding() {
                   <span style={{ color: O, fontWeight: 700 }}>Por qué te conviene: </span>
                   {porque as string}
                 </p>
-                <a href={ejemplo as string} target="_blank" rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 12,
-                    padding: '7px 14px', borderRadius: 999, fontSize: 13, fontWeight: 700,
-                    color: O, background: 'rgba(255,106,61,.10)', border: '1px solid rgba(255,106,61,.35)',
-                    textDecoration: 'none',
-                  }}>
-                  Ver ejemplo <ArrowRight size={14} />
-                </a>
               </div>
             )
           })}
