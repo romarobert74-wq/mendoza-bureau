@@ -277,26 +277,49 @@ export default function PlataformaLanding() {
           <h2>Sumá más panoramas y contenido</h2>
           <p className="sub">Opcionales, para mostrar cada rincón y aprovechar la misma producción.</p>
         </div>
+
+        {/* Bloque educativo: qué es un panorama */}
+        <div style={{
+          maxWidth: 820, margin: '0 auto 34px', borderRadius: 20, padding: '22px 24px',
+          background: 'rgba(255,106,61,.06)', border: '1px solid rgba(255,106,61,.22)',
+        }}>
+          <h3 style={{ margin: '0 0 8px', fontSize: 18, color: O }}>Primero, ¿qué es un panorama?</h3>
+          <p style={{ margin: '0 0 8px', lineHeight: 1.7, color: 'var(--muted, #a99e97)' }}>
+            Un <strong style={{ color: 'var(--text,#f5ede7)' }}>panorama</strong> es una <strong style={{ color: 'var(--text,#f5ede7)' }}>foto 360° navegable</strong>: un punto del recorrido donde el visitante mira hacia todos lados, como si estuviera parado ahí. Tu <strong style={{ color: 'var(--text,#f5ede7)' }}>tour</strong> es la suma de varios panoramas conectados.
+          </p>
+          <p style={{ margin: 0, lineHeight: 1.7, color: 'var(--muted,#a99e97)' }}>
+            Ejemplo: el <strong style={{ color: 'var(--text,#f5ede7)' }}>tour base es 1 tour de 5 panoramas</strong> (recepción, habitación, piscina, restaurante y exterior) unidos en un recorrido. <strong style={{ color: O }}>No son 5 tours</strong> — es un recorrido de 5 fotos 360°. ¿Querés mostrar más rincones? Sumá panoramas. 👇
+          </p>
+        </div>
+
         <div className="cards-3">
           {[
-            [Layers, 'Panoramas / packs extra', 'Sumá puntos al recorrido con packs de 3, 5 o 10 panoramas.'],
-            [Images, 'Fotografías HDR', 'Imágenes profesionales para web, redes, Booking y publicidad.'],
-            [Film, 'Reel vertical', 'Contenido para Instagram, TikTok y campañas.'],
-            [Video, 'Video institucional', 'Presentá tu espacio, propuesta o experiencia.'],
-            [Plane, 'Tomas con drone', 'Mostrá ubicación, escala, entorno y paisaje.'],
-            [Camera, 'Video 360°', 'Escenas inmersivas con movimiento, sonido y personas.'],
-          ].map(([Ic, t, d]) => {
+            [Layers, 'Panoramas / packs extra', 'Puntos 360° adicionales a tu tour base (packs de 3, 5 o 10).', 'Más rincones para mostrar (spa, viñedo, salón, suites). Cada punto nuevo es una razón más para que te elijan.'],
+            [Video, 'Panorama animado · Experiencia inmersiva', 'En vez de una foto 360° fija, grabamos un video 360° de ~60s en ese punto: el agua se mueve, la gente pasa, el atardecer avanza.', 'Es el efecto “wow” del recorrido: transmite ambiente real y te diferencia de la competencia.'],
+            [Images, 'Fotografías profesionales HDR', 'Pack de 15 fotos en alta calidad.', 'Se cargan en tu ficha técnica del sistema y te sirven para web, redes y Booking. Un solo shooting, contenido para todos tus canales.'],
+            [Film, 'Reel vertical (30s)', 'Video vertical dinámico, listo para publicar.', 'Formato ideal para Instagram, TikTok y campañas. Atraé desde el celular.'],
+            [Camera, 'Video institucional', 'Video que presenta tu espacio, propuesta o experiencia.', 'Ideal para tu web y presentaciones comerciales: contá tu historia en movimiento.'],
+            [Plane, 'Tomas con drone', 'Tomas aéreas del lugar y su entorno.', 'Muestran ubicación, escala y paisaje — clave para bodegas, hoteles y venues con entorno natural.'],
+          ].map(([Ic, t, quees, porque]) => {
             const Icon = Ic as typeof Images
             return (
               <div key={t as string} className="card">
                 <span className="card-ic"><Icon size={20} color={O} /></span>
                 <h3>{t as string}</h3>
-                <p>{d as string}</p>
+                <p>{quees as string}</p>
+                <p style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,.08)', fontSize: 13.5 }}>
+                  <span style={{ color: O, fontWeight: 700 }}>Por qué te conviene: </span>
+                  {porque as string}
+                </p>
               </div>
             )
           })}
         </div>
-        <div className="center"><a href={SERVICIOS} className="btn btn-primary">Ver servicios y armar tu presupuesto</a></div>
+
+        <p className="sub" style={{ maxWidth: 720, margin: '28px auto 0', textAlign: 'center' }}>
+          Todos los adicionales se producen aprovechando la misma sesión, así optimizás costos. Cuando cargues tus datos vas a poder elegir y cotizar los que quieras.
+        </p>
+        <div className="center" style={{ marginTop: 18 }}><a href={FORM_SOCIO} className="btn btn-primary">Cargar mis datos</a></div>
       </section>
 
       {/* ── 7 · Experiencias dentro del tour ── */}
