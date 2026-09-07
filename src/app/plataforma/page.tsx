@@ -11,7 +11,7 @@ import {
 /* ─────────────────────────────────────────────────────────────
    LANDING PRINCIPAL · Mendoza Bureau × El Faro 360
    Reorganizada: directa y orientada al socio.
-   Qué ofrecemos · Beneficios · Cómo se hace · Formas de pago · Inscripción.
+   Qué ofrecemos · Beneficios · Cómo se hace · Inscripción.
    ───────────────────────────────────────────────────────────── */
 
 const display = Fraunces({ subsets: ['latin'], weight: ['400', '600', '700', '900'], style: ['normal', 'italic'], variable: '--font-display', display: 'swap' })
@@ -343,67 +343,6 @@ export default function PlataformaLanding() {
         </div>
       </section>
 
-      {/* ── 8 · Formas de pago ── */}
-      <section id="pagos" className="sec reveal">
-        <div className="sec-head">
-          <span className="kicker">07 · Formas de pago</span>
-          <h2>Simple y flexible</h2>
-        </div>
-        <div className="pagos">
-          <details className="pago-acc" open>
-            <summary>Formas de pago</summary>
-            <div className="pago-body">
-              <div className="pay-bono">
-                <span className="pay-bono-tag"><Gift size={15} /> Bonus por pago contado o transferencia</span>
-                <p>
-                  En <b>cualquier servicio</b>: si abonás de contado o por transferencia, sumás un
-                  <b> mini reel para historia</b> + un <b>flyer para redes</b> anunciando que ya contás con tu recorrido 360°.
-                </p>
-              </div>
-              <div className="pay-cards">
-                {[
-                  ['Tour Base', '5 panoramas', '50% inicio + 50% contra entrega', '5 fotos Express'],
-                  ['Base + Pack 3', '8 panoramas', '50% inicio + 50% a 30 días · ajuste por financiación 3%', '10 fotos Express'],
-                  ['Base + Pack 5', '10 panoramas', '50% inicio + 25% a 30 días + 25% a 60 días · ajuste 3% / 6%', 'Reel vertical 30 s'],
-                  ['Base + Pack 10', '15 panoramas', '50% inicio + 25% a 30 días + 25% a 60 días · ajuste 3% / 6%', 'Reel + “Tesoro escondido”'],
-                ].map(([tit, pan, pago, bonus]) => (
-                  <div key={tit} className="pay-card">
-                    <div className="pay-card-top">
-                      <span className="pay-title">{tit}</span>
-                      <span className="pay-panos">{pan}</span>
-                    </div>
-                    <div className="pay-pago"><span className="pay-lbl">Pago</span>{pago}</div>
-                    <div className="pay-bonus"><Gift size={14} /> {bonus}</div>
-                  </div>
-                ))}
-              </div>
-              <p className="pago-note">
-                Financiación con <b>ECHEQ</b>. El <b>ajuste por financiación</b> se aplica únicamente sobre
-                la cuota financiada y cubre la actualización del plazo.
-              </p>
-            </div>
-          </details>
-          <details className="pago-acc">
-            <summary>Medios de pago</summary>
-            <div className="pago-body">
-              <div className="medios-cards">
-                {[
-                  ['Transferencia bancaria', 'Disponible'],
-                  ['Efectivo', 'Disponible'],
-                  ['Mercado Pago', 'Disponible, sujeto a los costos propios de la plataforma'],
-                  ['ECHEQ', 'Disponible y recomendado para operaciones financiadas'],
-                ].map(([medio, cond]) => (
-                  <div key={medio} className="medio-card">
-                    <span className="medio-name"><CheckCircle2 size={15} color={O} /> {medio}</span>
-                    <span className="medio-cond">{cond}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </details>
-        </div>
-      </section>
-
       {/* ── Cómo inscribirse / CTA final ── */}
       <section className="cta-final reveal">
         <div className="cta-bg" style={{ backgroundImage: `url(${IMG_HERO})` }} aria-hidden />
@@ -422,7 +361,7 @@ export default function PlataformaLanding() {
       {/* ── FAQ ── */}
       <section id="faq" className="sec sec-soft reveal">
         <div className="sec-head">
-          <span className="kicker">08 · Dudas</span>
+          <span className="kicker">07 · Dudas</span>
           <h2>Preguntas frecuentes</h2>
         </div>
         <div className="faq">
