@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
 import { initializeApp, getApps } from 'firebase/app'
 import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { FieldValue } from 'firebase-admin/firestore'

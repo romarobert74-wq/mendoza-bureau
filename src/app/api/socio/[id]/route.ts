@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
 import { initializeApp, getApps } from 'firebase/app'
 import { getFirestore, doc, getDoc, collection, getDocs } from 'firebase/firestore'
 import { getAdminDb } from '@/lib/firebaseAdmin'
