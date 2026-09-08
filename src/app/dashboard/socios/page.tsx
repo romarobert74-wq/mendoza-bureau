@@ -11,7 +11,7 @@ import toast from 'react-hot-toast'
 import {
   Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2, MessageCircle,
   Clock, Copy, Check, Eye, MousePointerClick, Globe as GlobeIcon, Timer, ArrowUp, ArrowDown, ArrowUpDown, Link2, Download, CalendarDays,
-  BarChart3, ChevronDown,
+  BarChart3, ChevronDown, Send,
 } from 'lucide-react'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -246,6 +246,16 @@ export default function SociosPage() {
     setLinkCopiado(true)
     toast.success('Link copiado al portapapeles')
     setTimeout(() => setLinkCopiado(false), 2500)
+  }
+
+  // Link para que el socio COMPLETE/EDITE su ficha (formulario pre-cargado por id)
+  const [copiadoCompletar, setCopiadoCompletar] = useState<string | null>(null)
+  const copiarLinkCompletar = (socioId: string) => {
+    const base = typeof window !== 'undefined' ? window.location.origin : 'https://mendoza-bureau.vercel.app'
+    navigator.clipboard.writeText(`${base}/form/socio?id=${socioId}`)
+    setCopiadoCompletar(socioId)
+    toast.success('Link para completar copiado — enviáselo al socio')
+    setTimeout(() => setCopiadoCompletar(null), 2000)
   }
 
   const compartirWhatsApp = () => {
@@ -567,6 +577,11 @@ export default function SociosPage() {
                             className="transition hover:text-[var(--orange-2)]" style={{ color: 'var(--icon)' }} title="Ver ficha e indicadores">
                             <Eye size={15} />
                           </Link>
+                          <button onClick={() => copiarLinkCompletar(socio.id)}
+                            className="transition hover:text-[var(--orange-2)]" style={{ color: copiadoCompletar === socio.id ? '#22c55e' : 'var(--icon)' }}
+                            title="Copiar link para que el socio complete/edite su ficha">
+                            {copiadoCompletar === socio.id ? <Check size={15} /> : <Send size={15} />}
+                          </button>
                           <Link href={`/dashboard/socios/${socio.id}`}
                             className="transition hover:text-blue-400" style={{ color: 'var(--icon)' }} title="Editar">
                             <Pencil size={15} />

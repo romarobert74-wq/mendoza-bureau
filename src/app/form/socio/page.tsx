@@ -2,6 +2,7 @@
 
 import { Fraunces, Manrope } from 'next/font/google'
 import { Suspense, useState, useRef, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { crearSocio, getConfigSistema } from '@/lib/firestore'
 import type { ItemLista } from '@/lib/firestore'
 import { uploadImage } from '@/lib/storage'
@@ -189,11 +190,14 @@ function FormSocio() {
   }, [])
 
   // Al enviar con éxito, redirige a servicios adicionales tras unos segundos
+  const searchParams = useSearchParams()
+  const editId = searchParams.get('id')
+
   useEffect(() => {
-    if (!done) return
+    if (!done || editId) return   // al completar/editar no redirigimos a servicios
     const t = setTimeout(() => { window.location.href = '/servicios-adicionales' }, 7000)
     return () => clearTimeout(t)
-  }, [done])
+  }, [done, editId])
 
   // Campos generales
   const [form, setForm] = useState({
@@ -237,6 +241,40 @@ function FormSocio() {
     if (updates.servicioData) setServicioData(updates.servicioData)
   }
 
+  // ── Modo "completar / editar": carga los datos ya guardados por id ──
+  const [cargandoEdit, setCargandoEdit] = useState(!!editId)
+  useEffect(() => {
+    if (!editId) return
+    fetch(`/api/socio/${editId}`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(({ socio }) => {
+        if (socio) {
+          setForm({
+            razonSocial: socio.razonSocial || '',
+            infoGeneral: socio.infoGeneral || '',
+            categoria: (socio.categoria || 'bodega') as CategoriaSocio,
+            direccion: socio.direccion || '',
+            departamento: socio.departamento || '',
+            ubicacionUrl: socio.ubicacionUrl || '',
+            fotoPortada: socio.fotoPortada || '',
+            logoUrl: socio.logoUrl || '',
+            whatsapp: socio.contacto?.whatsapp || '',
+            email: socio.contacto?.email || '',
+            web: socio.contacto?.web || '',
+            redes: socio.contacto?.redes || '',
+          })
+          if (Array.isArray(socio.salones)) setSalones(socio.salones)
+          if (socio.hotelData) setHotelData({ ...HOTEL_VACIO(), ...socio.hotelData })
+          if (socio.restauranteData) setRestauranteData({ ...RESTAURANTE_VACIO(), ...socio.restauranteData })
+          if (socio.bodegaData) setBodegaData({ ...BODEGA_VACIA(), ...socio.bodegaData })
+          if (socio.alojamientoData) setAlojamientoData({ ...ALOJAMIENTO_VACIO(), ...socio.alojamientoData })
+          if (socio.servicioData) setServicioData({ ...SERVICIO_VACIO(), ...socio.servicioData })
+        }
+        setCargandoEdit(false)
+      })
+      .catch(() => setCargandoEdit(false))
+  }, [editId])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSending(true)
@@ -264,7 +302,17 @@ function FormSocio() {
         alojamientoData,
         servicioData,
       }
-      await crearSocio(data)
+      if (editId) {
+        // Completar / editar: actualiza el socio existente (no crea duplicado)
+        const res = await fetch('/api/socio-editar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editId, data }),
+        })
+        if (!res.ok) throw new Error('update')
+      } else {
+        await crearSocio(data)
+      }
       setDone(true)
     } catch {
       setError('Hubo un error al enviar. Por favor intentá de nuevo.')
@@ -280,18 +328,37 @@ function FormSocio() {
         <div style={{ width: 82, height: 82, borderRadius: '50%', background: 'rgba(34,197,94,0.1)', border: '2px solid rgba(34,197,94,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <CheckCircle size={42} color="#4ade80" />
         </div>
-        <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: 'clamp(24px,5vw,34px)', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>¡Gracias! Datos recibidos</h2>
+        <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: 'clamp(24px,5vw,34px)', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>
+          {editId ? '¡Datos actualizados!' : '¡Gracias! Datos recibidos'}
+        </h2>
         <p style={{ fontSize: '15px', color: '#94a3b8', maxWidth: '440px', margin: 0, lineHeight: 1.6 }}>
-          Tu información fue enviada con éxito. En breve la revisaremos y la verás reflejada en el tour virtual.
+          {editId
+            ? 'Actualizamos tu ficha con los cambios. Ya podés cerrar esta ventana; Mendoza Bureau revisará la información.'
+            : 'Tu información fue enviada con éxito. En breve la revisaremos y la verás reflejada en el tour virtual.'}
         </p>
-        <p style={{ fontSize: '14px', color: '#cbd5e1', maxWidth: '440px', margin: '4px 0 0', lineHeight: 1.6 }}>
-          Antes de irte: <b style={{ color: ORANGE }}>coordiná el día de tu relevamiento</b> y descubrí cómo potenciar tu recorrido con más panoramas, videos y experiencias.
-        </p>
-        <a href="/servicios-adicionales"
-          style={{ marginTop: 10, display: 'inline-block', background: `linear-gradient(135deg, ${ORANGE}, #ffa057)`, color: '#fff', fontWeight: 700, fontSize: '15px', padding: '14px 28px', borderRadius: 999, textDecoration: 'none', boxShadow: `0 8px 24px ${ORANGE}44` }}>
-          Coordinar relevamiento y ver servicios →
-        </a>
-        <p style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>Te llevamos ahí en unos segundos…</p>
+        {!editId && (
+          <>
+            <p style={{ fontSize: '14px', color: '#cbd5e1', maxWidth: '440px', margin: '4px 0 0', lineHeight: 1.6 }}>
+              Antes de irte: <b style={{ color: ORANGE }}>coordiná el día de tu relevamiento</b> y descubrí cómo potenciar tu recorrido con más panoramas, videos y experiencias.
+            </p>
+            <a href="/servicios-adicionales"
+              style={{ marginTop: 10, display: 'inline-block', background: `linear-gradient(135deg, ${ORANGE}, #ffa057)`, color: '#fff', fontWeight: 700, fontSize: '15px', padding: '14px 28px', borderRadius: 999, textDecoration: 'none', boxShadow: `0 8px 24px ${ORANGE}44` }}>
+              Coordinar relevamiento y ver servicios →
+            </a>
+            <p style={{ fontSize: '12px', color: '#475569', marginTop: '4px' }}>Te llevamos ahí en unos segundos…</p>
+          </>
+        )}
+      </div>
+    )
+  }
+
+  // Pantalla de carga mientras se traen los datos a completar/editar
+  if (cargandoEdit) {
+    return (
+      <div className={`${display.variable} ${sans.variable}`} style={{ minHeight: '100vh', background: '#0e0a0c', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <img src={LOGO_BUREAU} alt="Mendoza Bureau" style={{ height: 64, objectFit: 'contain' }} />
+        <Loader2 size={26} color={ORANGE} style={{ animation: 'spin 0.8s linear infinite' }} />
+        <p style={{ color: '#94a3b8', fontSize: 14 }}>Cargando tus datos…</p>
       </div>
     )
   }
