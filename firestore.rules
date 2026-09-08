@@ -74,8 +74,9 @@ service cloud.firestore {
       allow write: if isElFaro();
     }
     // Resto de la configuración: pública para lectura, EXCEPTO los sensibles de arriba.
+    // El superadmin (el_faro) puede leer/listar TODO (necesario para los backups).
     match /configuracion/{docId} {
-      allow read: if docId != 'chatbot' && docId != 'chatbot_uso' && docId != 'migracion';
+      allow read: if isElFaro() || (docId != 'chatbot' && docId != 'chatbot_uso' && docId != 'migracion');
       allow write: if isElFaro();
     }
 
