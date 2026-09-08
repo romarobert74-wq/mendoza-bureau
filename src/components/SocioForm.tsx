@@ -182,6 +182,77 @@ function BotonIcono({ control, index, setValue }: {
 
 // Una fila de la botonera. Según la acción muestra el campo panorama o el aviso
 // de que el botón usa el WhatsApp del socio.
+// Una fila de sub-botón (submenú): texto + panorama + ícono
+function SubBotonRow({ index, j, register, control, setValue, isFirst, isLast, onUp, onDown, onRemove }: {
+  index: number; j: number
+  register: UseFormRegister<SocioFormData>
+  control: Control<SocioFormData>
+  setValue: UseFormSetValue<SocioFormData>
+  isFirst: boolean; isLast: boolean
+  onUp: () => void; onDown: () => void; onRemove: () => void
+}) {
+  const val = (useWatch({ control, name: `botonera.${index}.subbotones.${j}.icono` }) as string) ?? ''
+  const btnMini = { background: '#1a2235', border: '1px solid #1e293b', color: '#94a3b8' } as const
+  return (
+    <div className="rounded-md p-2 flex flex-col md:flex-row md:items-end gap-2"
+      style={{ background: '#0b1220', border: '1px solid #1e293b' }}>
+      <div className="flex-1">
+        <label className={lbl} style={lbl_color}>Texto</label>
+        <input {...register(`botonera.${index}.subbotones.${j}.etiqueta` as const)} className="input" placeholder="Suite" />
+      </div>
+      <div className="flex-1">
+        <label className={lbl} style={lbl_color}>Panorama 3DVista</label>
+        <input {...register(`botonera.${index}.subbotones.${j}.panorama` as const)} className="input" placeholder="suite" />
+      </div>
+      <div style={{ minWidth: 150 }}>
+        <label className={lbl} style={lbl_color}>Ícono</label>
+        <IconoPicker value={val} onChange={k => setValue(`botonera.${index}.subbotones.${j}.icono`, k, { shouldDirty: true })} />
+      </div>
+      <div className="flex gap-1 pb-0.5">
+        <button type="button" title="Subir" disabled={isFirst} onClick={onUp}
+          className="w-8 h-9 rounded-lg flex items-center justify-center disabled:opacity-30" style={btnMini}><ArrowUp size={13} /></button>
+        <button type="button" title="Bajar" disabled={isLast} onClick={onDown}
+          className="w-8 h-9 rounded-lg flex items-center justify-center disabled:opacity-30" style={btnMini}><ArrowDown size={13} /></button>
+        <button type="button" title="Eliminar" onClick={onRemove}
+          className="w-8 h-9 rounded-lg flex items-center justify-center"
+          style={{ background: '#2a1520', border: '1px solid #7f1d1d', color: '#f87171' }}><X size={13} /></button>
+      </div>
+    </div>
+  )
+}
+
+// Editor de sub-botones (submenú desplegable) de un botón
+function SubBotones({ index, register, control, setValue }: {
+  index: number
+  register: UseFormRegister<SocioFormData>
+  control: Control<SocioFormData>
+  setValue: UseFormSetValue<SocioFormData>
+}) {
+  const subs = useFieldArray({ control, name: `botonera.${index}.subbotones` as 'botonera.0.subbotones' })
+  return (
+    <details className="rounded-lg" style={{ border: '1px dashed #334155', padding: '8px 10px' }}>
+      <summary style={{ cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#94a3b8', userSelect: 'none' }}>
+        Submenú {subs.fields.length > 0 ? `· ${subs.fields.length} sub-botón${subs.fields.length > 1 ? 'es' : ''}` : '(sin sub-botones)'}
+      </summary>
+      <p className="text-xs mt-2" style={{ color: '#64748b' }}>
+        Al tocar este botón en el tour, en vez de saltar, se abre un submenú con estos sub-botones (ej: tipos de habitación) y un botón “Atrás”.
+      </p>
+      <div className="flex flex-col gap-2 mt-2">
+        {subs.fields.map((f, j) => (
+          <SubBotonRow key={f.id} index={index} j={j} register={register} control={control} setValue={setValue}
+            isFirst={j === 0} isLast={j === subs.fields.length - 1}
+            onUp={() => subs.move(j, j - 1)} onDown={() => subs.move(j, j + 1)} onRemove={() => subs.remove(j)} />
+        ))}
+        <button type="button" onClick={() => subs.append({ etiqueta: '', panorama: '', icono: '' })}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition w-fit"
+          style={{ background: '#1a2235', border: '1px solid #1e293b', color: '#94a3b8' }}>
+          <Plus size={13} /> Agregar sub-botón
+        </button>
+      </div>
+    </details>
+  )
+}
+
 function BotonRow({ index, register, control, setValue, isFirst, isLast, onUp, onDown, onRemove }: {
   index: number
   register: UseFormRegister<SocioFormData>
@@ -261,6 +332,9 @@ function BotonRow({ index, register, control, setValue, isFirst, isLast, onUp, o
           </button>
         </div>
       </div>
+
+      {/* Submenú de sub-botones (solo para botones de panorama) */}
+      {!esWhats && <SubBotones index={index} register={register} control={control} setValue={setValue} />}
     </div>
   )
 }
@@ -310,15 +384,25 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
       tripadvisorUrl: data.tripadvisorUrl ?? '',
       videos: (data.videos ?? []).map(v => (v ?? '').toString().trim()).filter(Boolean),
       botonera: (data.botonera ?? [])
-        .map(b => ({
-          etiqueta: (b.etiqueta ?? '').toString().trim(),
-          panorama: (b.panorama ?? '').toString().trim(),
-          icono: (b.icono ?? '').toString().trim(),
-          grupo: (b.grupo ?? '').toString().trim(),
-          tipo: (b.tipo === 'whatsapp' ? 'whatsapp' : 'panorama') as 'panorama' | 'whatsapp',
-        }))
-        // Panorama: requiere nombre. WhatsApp: solo requiere etiqueta.
-        .filter(b => b.etiqueta && (b.tipo === 'whatsapp' || b.panorama)),
+        .map(b => {
+          const subbotones = (b.subbotones ?? [])
+            .map(s => ({
+              etiqueta: (s.etiqueta ?? '').toString().trim(),
+              panorama: (s.panorama ?? '').toString().trim(),
+              icono: (s.icono ?? '').toString().trim(),
+            }))
+            .filter(s => s.etiqueta && s.panorama)
+          return {
+            etiqueta: (b.etiqueta ?? '').toString().trim(),
+            panorama: (b.panorama ?? '').toString().trim(),
+            icono: (b.icono ?? '').toString().trim(),
+            grupo: (b.grupo ?? '').toString().trim(),
+            tipo: (b.tipo === 'whatsapp' ? 'whatsapp' : 'panorama') as 'panorama' | 'whatsapp',
+            subbotones,
+          }
+        })
+        // Válido si: WhatsApp con etiqueta / panorama con nombre / botón con submenú.
+        .filter(b => b.etiqueta && (b.tipo === 'whatsapp' || b.panorama || b.subbotones.length > 0)),
       salones,
       hotelData,
       restauranteData,

@@ -495,12 +495,20 @@ export interface Usuario {
 // Botón de la botonera "Ir a" del tour.
 // tipo 'panorama' (default): salta a un panorama del tour.
 // tipo 'whatsapp': abre el WhatsApp del socio (CTA "Reservar ahora").
+export interface SubBotonPano {
+  etiqueta: string   // texto visible (ej: "Suite", "Doble")
+  panorama: string   // nombre EXACTO del panorama en 3DVista
+  icono?: string     // clave de ícono (ver ICONOS_BOTONERA)
+}
+
 export interface BotonPano {
   etiqueta: string   // texto visible (ej: "Recepción", "Reservar ahora")
   panorama: string   // nombre EXACTO del panorama en 3DVista (solo si tipo panorama)
   icono?: string     // clave de ícono (ver ICONOS_BOTONERA)
   grupo?: string     // solapa/categoría opcional (ej: "Bodega")
   tipo?: 'panorama' | 'whatsapp'  // acción del botón (default: panorama)
+  // Si tiene sub-botones, al tocarlo se despliega un segundo nivel (ej: tipos de habitación)
+  subbotones?: SubBotonPano[]
 }
 
 // Íconos disponibles para la botonera (clave → etiqueta en el panel)

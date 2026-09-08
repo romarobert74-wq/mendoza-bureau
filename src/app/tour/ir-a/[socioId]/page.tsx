@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   DoorOpen, BedDouble, Waves, Wine, Grape, Utensils, Flower2, Dumbbell,
   PartyPopper, Sofa, Images, Sunset, Umbrella, ShoppingBag, MapPin, Sparkles,
-  MessageCircle, CalendarDays, ChevronRight,
+  MessageCircle, CalendarDays, ChevronRight, ChevronLeft,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { BotonPano, CategoriaSocio } from '@/types'
@@ -38,6 +38,7 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
   const [nombre, setNombre] = useState('')
   const [error, setError] = useState(false)
   const [grupoActivo, setGrupoActivo] = useState<string>('')
+  const [submenu, setSubmenu] = useState<BotonPano | null>(null)
 
   useEffect(() => {
     let vivo = true
@@ -89,6 +90,7 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
   }
 
   const onBoton = (b: BotonPano) => {
+    if (b.subbotones && b.subbotones.length > 0) { setSubmenu(b); return }
     if (b.tipo === 'whatsapp') abrirWhatsapp()
     else irA(b.panorama)
   }
@@ -116,44 +118,75 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
     <div style={{ ...S.wrap, ...catVars }}>
       <style>{CSS}</style>
       <div style={S.card} className="card">
-        <div style={S.head}>
-          <div style={S.title}>¿A dónde querés ir?</div>
-          <div style={S.sub}>Elegí un lugar del recorrido</div>
-        </div>
+        {submenu ? (
+          <>
+            <button className="back" onClick={() => setSubmenu(null)}>
+              <ChevronLeft size={16} /> Atrás
+            </button>
+            <div style={S.head}>
+              <div style={S.title}>{submenu.etiqueta}</div>
+              <div style={S.sub}>Elegí una opción</div>
+            </div>
+            <div className="grid">
+              {(submenu.subbotones ?? []).map((s, i) => {
+                const Ic = s.icono ? ICON[s.icono] : undefined
+                return (
+                  <button key={i} className="btn-go" onClick={() => irA(s.panorama)}>
+                    <span style={S.left}>
+                      {Ic && <span className="ic"><Ic size={20} /></span>}
+                      <span>{s.etiqueta}</span>
+                    </span>
+                    <ChevronRight size={18} className="chev" />
+                  </button>
+                )
+              })}
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={S.head}>
+              <div style={S.title}>¿A dónde querés ir?</div>
+              <div style={S.sub}>Elegí un lugar del recorrido</div>
+            </div>
 
-        {botones === null && !error && <div style={S.info}>Cargando…</div>}
-        {error && <div style={S.info}>No se pudo cargar la botonera.</div>}
-        {botones !== null && botones.length === 0 && (
-          <div style={S.info}>Este tour todavía no tiene botones cargados.</div>
-        )}
+            {botones === null && !error && <div style={S.info}>Cargando…</div>}
+            {error && <div style={S.info}>No se pudo cargar la botonera.</div>}
+            {botones !== null && botones.length === 0 && (
+              <div style={S.info}>Este tour todavía no tiene botones cargados.</div>
+            )}
 
-        {grupos.length > 1 && (
-          <div style={S.tabs}>
-            {grupos.map(g => (
-              <button key={g} onClick={() => setGrupoActivo(g)}
-                className={'tab' + (g === grupoActivo ? ' on' : '')}>
-                {g}
-              </button>
-            ))}
-          </div>
-        )}
+            {grupos.length > 1 && (
+              <div style={S.tabs}>
+                {grupos.map(g => (
+                  <button key={g} onClick={() => setGrupoActivo(g)}
+                    className={'tab' + (g === grupoActivo ? ' on' : '')}>
+                    {g}
+                  </button>
+                ))}
+              </div>
+            )}
 
-        {visibles.length > 0 && (
-          <div className="grid">
-            {visibles.map((b, i) => {
-              const esWhats = b.tipo === 'whatsapp'
-              const Ic = esWhats ? MessageCircle : (b.icono ? ICON[b.icono] : undefined)
-              return (
-                <button key={i} className={esWhats ? 'btn-go wa' : 'btn-go'} onClick={() => onBoton(b)}>
-                  <span style={S.left}>
-                    {Ic && <span className="ic"><Ic size={20} /></span>}
-                    <span>{b.etiqueta}</span>
-                  </span>
-                  <ChevronRight size={18} className="chev" />
-                </button>
-              )
-            })}
-          </div>
+            {visibles.length > 0 && (
+              <div className="grid">
+                {visibles.map((b, i) => {
+                  const esWhats = b.tipo === 'whatsapp'
+                  const tieneSub = !!(b.subbotones && b.subbotones.length > 0)
+                  const Ic = esWhats ? MessageCircle : (b.icono ? ICON[b.icono] : undefined)
+                  return (
+                    <button key={i} className={esWhats ? 'btn-go wa' : 'btn-go'} onClick={() => onBoton(b)}>
+                      <span style={S.left}>
+                        {Ic && <span className="ic"><Ic size={20} /></span>}
+                        <span>{b.etiqueta}</span>
+                      </span>
+                      {tieneSub
+                        ? <ChevronRight size={18} className="chev" style={{ opacity: .85 }} />
+                        : <ChevronRight size={18} className="chev" />}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
@@ -180,6 +213,10 @@ const S: Record<string, React.CSSProperties> = {
 const CSS = `
   .card{ transition:opacity .25s ease, transform .25s ease; }
   .card.saliendo{ opacity:0; transform:translateY(8px) scale(.98); pointer-events:none; }
+  .back{ display:inline-flex; align-items:center; gap:5px; margin-bottom:12px; padding:7px 13px;
+    border-radius:999px; cursor:pointer; font-size:13px; font-weight:700; color:var(--cat,#ffb37a);
+    background:var(--cat-bg, rgba(255,106,61,.14)); border:1px solid var(--cat-bd, rgba(255,106,61,.4)); }
+  .back:hover{ filter:brightness(1.15); }
 
   .grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 
