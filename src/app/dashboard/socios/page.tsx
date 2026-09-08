@@ -11,6 +11,7 @@ import toast from 'react-hot-toast'
 import {
   Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, Zap, Loader2, MessageCircle,
   Clock, Copy, Check, Eye, MousePointerClick, Globe as GlobeIcon, Timer, ArrowUp, ArrowDown, ArrowUpDown, Link2, Download, CalendarDays,
+  BarChart3, ChevronDown,
 } from 'lucide-react'
 import { doc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -47,6 +48,7 @@ export default function SociosPage() {
   // Rango de fechas para las métricas (null = sin límite)
   const [desde, setDesde] = useState('')   // 'YYYY-MM-DD'
   const [hasta, setHasta] = useState('')
+  const [mostrarMetricas, setMostrarMetricas] = useState(false)
 
   const ordenarPor = (col: Columna) => {
     setOrden(o => o.col === col ? { col, dir: o.dir === 'asc' ? 'desc' : 'asc' } : { col, dir: 'asc' })
@@ -304,6 +306,13 @@ export default function SociosPage() {
           <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{socios.length} socios registrados</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
+          <button onClick={() => setMostrarMetricas(v => !v)} className="btn-outline"
+            title="Mostrar u ocultar las métricas"
+            style={mostrarMetricas ? { borderColor: 'rgba(241,90,36,0.5)', color: 'var(--orange-2)' } : undefined}>
+            <BarChart3 size={15} />
+            Métricas
+            <ChevronDown size={14} style={{ transform: mostrarMetricas ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+          </button>
           {puedeEditar && (
             <button onClick={exportarExcel} className="btn-outline" title="Exportar la lista filtrada a Excel">
               <Download size={15} />
@@ -340,6 +349,9 @@ export default function SociosPage() {
         })}
       </div>
 
+      {/* ── Métricas (colapsables detrás del botón "Métricas") ── */}
+      {mostrarMetricas && (
+      <>
       {/* Filtro de período para las métricas */}
       <div className="flex flex-wrap items-end gap-3 mb-4 p-3 rounded-xl" style={{ background: 'var(--bg-elev)', border: '1px solid var(--border)' }}>
         <div className="flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
@@ -468,6 +480,8 @@ export default function SociosPage() {
             </div>
           </div>
         </>
+      )}
+      </>
       )}
 
       {/* Search */}
