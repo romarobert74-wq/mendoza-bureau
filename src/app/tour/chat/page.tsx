@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Send, Utensils, Hotel, Wrench, Package, Wine } from 'lucide-react'
+import { Send, Utensils, Hotel, Wrench, Package, Wine, PartyPopper, Presentation, Cpu, Bus, Luggage } from 'lucide-react'
 
 function renderMensaje(texto: string) {
   const partes = texto.split('\n')
@@ -79,7 +79,12 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
   restaurante: <Utensils size={18} />,
   hotel: <Hotel size={18} />,
   alojamiento: <Hotel size={18} />,
+  salon: <PartyPopper size={18} />,
   servicio: <Wrench size={18} />,
+  eventos: <Presentation size={18} />,
+  tecnologia: <Cpu size={18} />,
+  transporte: <Bus size={18} />,
+  viajes: <Luggage size={18} />,
   otro: <Package size={18} />,
 }
 
@@ -88,7 +93,12 @@ const CAT_LABELS: Record<string, string> = {
   restaurante: 'Restaurantes',
   hotel: 'Hoteles',
   alojamiento: 'Alojamiento',
+  salon: 'Salones',
   servicio: 'Servicios',
+  eventos: 'Organización de Eventos',
+  tecnologia: 'Tecnología',
+  transporte: 'Transporte',
+  viajes: 'Viajes y Turismo',
   otro: 'Otros',
 }
 
@@ -97,7 +107,12 @@ const CAT_COLORS: Record<string, string> = {
   restaurante: '#F59E0B',
   hotel: '#3B82F6',
   alojamiento: '#10B981',
-  servicio: '#6366F1',
+  salon: '#ec4899',
+  servicio: '#eab308',
+  eventos: '#06b6d4',
+  tecnologia: '#6366f1',
+  transporte: '#ef4444',
+  viajes: '#14b8a6',
   otro: '#6B7280',
 }
 

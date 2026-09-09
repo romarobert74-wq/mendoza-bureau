@@ -54,11 +54,13 @@ const DEFAULT_BRAND = '#E85D04'
 const DEFAULT_BRAND2 = '#C0391B'
 const CAT_LABELS: Record<string, string> = {
   bodega: 'Bodegas', restaurante: 'Restaurantes', hotel: 'Hoteles',
-  alojamiento: 'Alojamiento', servicio: 'Servicios', otro: 'Otros',
+  alojamiento: 'Alojamiento', salon: 'Salones', servicio: 'Servicios',
+  eventos: 'Organización de Eventos', tecnologia: 'Tecnología', transporte: 'Transporte', viajes: 'Viajes y Turismo', otro: 'Otros',
 }
 const CAT_COLORS: Record<string, string> = {
   bodega: '#A855F7', restaurante: '#F59E0B', hotel: '#3B82F6',
-  alojamiento: '#10B981', servicio: '#6366F1', otro: '#6B7280',
+  alojamiento: '#10B981', salon: '#ec4899', servicio: '#eab308',
+  eventos: '#06b6d4', tecnologia: '#6366f1', transporte: '#ef4444', viajes: '#14b8a6', otro: '#6B7280',
 }
 
 const CONFIG_DEFAULT: Config = {

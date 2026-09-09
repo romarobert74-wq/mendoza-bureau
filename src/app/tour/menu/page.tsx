@@ -46,7 +46,8 @@ const CATEGORIAS = [
 // Etiqueta corta (singular) para el chip de la tarjeta
 const CAT_LABEL_CORTA: Record<string, string> = {
   bodega: 'Bodega', restaurante: 'Restaurante', hotel: 'Hotel',
-  alojamiento: 'Alojamiento', servicio: 'Servicio', otro: 'Otro',
+  alojamiento: 'Alojamiento', salon: 'Salón', servicio: 'Servicio',
+  eventos: 'Eventos', tecnologia: 'Tecnología', transporte: 'Transporte', viajes: 'Viajes', otro: 'Otro',
 }
 
 // Sinónimos para buscar por rubro (ej: "vino" → bodegas)
@@ -55,7 +56,11 @@ const CAT_SINONIMOS: Record<string, string[]> = {
   restaurante: ['comida', 'comer', 'restaurante', 'restaurant', 'gastronomia', 'gastronomía', 'cena', 'almuerzo'],
   hotel: ['hotel', 'hoteles', 'hospedaje', 'alojarse'],
   alojamiento: ['alojamiento', 'cabaña', 'cabana', 'hostel', 'posada', 'departamento', 'airbnb'],
-  servicio: ['servicio', 'servicios', 'transporte', 'turismo', 'excursion', 'excursión'],
+  servicio: ['servicio', 'servicios', 'proveedor'],
+  eventos: ['evento', 'eventos', 'organizacion', 'organización', 'fiesta', 'congreso', 'convencion', 'convención', 'mice'],
+  tecnologia: ['tecnologia', 'tecnología', 'tech', 'audio', 'sonido', 'pantalla', 'streaming', 'iluminacion', 'iluminación'],
+  transporte: ['transporte', 'transfer', 'traslado', 'micro', 'combi', 'movilidad', 'bus'],
+  viajes: ['viajes', 'turismo', 'excursion', 'excursión', 'agencia', 'tour', 'paseo'],
   otro: ['otro', 'otros'],
 }
 
@@ -64,7 +69,12 @@ const CAT_COLORS: Record<string, string> = {
   restaurante: '#F59E0B',
   hotel: '#3B82F6',
   alojamiento: '#10B981',
-  servicio: '#6366F1',
+  salon: '#ec4899',
+  servicio: '#eab308',
+  eventos: '#06b6d4',
+  tecnologia: '#6366f1',
+  transporte: '#ef4444',
+  viajes: '#14b8a6',
   otro: '#6B7280',
 }
 

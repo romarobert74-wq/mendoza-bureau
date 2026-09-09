@@ -432,8 +432,9 @@ function AlojamientoSection({ socio }: { socio: Socio }) {
   )
 }
 
+const CATEGORIAS_SERVICIO_FICHA = ['servicio', 'eventos', 'tecnologia', 'transporte', 'viajes']
 function ServicioSection({ socio }: { socio: Socio }) {
-  if (socio.categoria !== 'servicio') return null
+  if (!CATEGORIAS_SERVICIO_FICHA.includes(socio.categoria)) return null
   const d = (socio.servicioData ?? {}) as Partial<NonNullable<Socio['servicioData']>>
   return (
     <div>
@@ -558,6 +559,7 @@ function FichaPage() {
 
   const CATEGORY_EMOJI: Record<string, string> = {
     hotel: '🏨', restaurante: '🍽️', bodega: '🍷', alojamiento: '🏡', servicio: '🎯',
+    salon: '🎉', eventos: '🎪', tecnologia: '💻', transporte: '🚌', viajes: '🧳',
   }
 
   // Videos (YouTube / Vimeo) → { embed, thumb }

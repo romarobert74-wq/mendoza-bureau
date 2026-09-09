@@ -9,6 +9,7 @@ import type { Socio, CategoriaSocio } from '@/types'
 import {
   MapPin, Users, CheckCircle, MousePointerClick, Eye, Clock,
   Wine, UtensilsCrossed, BedDouble, Building2, PartyPopper, Wrench, Package,
+  Presentation, Cpu, Bus, Luggage,
 } from 'lucide-react'
 
 const CAT_ICON: Record<CategoriaSocio, React.ElementType> = {
@@ -18,6 +19,10 @@ const CAT_ICON: Record<CategoriaSocio, React.ElementType> = {
   alojamiento: BedDouble,
   salon: PartyPopper,
   servicio: Wrench,
+  eventos: Presentation,
+  tecnologia: Cpu,
+  transporte: Bus,
+  viajes: Luggage,
   otro: Package,
 }
 
@@ -66,7 +71,8 @@ export default function DashboardPage() {
 
   // Clicks de tour por categoría (join analytics.porSocio → socio.categoria)
   const clicksPorCategoria: Record<CategoriaSocio, number> = {
-    bodega: 0, restaurante: 0, hotel: 0, alojamiento: 0, salon: 0, servicio: 0, otro: 0,
+    bodega: 0, restaurante: 0, hotel: 0, alojamiento: 0, salon: 0, servicio: 0,
+    eventos: 0, tecnologia: 0, transporte: 0, viajes: 0, otro: 0,
   }
   if (socios && analytics) {
     for (const s of socios) {

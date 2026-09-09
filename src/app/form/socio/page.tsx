@@ -364,7 +364,7 @@ function FormSocio() {
   }
 
   const categoriaLabel = CATEGORIAS[form.categoria]
-  const hasCategoryFields = ['hotel', 'restaurante', 'bodega', 'alojamiento', 'servicio'].includes(form.categoria)
+  const hasCategoryFields = ['hotel', 'restaurante', 'bodega', 'alojamiento', 'servicio', 'eventos', 'tecnologia', 'transporte', 'viajes'].includes(form.categoria)
 
   return (
     <div className={`${display.variable} ${sans.variable}`} style={{

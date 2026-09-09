@@ -9,6 +9,10 @@ export type CategoriaSocio =
   | 'alojamiento'
   | 'salon'
   | 'servicio'
+  | 'eventos'
+  | 'tecnologia'
+  | 'transporte'
+  | 'viajes'
   | 'otro'
 
 export type TipoSalon =
@@ -584,6 +588,10 @@ export const CATEGORIAS: Record<CategoriaSocio, string> = {
   alojamiento: 'Alojamiento',
   salon: 'Salón de Eventos',
   servicio: 'Servicio',
+  eventos: 'Organización de Eventos',
+  tecnologia: 'Tecnología',
+  transporte: 'Transporte',
+  viajes: 'Viajes y Turismo',
   otro: 'Otro',
 }
 
@@ -595,6 +603,10 @@ export const CATEGORIA_COLOR: Record<CategoriaSocio, string> = {
   alojamiento: '#22c55e',
   salon: '#ec4899',
   servicio: '#eab308',
+  eventos: '#06b6d4',
+  tecnologia: '#6366f1',
+  transporte: '#ef4444',
+  viajes: '#14b8a6',
   otro: '#8a8a91',
 }
 
