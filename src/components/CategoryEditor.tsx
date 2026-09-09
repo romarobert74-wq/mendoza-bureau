@@ -468,10 +468,10 @@ const CATEGORY_LABELS: Partial<Record<CategoriaSocio, { title: string; sub: stri
   bodega: { title: 'Datos de la Bodega', sub: 'Completá la ficha técnica para el turismo MICE y comparador', emoji: '🍷' },
   alojamiento: { title: 'Datos del Alojamiento', sub: 'Completá la ficha técnica para el directorio', emoji: '🏡' },
   servicio: { title: 'Datos del Servicio', sub: 'Completá la ficha técnica del proveedor', emoji: '🚌' },
-  eventos: { title: 'Datos de Organización de Eventos', sub: 'Completá la ficha técnica del proveedor', emoji: '🎪' },
-  tecnologia: { title: 'Datos del Servicio de Tecnología', sub: 'Completá la ficha técnica del proveedor', emoji: '💻' },
-  transporte: { title: 'Datos del Servicio de Transporte', sub: 'Completá la ficha técnica del proveedor', emoji: '🚌' },
-  viajes: { title: 'Datos de Viajes y Turismo', sub: 'Completá la ficha técnica del proveedor', emoji: '🧳' },
+  eventos: { title: 'Organización de Congresos y Eventos (OPC/OPE)', sub: 'Completá la ficha técnica del proveedor', emoji: '🎪' },
+  tecnologia: { title: 'Tecnología, Audiovisual y Exposiciones', sub: 'Completá la ficha técnica del proveedor', emoji: '💻' },
+  transporte: { title: 'Transporte y Logística', sub: 'Completá la ficha técnica del proveedor', emoji: '🚌' },
+  viajes: { title: 'Viajes y Turismo', sub: 'Completá la ficha técnica del proveedor', emoji: '🧳' },
 }
 
 export function CategoryEditor({ categoria, hotelData, restauranteData, bodegaData, alojamientoData, servicioData, departamentos, onChange }: CategoryEditorProps) {

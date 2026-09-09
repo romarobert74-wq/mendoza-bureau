@@ -95,9 +95,9 @@ const CAT_LABELS: Record<string, string> = {
   alojamiento: 'Alojamiento',
   salon: 'Salones',
   servicio: 'Servicios',
-  eventos: 'Organización de Eventos',
-  tecnologia: 'Tecnología',
-  transporte: 'Transporte',
+  eventos: 'Congresos y Eventos',
+  tecnologia: 'Tecnología y Audiovisual',
+  transporte: 'Transporte y Logística',
   viajes: 'Viajes y Turismo',
   otro: 'Otros',
 }

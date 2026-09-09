@@ -588,9 +588,9 @@ export const CATEGORIAS: Record<CategoriaSocio, string> = {
   alojamiento: 'Alojamiento',
   salon: 'Salón de Eventos',
   servicio: 'Servicio',
-  eventos: 'Organización de Eventos',
-  tecnologia: 'Tecnología',
-  transporte: 'Transporte',
+  eventos: 'Organización de Congresos y Eventos (OPC/OPE)',
+  tecnologia: 'Tecnología, Audiovisual y Exposiciones',
+  transporte: 'Transporte y Logística',
   viajes: 'Viajes y Turismo',
   otro: 'Otro',
 }

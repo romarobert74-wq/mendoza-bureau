@@ -55,7 +55,7 @@ const DEFAULT_BRAND2 = '#C0391B'
 const CAT_LABELS: Record<string, string> = {
   bodega: 'Bodegas', restaurante: 'Restaurantes', hotel: 'Hoteles',
   alojamiento: 'Alojamiento', salon: 'Salones', servicio: 'Servicios',
-  eventos: 'Organización de Eventos', tecnologia: 'Tecnología', transporte: 'Transporte', viajes: 'Viajes y Turismo', otro: 'Otros',
+  eventos: 'Congresos y Eventos', tecnologia: 'Tecnología y Audiovisual', transporte: 'Transporte y Logística', viajes: 'Viajes y Turismo', otro: 'Otros',
 }
 const CAT_COLORS: Record<string, string> = {
   bodega: '#A855F7', restaurante: '#F59E0B', hotel: '#3B82F6',
