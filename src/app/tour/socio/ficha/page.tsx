@@ -515,8 +515,9 @@ function FichaPage() {
     document.body.style.background = 'transparent'
     document.documentElement.style.background = 'transparent'
     if (!id) { setLoading(false); return }
-    // Una sola llamada cacheada en el edge (socio + fotos) → carga rapidísima
-    fetch(`/api/socio/${id}`)
+    // cache-busting (?t) + no-store: la ficha debe reflejar SIEMPRE los últimos
+    // datos guardados, sin quedar servida por la caché de CDN del endpoint.
+    fetch(`/api/socio/${id}?t=${Date.now()}`, { cache: 'no-store' })
       .then(r => r.ok ? r.json() : Promise.reject(r))
       .then((data: { socio: Socio; fotos: FotoSocio[] }) => {
         if (data.socio) setSocio(data.socio)

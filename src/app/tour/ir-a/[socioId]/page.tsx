@@ -42,7 +42,9 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
 
   useEffect(() => {
     let vivo = true
-    fetch(`/api/socio/${params.socioId}`)
+    // cache-busting (?t) + no-store: el webframe debe reflejar SIEMPRE la última
+    // botonera guardada, sin quedar servido por la caché de CDN del endpoint.
+    fetch(`/api/socio/${params.socioId}?t=${Date.now()}`, { cache: 'no-store' })
       .then(r => r.ok ? r.json() : Promise.reject())
       .then(d => {
         if (!vivo) return
