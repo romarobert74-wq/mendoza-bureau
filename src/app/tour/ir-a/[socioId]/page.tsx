@@ -97,14 +97,21 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
     else irA(b.panorama)
   }
 
+  // Si algún botón tiene grupo, los que NO tienen grupo caen en "General"
+  // (así nunca quedan ocultos al mezclar botones con y sin grupo).
+  const hayGrupos = (botones ?? []).some(b => (b.grupo ?? '').trim())
+  const grupoDe = (b: BotonPano) => (b.grupo ?? '').trim() || (hayGrupos ? 'General' : '')
+
   const grupos = useMemo(() => {
+    if (!hayGrupos) return []
     const gs: string[] = []
     for (const b of botones ?? []) {
-      const g = (b.grupo ?? '').trim()
+      const g = grupoDe(b)
       if (g && !gs.includes(g)) gs.push(g)
     }
     return gs
-  }, [botones])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [botones, hayGrupos])
 
   useEffect(() => {
     if (grupos.length && !grupoActivo) setGrupoActivo(grupos[0])
@@ -113,7 +120,8 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
   const visibles = useMemo(() => {
     const list = botones ?? []
     if (grupos.length === 0) return list
-    return list.filter(b => (b.grupo ?? '').trim() === grupoActivo)
+    return list.filter(b => grupoDe(b) === grupoActivo)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [botones, grupos, grupoActivo])
 
   return (
