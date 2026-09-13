@@ -125,18 +125,20 @@
   // Nombre del CONTENEDOR de la botonera en 3DVista (el que muestra/oculta el
   // botón "Ir a"). Debe llamarse así en tu skin. Si algún día lo renombrás,
   // agregá el nuevo nombre a esta lista.
-  var NOMBRES_CONTENEDOR = ['BOTONERA-PPAL', 'BOTONERA-PRINCIPAL', 'BOTONERA'];
+  var NOMBRES_CONTENEDOR = ['BOTONERA-CENTRAL', 'BOTONERA-PPAL', 'BOTONERA-PRINCIPAL', 'BOTONERA'];
   // Botón/es "X" de cerrar (si están FUERA del contenedor). Poné a tu botón X
   // en 3DVista alguno de estos nombres (label) y se ocultará junto con la botonera.
   var NOMBRES_CERRAR = ['BTN-CERRAR', 'CERRAR', 'X-CERRAR', 'CERRAR-IRA', 'BOTONERA-X'];
 
   // Oculta TODOS los componentes cuyo label esté en la lista (no solo el primero).
+  // Devuelve cuántos ocultó.
   function ocultarPorNombre(nombres) {
     var player = getPlayer();
-    if (!player || !player.getByClassName) return;
+    if (!player || !player.getByClassName) return 0;
     var clases = ['Container', 'Group', 'ViewerArea', 'WebFrame', 'Image',
                   'IconButton', 'ImageButton', 'TextBox', 'FlatPanoramaPlayer'];
     var objetivos = nombres.map(function (n) { return String(n).toLowerCase(); });
+    var n = 0;
     for (var c = 0; c < clases.length; c++) {
       var arr = [];
       try { arr = player.getByClassName(clases[c]) || []; } catch (e) {}
@@ -145,10 +147,11 @@
         try { lab = (arr[i].get('data') && arr[i].get('data').label) || ''; } catch (e) {}
         if (!lab) { try { lab = arr[i].get('id') || ''; } catch (e) {} }
         if (lab && objetivos.indexOf(String(lab).toLowerCase()) >= 0) {
-          try { arr[i].set('visible', false); } catch (e) {}
+          try { arr[i].set('visible', false); n++; } catch (e) {}
         }
       }
     }
+    return n;
   }
 
   // Busca un componente por su nombre/etiqueta entre varias clases de 3DVista.
@@ -174,20 +177,25 @@
   // Cierra la botonera ocultando el CONTENEDOR (no el webframe interno), que es
   // el mismo objeto que muestra el botón "Ir a". Así se puede reabrir siempre.
   function cerrarBotonera() {
-    // 1) Oculta el/los contenedor/es de la botonera.
-    ocultarPorNombre(NOMBRES_CONTENEDOR);
-    // 2) Oculta también el botón "X" de cerrar (si quedó fuera del contenedor).
+    // 1) Oculta el/los CONTENEDOR/es de la botonera (con esto se ocultan también
+    //    el webframe y la X que estén adentro, y la botonera puede reabrirse).
+    var ocultados = ocultarPorNombre(NOMBRES_CONTENEDOR);
+    // 2) Oculta el botón "X" de cerrar si quedó FUERA del contenedor.
     ocultarPorNombre(NOMBRES_CERRAR);
-    // 3) Respaldo: oculta cualquier webframe de la botonera por su URL.
-    try {
-      var player = getPlayer();
-      var wfs = (player && player.getByClassName) ? (player.getByClassName('WebFrame') || []) : [];
-      for (var i = 0; i < wfs.length; i++) {
-        var url = '';
-        try { url = wfs[i].get('url') || ''; } catch (e) {}
-        if (url.indexOf('/tour/ir-a') >= 0) { try { wfs[i].set('visible', false); } catch (e) {} }
-      }
-    } catch (e) {}
+    // 3) Respaldo SOLO si no se encontró ningún contenedor: oculta el webframe
+    //    de la botonera por su URL. (Evitamos ocultar el webframe cuando ya
+    //    ocultamos el contenedor, para no romper la reapertura.)
+    if (ocultados === 0) {
+      try {
+        var player = getPlayer();
+        var wfs = (player && player.getByClassName) ? (player.getByClassName('WebFrame') || []) : [];
+        for (var i = 0; i < wfs.length; i++) {
+          var url = '';
+          try { url = wfs[i].get('url') || ''; } catch (e) {}
+          if (url.indexOf('/tour/ir-a') >= 0) { try { wfs[i].set('visible', false); } catch (e) {} }
+        }
+      } catch (e) {}
+    }
   }
 
   window.addEventListener('message', function (ev) {
