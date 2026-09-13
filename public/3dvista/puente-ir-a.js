@@ -126,6 +126,30 @@
   // botón "Ir a"). Debe llamarse así en tu skin. Si algún día lo renombrás,
   // agregá el nuevo nombre a esta lista.
   var NOMBRES_CONTENEDOR = ['BOTONERA-PPAL', 'BOTONERA-PRINCIPAL', 'BOTONERA'];
+  // Botón/es "X" de cerrar (si están FUERA del contenedor). Poné a tu botón X
+  // en 3DVista alguno de estos nombres (label) y se ocultará junto con la botonera.
+  var NOMBRES_CERRAR = ['BTN-CERRAR', 'CERRAR', 'X-CERRAR', 'CERRAR-IRA', 'BOTONERA-X'];
+
+  // Oculta TODOS los componentes cuyo label esté en la lista (no solo el primero).
+  function ocultarPorNombre(nombres) {
+    var player = getPlayer();
+    if (!player || !player.getByClassName) return;
+    var clases = ['Container', 'Group', 'ViewerArea', 'WebFrame', 'Image',
+                  'IconButton', 'ImageButton', 'TextBox', 'FlatPanoramaPlayer'];
+    var objetivos = nombres.map(function (n) { return String(n).toLowerCase(); });
+    for (var c = 0; c < clases.length; c++) {
+      var arr = [];
+      try { arr = player.getByClassName(clases[c]) || []; } catch (e) {}
+      for (var i = 0; i < arr.length; i++) {
+        var lab = '';
+        try { lab = (arr[i].get('data') && arr[i].get('data').label) || ''; } catch (e) {}
+        if (!lab) { try { lab = arr[i].get('id') || ''; } catch (e) {} }
+        if (lab && objetivos.indexOf(String(lab).toLowerCase()) >= 0) {
+          try { arr[i].set('visible', false); } catch (e) {}
+        }
+      }
+    }
+  }
 
   // Busca un componente por su nombre/etiqueta entre varias clases de 3DVista.
   function hallarPorNombre(nombres) {
@@ -150,9 +174,11 @@
   // Cierra la botonera ocultando el CONTENEDOR (no el webframe interno), que es
   // el mismo objeto que muestra el botón "Ir a". Así se puede reabrir siempre.
   function cerrarBotonera() {
-    var cont = hallarPorNombre(NOMBRES_CONTENEDOR);
-    if (cont) { try { cont.set('visible', false); return; } catch (e) {} }
-    // Respaldo: si no encontró el contenedor, oculta el webframe de la botonera.
+    // 1) Oculta el/los contenedor/es de la botonera.
+    ocultarPorNombre(NOMBRES_CONTENEDOR);
+    // 2) Oculta también el botón "X" de cerrar (si quedó fuera del contenedor).
+    ocultarPorNombre(NOMBRES_CERRAR);
+    // 3) Respaldo: oculta cualquier webframe de la botonera por su URL.
     try {
       var player = getPlayer();
       var wfs = (player && player.getByClassName) ? (player.getByClassName('WebFrame') || []) : [];

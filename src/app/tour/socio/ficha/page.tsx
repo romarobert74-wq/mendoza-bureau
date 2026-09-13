@@ -440,6 +440,17 @@ function ServicioSection({ socio }: { socio: Socio }) {
     <div>
         <SecLabel color={T.orange}>Proveedor de Servicios</SecLabel>
 
+        {Array.isArray(d.subcategorias) && d.subcategorias.length > 0 && (
+          <div style={{ marginBottom: '12px' }}>
+            <p style={{ fontSize: '9px', color: T.orange, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>Rubros</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {d.subcategorias.map((r, i) => (
+                <span key={i} style={{ fontSize: '12px', color: T.text, background: 'rgba(249,115,22,0.10)', border: '1px solid rgba(249,115,22,0.25)', borderRadius: '999px', padding: '4px 11px' }}>{r}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {d.tiposServicio && (
           <div style={{ background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.18)', borderRadius: '10px', padding: '12px 14px', marginBottom: '12px' }}>
             <p style={{ fontSize: '9px', color: T.orange, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>Servicios</p>
