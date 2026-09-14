@@ -35,6 +35,76 @@
     return null;
   }
 
+  /* ==========================================================================
+   * MÉTRICAS DEL TOUR  →  ingresos + tiempo de permanencia
+   * Manda eventos a nuestro sistema (dominio distinto) para medir por socio.
+   * No configurás nada: el socioId se detecta solo de la URL del webframe.
+   * ======================================================================== */
+  var TRACK_URL = 'https://mendoza-bureau.vercel.app/api/track';
+  var socioIdCache = null;
+
+  function detectarSocioId() {
+    if (socioIdCache) return socioIdCache;
+    function buscar(u) {
+      if (!u) return null;
+      var m = String(u).match(/\/tour\/ir-a\/([A-Za-z0-9_-]+)/) ||
+              String(u).match(/[?&]id=([A-Za-z0-9_-]+)/);
+      return m ? m[1] : null;
+    }
+    // 1) iframes en el DOM
+    try {
+      var ifr = document.getElementsByTagName('iframe');
+      for (var i = 0; i < ifr.length; i++) {
+        var s = ''; try { s = ifr[i].src || ''; } catch (e) {}
+        var id = buscar(s); if (id) { socioIdCache = id; return id; }
+      }
+    } catch (e) {}
+    // 2) WebFrames de 3DVista (por si el iframe todavía no está en el DOM)
+    try {
+      var p = getPlayer();
+      if (p && p.getByClassName) {
+        var wfs = p.getByClassName('WebFrame') || [];
+        for (var j = 0; j < wfs.length; j++) {
+          var u = ''; try { u = wfs[j].get('url') || ''; } catch (e) {}
+          var id2 = buscar(u); if (id2) { socioIdCache = id2; return id2; }
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  function enviarEvento(tipo, ms) {
+    try {
+      var sid = detectarSocioId() || 'madre';
+      var payload = JSON.stringify({ socioId: sid, tipo: tipo, ms: ms });
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(TRACK_URL, payload);
+      } else {
+        fetch(TRACK_URL, { method: 'POST', body: payload, keepalive: true, mode: 'cors' });
+      }
+    } catch (e) {}
+  }
+
+  // Permanencia: acumulamos desde que carga el tour y enviamos UNA vez al salir.
+  var _t0 = Date.now();
+  var _tiempoEnviado = false;
+  function enviarTiempo() {
+    if (_tiempoEnviado) return;
+    _tiempoEnviado = true;
+    enviarEvento('webframe_tiempo', Date.now() - _t0);
+  }
+
+  // Ingreso: esperamos ~1.5 s para que carguen los webframes y detectar el socioId.
+  setTimeout(function () { enviarEvento('tour'); }, 1500);
+  // Salida (visibilitychange es lo más confiable, sobre todo en celular).
+  try {
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') enviarTiempo();
+    });
+    window.addEventListener('pagehide', enviarTiempo);
+    window.addEventListener('beforeunload', enviarTiempo);
+  } catch (e) {}
+
   // Devuelve TODAS las playlists del tour (puede haber más de una).
   function todasLasPlaylists() {
     var pls = [];
