@@ -651,7 +651,7 @@ export default function TourMenuPage() {
             {/* Contacto: botones llamativos */}
             <div className="flex gap-2">
               <button
-                onClick={() => abrir('https://wa.me/5492616564336')}
+                onClick={() => abrir('https://wa.me/5492616564336?text=' + encodeURIComponent('Hola Mendoza Bureau, estuve viendo el tour virtual 360° y quiero hacer una consulta.'))}
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 font-bold text-[13px] text-white transition active:scale-95"
                 style={{ background: 'linear-gradient(135deg,#25D366,#128C7E)', boxShadow: '0 4px 14px rgba(37,211,102,0.35)' }}
               >
