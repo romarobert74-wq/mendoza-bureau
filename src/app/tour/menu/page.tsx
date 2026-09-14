@@ -669,7 +669,7 @@ export default function TourMenuPage() {
             <button
               onClick={() => abrir('https://mendozabureau.com/')}
               className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 font-bold text-[13px] text-white transition active:scale-95"
-              style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.20)' }}
+              style={{ background: 'linear-gradient(135deg,#2563eb,#3b82f6)', boxShadow: '0 4px 14px rgba(37,99,235,0.35)' }}
             >
               <Globe size={16} /> Web Mendoza Bureau
             </button>

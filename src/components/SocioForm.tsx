@@ -553,6 +553,14 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
       {/* ── Salones de eventos — disponible para cualquier categoría ── */}
       <SalonesEditor salones={salones} onChange={setSalones} />
 
+      {/* ── URL pública del tour 360° (bureau + el_faro) ── */}
+      <Section title="Tour 360° (link público)" sub="La URL pública del tour del socio. La usa el bot IA para compartirlo y se muestra en la ficha.">
+        <div>
+          <label className={lbl} style={lbl_color}>URL del tour</label>
+          <input {...register('urlTour')} className="input" placeholder="https://mendozabureau360.com/hoteles/hilton/" />
+        </div>
+      </Section>
+
       {/* ── URLs internas — solo el_faro ── */}
       {isElFaro && (
         <Section title="URLs internas (3DVista)" sub="Solo visibles para El Faro">

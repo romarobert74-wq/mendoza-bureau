@@ -13,6 +13,7 @@ import {
   limit,
   serverTimestamp,
   setDoc,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from './firebase'
 import type { Socio, SocioFormData, Usuario } from '@/types'
@@ -288,6 +289,25 @@ export async function registrarClick(socioId: string, tipo: string, ms?: number)
     ...(typeof ms === 'number' ? { ms } : {}),
     timestamp: serverTimestamp(),
   })
+}
+
+// Reinicia TODAS las analíticas (borra los eventos crudos) → los contadores
+// vuelven a 0. Solo el_faro (las reglas permiten delete en analytics a el_faro).
+// Devuelve cuántos eventos borró. Borra en lotes de 500 (límite de writeBatch).
+export async function resetAnalytics(): Promise<number> {
+  let total = 0
+  // Repetimos hasta que no queden documentos.
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const snap = await getDocs(query(collection(db, 'analytics'), limit(500)))
+    if (snap.empty) break
+    const batch = writeBatch(db)
+    snap.docs.forEach(d => batch.delete(d.ref))
+    await batch.commit()
+    total += snap.size
+    if (snap.size < 500) break
+  }
+  return total
 }
 
 export interface AnalyticsSocio {

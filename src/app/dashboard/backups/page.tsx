@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext'
 import {
   generarBackupCompleto, contarBackup, restaurarBackup, contarRegistros,
   guardarSnapshotNube, listarSnapshots, getSnapshotData, eliminarSnapshot,
+  resetAnalytics,
 } from '@/lib/firestore'
 import type { BackupData, SnapshotNube } from '@/lib/firestore'
 import toast from 'react-hot-toast'
@@ -42,10 +43,28 @@ export default function BackupsPage() {
   const [restaurando, setRestaurando] = useState(false)
   const [cargandoLista, setCargandoLista] = useState(true)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [reseteando, setReseteando] = useState(false)
 
   useEffect(() => {
     if (!loading && usuario?.rol !== 'el_faro') router.replace('/dashboard')
   }, [usuario, loading, router])
+
+  // Reinicia todas las analíticas (contadores a 0)
+  const resetearAnalytics = async () => {
+    if (!confirm('¿Reiniciar TODAS las analíticas a 0?\n\nSe borran todos los eventos de clicks, visitas y tiempo registrados hasta ahora. Esta acción NO se puede deshacer (salvo que restaures un snapshot previo).\n\nRecomendado: hacé primero un snapshot en la nube.')) return
+    setReseteando(true)
+    const t = toast.loading('Reiniciando analíticas...')
+    try {
+      const n = await resetAnalytics()
+      toast.success(`Analíticas reiniciadas (${n} eventos borrados). Contadores en 0.`, { id: t })
+      contarRegistros().then(setResumen).catch(() => {})
+    } catch (err) {
+      console.error('Reset analytics:', err)
+      toast.error('No se pudo reiniciar. Revisá permisos/reglas.', { id: t })
+    } finally {
+      setReseteando(false)
+    }
+  }
 
   const cargarLista = async () => {
     setCargandoLista(true)
@@ -300,6 +319,28 @@ export default function BackupsPage() {
             <AlertTriangle size={14} className="shrink-0 mt-0.5" style={{ color: '#f59e0b' }} />
             <span>Guardá tus backups en un lugar seguro: contienen todos los datos del sistema. No los subas a lugares públicos.</span>
           </div>
+        </section>
+
+        {/* Zona de peligro: reinicio de analíticas */}
+        <section className="rounded-xl p-5" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.25)' }}>
+          <div className="flex items-center gap-2 mb-1">
+            <AlertTriangle size={18} style={{ color: '#ef4444' }} />
+            <h3 className="font-bold" style={{ color: 'var(--text)' }}>Reiniciar analíticas (empezar a medir de cero)</h3>
+          </div>
+          <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
+            Borra todos los eventos registrados (clicks de Instagram, WhatsApp, Google, web, visitas y tiempo)
+            y deja todos los contadores en <b>0</b>. Usalo al lanzar la plataforma para arrancar la medición limpia.
+            Es irreversible: hacé un <b>snapshot en la nube</b> antes, por las dudas.
+          </p>
+          <button
+            onClick={resetearAnalytics}
+            disabled={reseteando}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white transition disabled:opacity-60"
+            style={{ background: '#dc2626', border: '1px solid #ef4444' }}
+          >
+            {reseteando ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
+            {reseteando ? 'Reiniciando...' : 'Reiniciar analíticas a 0'}
+          </button>
         </section>
       </div>
     </div>
