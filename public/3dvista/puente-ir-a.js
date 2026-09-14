@@ -126,9 +126,11 @@
   // botón "Ir a"). Debe llamarse así en tu skin. Si algún día lo renombrás,
   // agregá el nuevo nombre a esta lista.
   var NOMBRES_CONTENEDOR = ['BOTONERA-CENTRAL', 'BOTONERA-PPAL', 'BOTONERA-PRINCIPAL', 'BOTONERA'];
-  // Botón/es "X" de cerrar (si están FUERA del contenedor). Poné a tu botón X
-  // en 3DVista alguno de estos nombres (label) y se ocultará junto con la botonera.
-  var NOMBRES_CERRAR = ['BTN-CERRAR', 'CERRAR', 'X-CERRAR', 'CERRAR-IRA', 'BOTONERA-X'];
+  // Botón "X" de cerrar y su contenedor. En 3DVista, ocultar el contenedor padre
+  // NO siempre oculta los hijos, así que ocultamos también estos por su nombre.
+  // Poné a tu botón X (o a su container) alguno de estos labels.
+  var NOMBRES_CERRAR = ['BTN-CERRAR', 'CERRAR', 'X-CERRAR', 'CERRAR-IRA', 'BOTONERA-X',
+                        'Container X global', 'CONTAINER-X-GLOBAL', 'CONTAINER-X', 'CONTAINER X'];
 
   // Oculta TODOS los componentes cuyo label esté en la lista (no solo el primero).
   // Devuelve cuántos ocultó.
@@ -177,25 +179,21 @@
   // Cierra la botonera ocultando el CONTENEDOR (no el webframe interno), que es
   // el mismo objeto que muestra el botón "Ir a". Así se puede reabrir siempre.
   function cerrarBotonera() {
-    // 1) Oculta SOLO el/los CONTENEDOR/es de la botonera. Con esto se ocultan
-    //    también el webframe y la X que estén ADENTRO, y —clave— al volver a
-    //    mostrar el contenedor todo reaparece intacto (no ocultamos hijos por
-    //    separado, que es lo que rompía la reapertura).
-    var ocultados = ocultarPorNombre(NOMBRES_CONTENEDOR);
-    // 2) Respaldo SOLO si NO se encontró ningún contenedor: oculta el botón "X"
-    //    suelto y el webframe de la botonera por su URL.
-    if (ocultados === 0) {
-      ocultarPorNombre(NOMBRES_CERRAR);
-      try {
-        var player = getPlayer();
-        var wfs = (player && player.getByClassName) ? (player.getByClassName('WebFrame') || []) : [];
-        for (var i = 0; i < wfs.length; i++) {
-          var url = '';
-          try { url = wfs[i].get('url') || ''; } catch (e) {}
-          if (url.indexOf('/tour/ir-a') >= 0) { try { wfs[i].set('visible', false); } catch (e) {} }
-        }
-      } catch (e) {}
-    }
+    // Cierre SIMÉTRICO: como en 3DVista ocultar el contenedor no siempre oculta
+    // a los hijos, ocultamos TODO explícitamente (contenedor + X + webframe).
+    // La reapertura la hace el botón "Ir a" con una acción "Mostrar" que muestra
+    // esos mismos elementos.
+    ocultarPorNombre(NOMBRES_CONTENEDOR);
+    ocultarPorNombre(NOMBRES_CERRAR);
+    try {
+      var player = getPlayer();
+      var wfs = (player && player.getByClassName) ? (player.getByClassName('WebFrame') || []) : [];
+      for (var i = 0; i < wfs.length; i++) {
+        var url = '';
+        try { url = wfs[i].get('url') || ''; } catch (e) {}
+        if (url.indexOf('/tour/ir-a') >= 0) { try { wfs[i].set('visible', false); } catch (e) {} }
+      }
+    } catch (e) {}
   }
 
   window.addEventListener('message', function (ev) {
