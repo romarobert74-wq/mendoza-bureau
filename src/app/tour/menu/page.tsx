@@ -39,7 +39,12 @@ const CATEGORIAS = [
   { key: 'restaurante', label: 'Restaurantes' },
   { key: 'hotel', label: 'Hoteles' },
   { key: 'alojamiento', label: 'Alojamiento' },
+  { key: 'salon', label: 'Salones' },
   { key: 'servicio', label: 'Servicios' },
+  { key: 'eventos', label: 'Eventos' },
+  { key: 'tecnologia', label: 'Tecnología' },
+  { key: 'transporte', label: 'Transporte' },
+  { key: 'viajes', label: 'Viajes' },
   { key: 'otro', label: 'Otros' },
 ]
 
