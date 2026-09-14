@@ -90,8 +90,10 @@
   var _tiempoEnviado = false;
   function enviarTiempo() {
     if (_tiempoEnviado) return;
+    var ms = Date.now() - _t0;
+    if (ms < 3000) return;           // descarta rebotes < 3 s
     _tiempoEnviado = true;
-    enviarEvento('webframe_tiempo', Date.now() - _t0);
+    enviarEvento('webframe_tiempo', ms);
   }
 
   // Ingreso: esperamos ~1.5 s para que carguen los webframes y detectar el socioId.

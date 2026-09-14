@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
-import { getAdminDb } from '@/lib/firebaseAdmin'
+import { initializeApp, getApps } from 'firebase/app'
+import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { FieldValue } from 'firebase-admin/firestore'
+import { getAdminDb } from '@/lib/firebaseAdmin'
 
-// Endpoint público de tracking para los tours 3DVista alojados en OTRO dominio
-// (mendozabureau360.com). El puente.js del tour le manda:
-//   - { socioId, tipo:'tour' }                → ingreso al tour (cuenta 1 visita)
-//   - { socioId, tipo:'webframe_tiempo', ms } → permanencia (tiempo de la sesión)
-// Escribe en la colección 'analytics' con Admin SDK (las reglas no permiten
-// escritura directa desde el cliente). CORS abierto porque el origen es externo.
+// Endpoint de tracking de analytics. Lo usan:
+//  - Los webframes propios (ficha/contacto), MISMO origen → tipos de click y tiempo.
+//  - Los tours 3DVista en mendozabureau360.com (OTRO origen) → ingreso y permanencia.
+// Escribe en 'analytics' con Admin SDK (las reglas bloquean create desde cliente).
+// CORS abierto para aceptar los envíos cross-origin desde los tours.
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -17,9 +18,18 @@ const CORS = {
   'Cache-Control': 'no-store',
 }
 
-const TIPOS = new Set(['tour', 'webframe_tiempo', 'panorama'])
+// Fallback client SDK (se usa solo si aún no está la credencial de servicio)
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+}
+
+const TIPOS_VALIDOS = ['tour', 'contacto', 'web', 'redes', 'webframe_tiempo', 'panorama']
 const MAX_MS = 4 * 60 * 60 * 1000  // techo de 4 h para descartar basura
-const MIN_MS = 3000                // descarta sesiones < 3 s (rebotes/bots)
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS })
@@ -27,7 +37,8 @@ export async function OPTIONS() {
 
 export async function POST(req: NextRequest) {
   try {
-    // sendBeacon manda text/plain; fetch con string también → parseamos texto.
+    // sendBeacon (mismo origen manda application/json; cross-origin manda texto).
+    // Parseamos el body como texto para cubrir ambos casos.
     let body: { socioId?: string; tipo?: string; ms?: unknown } | null = null
     try {
       const txt = await req.text()
@@ -37,33 +48,35 @@ export async function POST(req: NextRequest) {
 
     const socioId = String(body.socioId || '').trim().slice(0, 80)
     const tipo = String(body.tipo || '').trim()
-    if (!socioId || !TIPOS.has(tipo)) {
-      return NextResponse.json({ error: 'invalido' }, { status: 400, headers: CORS })
+    if (!socioId || !TIPOS_VALIDOS.includes(tipo)) {
+      return NextResponse.json({ error: 'evento inválido' }, { status: 400, headers: CORS })
     }
 
+    // Tiempo: válido si es número > 0; se topea a 4 h.
     let ms: number | undefined
-    if (tipo === 'webframe_tiempo') {
-      const n = Number(body.ms)
-      ms = Number.isFinite(n) ? Math.min(Math.round(n), MAX_MS) : 0
-      if (!ms || ms < MIN_MS) {
-        // sesión demasiado corta → no la registramos (no ensucia el promedio)
-        return NextResponse.json({ ok: true, skip: 'corto' }, { headers: CORS })
-      }
-    }
+    const n = Number(body.ms)
+    if (Number.isFinite(n) && n > 0) ms = Math.min(Math.round(n), MAX_MS)
+    const conMs = ms !== undefined
 
     const admin = getAdminDb()
-    if (!admin) {
-      // Sin Admin SDK no podemos escribir (reglas bloquean create en analytics).
-      return NextResponse.json({ error: 'sin-admin' }, { status: 503, headers: CORS })
+    if (admin) {
+      await admin.collection('analytics').add({
+        socioId,
+        tipo,
+        ...(conMs ? { ms } : {}),
+        timestamp: FieldValue.serverTimestamp(),
+      })
+    } else {
+      // Fallback (comportamiento anterior con client SDK)
+      const app = getApps().find(a => a.name === 'track-api') ?? initializeApp(firebaseConfig, 'track-api')
+      const db = getFirestore(app)
+      await addDoc(collection(db, 'analytics'), {
+        socioId,
+        tipo,
+        ...(conMs ? { ms } : {}),
+        timestamp: serverTimestamp(),
+      })
     }
-
-    await admin.collection('analytics').add({
-      socioId,
-      tipo,
-      ...(ms !== undefined ? { ms } : {}),
-      origen: 'tour3d',
-      timestamp: FieldValue.serverTimestamp(),
-    })
 
     return NextResponse.json({ ok: true }, { headers: CORS })
   } catch (err) {
