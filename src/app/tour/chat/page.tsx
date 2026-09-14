@@ -57,7 +57,6 @@ interface Socio {
   infoGeneral: string
   direccion: string
   urlInternaTour: string
-  urlTour?: string
   activo: boolean
   contacto?: { whatsapp?: string; web?: string; email?: string }
 }
@@ -229,7 +228,7 @@ export default function TourChatPage() {
         categoria: CAT_LABELS[s.categoria] ?? s.categoria,
         descripcion: s.etiqueta || s.infoGeneral,
         direccion: s.direccion,
-        urlTour: s.urlTour || s.urlInternaTour,
+        urlTour: s.urlInternaTour,
         whatsapp: s.contacto?.whatsapp,
         web: s.contacto?.web,
       }))

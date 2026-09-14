@@ -555,9 +555,6 @@ export interface Socio {
   logoUrl: string
   activo: boolean
   ubicacionUrl: string
-  // URL PÚBLICA del tour 360° del socio (ej: https://mendozabureau360.com/hoteles/hilton/).
-  // La usa el bot IA para compartir el tour y se puede mostrar en la ficha.
-  urlTour?: string
   // Reseñas (puntaje cargado manualmente + link a la plataforma real)
   googleRating?: number | null
   googleUrl?: string
