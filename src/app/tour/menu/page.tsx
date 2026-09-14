@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Search, Layers, ArrowDownUp, MessageCircle, Mail } from 'lucide-react'
+import { Search, Layers, ArrowDownUp, MessageCircle, Mail, Globe } from 'lucide-react'
 
 // Cuadro estilo dashboard para la pestaña Información
 function DashCard({ children }: { children: React.ReactNode }) {
@@ -651,20 +651,28 @@ export default function TourMenuPage() {
             {/* Contacto: botones llamativos */}
             <div className="flex gap-2">
               <button
-                onClick={() => abrir('https://wa.me/5492614000000')}
+                onClick={() => abrir('https://wa.me/5492616564336')}
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 font-bold text-[13px] text-white transition active:scale-95"
                 style={{ background: 'linear-gradient(135deg,#25D366,#128C7E)', boxShadow: '0 4px 14px rgba(37,211,102,0.35)' }}
               >
                 <MessageCircle size={16} /> WhatsApp
               </button>
               <button
-                onClick={() => abrir('mailto:info@mendozabureau.com')}
+                onClick={() => abrir('mailto:coordinador@mendozabureau.com')}
                 className="flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 font-bold text-[13px] text-white transition active:scale-95"
                 style={{ background: 'linear-gradient(135deg,#f15a24,#ff7a45)', boxShadow: '0 4px 14px rgba(241,90,36,0.35)' }}
               >
                 <Mail size={16} /> Email
               </button>
             </div>
+            {/* Web oficial de Mendoza Bureau */}
+            <button
+              onClick={() => abrir('https://mendozabureau.com/')}
+              className="w-full flex items-center justify-center gap-2 rounded-xl py-2.5 font-bold text-[13px] text-white transition active:scale-95"
+              style={{ background: 'rgba(255,255,255,0.10)', border: '1px solid rgba(255,255,255,0.20)' }}
+            >
+              <Globe size={16} /> Web Mendoza Bureau
+            </button>
             </>
             })()}
           </div>
