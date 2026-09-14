@@ -177,15 +177,15 @@
   // Cierra la botonera ocultando el CONTENEDOR (no el webframe interno), que es
   // el mismo objeto que muestra el botón "Ir a". Así se puede reabrir siempre.
   function cerrarBotonera() {
-    // 1) Oculta el/los CONTENEDOR/es de la botonera (con esto se ocultan también
-    //    el webframe y la X que estén adentro, y la botonera puede reabrirse).
+    // 1) Oculta SOLO el/los CONTENEDOR/es de la botonera. Con esto se ocultan
+    //    también el webframe y la X que estén ADENTRO, y —clave— al volver a
+    //    mostrar el contenedor todo reaparece intacto (no ocultamos hijos por
+    //    separado, que es lo que rompía la reapertura).
     var ocultados = ocultarPorNombre(NOMBRES_CONTENEDOR);
-    // 2) Oculta el botón "X" de cerrar si quedó FUERA del contenedor.
-    ocultarPorNombre(NOMBRES_CERRAR);
-    // 3) Respaldo SOLO si no se encontró ningún contenedor: oculta el webframe
-    //    de la botonera por su URL. (Evitamos ocultar el webframe cuando ya
-    //    ocultamos el contenedor, para no romper la reapertura.)
+    // 2) Respaldo SOLO si NO se encontró ningún contenedor: oculta el botón "X"
+    //    suelto y el webframe de la botonera por su URL.
     if (ocultados === 0) {
+      ocultarPorNombre(NOMBRES_CERRAR);
       try {
         var player = getPlayer();
         var wfs = (player && player.getByClassName) ? (player.getByClassName('WebFrame') || []) : [];
