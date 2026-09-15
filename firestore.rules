@@ -113,5 +113,13 @@ service cloud.firestore {
     match /backups/{docId} {
       allow read, write: if isElFaro();
     }
+
+    // Inscripciones (leads de la landing /plataforma):
+    // - create: público (cualquiera puede dejar sus datos desde la landing).
+    // - read / update / delete: solo roles internos (bureau / el_faro).
+    match /inscripciones/{docId} {
+      allow create: if true;
+      allow read, update, delete: if isBureau() || isElFaro();
+    }
   }
 }

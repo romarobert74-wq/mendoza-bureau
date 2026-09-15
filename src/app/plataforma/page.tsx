@@ -14,12 +14,14 @@ import {
    Qué ofrecemos · Beneficios · Cómo se hace · Inscripción.
    ───────────────────────────────────────────────────────────── */
 
+import { CATEGORIAS } from '@/types'
+
 const display = Fraunces({ subsets: ['latin'], weight: ['400', '600', '700', '900'], style: ['normal', 'italic'], variable: '--font-display', display: 'swap' })
 const sans = Manrope({ subsets: ['latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-sans', display: 'swap' })
 
-const FORM_SOCIO = '/form/socio'
 const SERVICIOS = '/servicios-adicionales'
-const WA = 'https://wa.me/5492616657058'
+// WhatsApp oficial de Mendoza Bureau
+const WA = 'https://wa.me/5492616564336?text=' + encodeURIComponent('Hola Mendoza Bureau, quiero información sobre la plataforma de tours 360° para sumarme.')
 const TOUR_VIAMONTE = 'https://elfaro360.com/tour-virtuales/alojamientos/temporales/viamontelodge/'
 const TOUR_MARGOT = 'https://elfaro360.com/tour-virtuales/bodegas/destacadas/margot/'
 const TOUR_PALOMA = 'https://elfaro360.com/tour-virtuales/gastronomia/cafeterias/paloma/'
@@ -40,20 +42,110 @@ const NAV = [
 
 /* Botón con borde "estrella" animado (StarBorder de React Bits), adaptado a
    nuestras pills naranjas. */
-function StarButton({ href, children, target, color = '#ffe0cc', speed = '6s' }: {
-  href: string; children: React.ReactNode; target?: string; color?: string; speed?: string
+function StarButton({ href, onClick, children, target, color = '#ffe0cc', speed = '6s' }: {
+  href?: string; onClick?: () => void; children: React.ReactNode; target?: string; color?: string; speed?: string
 }) {
-  return (
-    <a href={href} target={target} rel={target ? 'noopener noreferrer' : undefined} className="star-btn">
+  const inner = (
+    <>
       <span className="star-b star-bottom" style={{ background: `radial-gradient(circle, ${color}, transparent 10%)`, animationDuration: speed }} aria-hidden />
       <span className="star-b star-top" style={{ background: `radial-gradient(circle, ${color}, transparent 10%)`, animationDuration: speed }} aria-hidden />
       <span className="star-inner">{children}</span>
-    </a>
+    </>
+  )
+  if (onClick) {
+    return <button type="button" onClick={onClick} className="star-btn" style={{ border: 'none', cursor: 'pointer', font: 'inherit' }}>{inner}</button>
+  }
+  return (
+    <a href={href} target={target} rel={target ? 'noopener noreferrer' : undefined} className="star-btn">{inner}</a>
+  )
+}
+
+/* Modal de inscripción (lead): datos mínimos para que Bureau contacte al socio. */
+function ModalInscripcion({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [f, setF] = useState({ empresa: '', rubro: '', nombre: '', whatsapp: '', email: '', mensaje: '' })
+  const [enviando, setEnviando] = useState(false)
+  const [ok, setOk] = useState(false)
+  const [error, setError] = useState('')
+
+  if (!open) return null
+  const set = (k: string, v: string) => setF(p => ({ ...p, [k]: v }))
+
+  const enviar = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    if (!(f.empresa || f.nombre) || !(f.whatsapp || f.email)) {
+      setError('Completá al menos empresa/nombre y un contacto (WhatsApp o email).'); return
+    }
+    setEnviando(true)
+    try {
+      const res = await fetch('/api/inscripcion', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f),
+      })
+      if (!res.ok) throw new Error()
+      setOk(true)
+    } catch { setError('No se pudo enviar. Probá de nuevo o escribinos por WhatsApp.') }
+    finally { setEnviando(false) }
+  }
+
+  const inp: React.CSSProperties = {
+    width: '100%', padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.14)', color: '#f5ede7', fontSize: 14, fontFamily: 'inherit',
+  }
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)', display: 'grid', placeItems: 'center', padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: 'min(560px, 96vw)', maxHeight: '92vh', overflowY: 'auto', borderRadius: 22, padding: 26, background: '#14100f', border: '1px solid rgba(255,255,255,0.12)', boxShadow: '0 30px 80px rgba(0,0,0,0.6)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 6 }}>
+          <div>
+            <h3 style={{ fontFamily: 'var(--font-display), serif', fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>Quiero inscribirme</h3>
+            <p style={{ color: '#a99e97', fontSize: 13, margin: '4px 0 0' }}>Dejanos tus datos y Mendoza Bureau te contacta para contarte el proyecto.</p>
+          </div>
+          <button onClick={onClose} aria-label="Cerrar" style={{ background: 'none', border: 'none', color: '#a99e97', cursor: 'pointer', padding: 4 }}><X size={22} /></button>
+        </div>
+
+        {ok ? (
+          <div style={{ textAlign: 'center', padding: '26px 8px' }}>
+            <CheckCircle2 size={46} style={{ color: '#22c55e', margin: '0 auto 12px' }} />
+            <h4 style={{ color: '#fff', fontSize: 19, fontWeight: 700, margin: '0 0 6px' }}>¡Gracias! Recibimos tus datos.</h4>
+            <p style={{ color: '#a99e97', fontSize: 14, margin: 0 }}>El equipo de Mendoza Bureau se va a comunicar con vos para contarte cómo sumarte a la plataforma.</p>
+            <button onClick={onClose} className="btn btn-primary" style={{ marginTop: 18 }}>Cerrar</button>
+          </div>
+        ) : (
+          <form onSubmit={enviar} style={{ display: 'grid', gap: 12, marginTop: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <input style={inp} placeholder="Empresa / Socio" value={f.empresa} onChange={e => set('empresa', e.target.value)} />
+              <select style={{ ...inp, appearance: 'auto' }} value={f.rubro} onChange={e => set('rubro', e.target.value)}>
+                <option value="">Rubro…</option>
+                {(Object.entries(CATEGORIAS) as [string, string][]).filter(([k]) => k !== 'otro').map(([k, label]) => (
+                  <option key={k} value={label}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <input style={inp} placeholder="Nombre y apellido" value={f.nombre} onChange={e => set('nombre', e.target.value)} />
+              <input style={inp} placeholder="WhatsApp" value={f.whatsapp} onChange={e => set('whatsapp', e.target.value)} />
+            </div>
+            <input style={inp} type="email" placeholder="Email" value={f.email} onChange={e => set('email', e.target.value)} />
+            <textarea style={{ ...inp, minHeight: 90, resize: 'vertical' }} placeholder="¿Qué espacio o experiencia querés mostrar? (opcional)" value={f.mensaje} onChange={e => set('mensaje', e.target.value)} />
+            {error && <p style={{ color: '#f87171', fontSize: 13, margin: 0 }}>{error}</p>}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: 4 }}>
+              <button type="submit" disabled={enviando} className="btn btn-primary btn-lg" style={{ minWidth: 220, justifyContent: 'center' }}>
+                {enviando ? 'Enviando…' : 'Quiero inscribirme'}
+              </button>
+            </div>
+            <p style={{ textAlign: 'center', color: '#7c726c', fontSize: 12, margin: 0 }}>
+              También podés escribirnos por <a href={WA} target="_blank" rel="noopener noreferrer" style={{ color: '#ff9a6a' }}>WhatsApp</a>.
+            </p>
+          </form>
+        )}
+      </div>
+    </div>
   )
 }
 
 export default function PlataformaLanding() {
   const [menu, setMenu] = useState(false)
+  const [showForm, setShowForm] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [showFloat, setShowFloat] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -96,7 +188,7 @@ export default function PlataformaLanding() {
           <nav className="nav-links">
             {NAV.map(([t, h]) => <a key={h} href={h}>{t}</a>)}
           </nav>
-          <a href={FORM_SOCIO} className="btn btn-primary nav-cta">Quiero virtualizar mi espacio</a>
+          <button type="button" onClick={() => setShowForm(true)} className="btn btn-primary nav-cta">Quiero inscribirme</button>
           <button className="nav-burger" onClick={() => setMenu(m => !m)} aria-label="Menú">
             {menu ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -104,7 +196,7 @@ export default function PlataformaLanding() {
         {menu && (
           <div className="nav-mobile">
             {NAV.map(([t, h]) => <a key={h} href={h} onClick={() => setMenu(false)}>{t}</a>)}
-            <a href={FORM_SOCIO} className="btn btn-primary" style={{ marginTop: 8 }}>Quiero virtualizar mi espacio</a>
+            <button type="button" onClick={() => { setMenu(false); setShowForm(true) }} className="btn btn-primary" style={{ marginTop: 8 }}>Quiero inscribirme</button>
           </div>
         )}
       </header>
@@ -122,7 +214,7 @@ export default function PlataformaLanding() {
               360°, para que tus clientes lo conozcan y lo recorran antes de llegar.
             </p>
             <div className="hero-cta">
-              <StarButton href={FORM_SOCIO}>Quiero virtualizar mi espacio <ArrowRight size={18} /></StarButton>
+              <StarButton onClick={() => setShowForm(true)}>Quiero inscribirme <ArrowRight size={18} /></StarButton>
               <a href="#ejemplos" className="btn btn-outline">Ver ejemplos</a>
             </div>
             <a href={WA} target="_blank" rel="noopener noreferrer" className="btn-link btn-link-light hero-wa">
@@ -319,7 +411,7 @@ export default function PlataformaLanding() {
         <p className="sub" style={{ maxWidth: 720, margin: '28px auto 0', textAlign: 'center' }}>
           Todos los adicionales se producen aprovechando la misma sesión, así optimizás costos. Cuando cargues tus datos vas a poder elegir y cotizar los que quieras.
         </p>
-        <div className="center" style={{ marginTop: 18 }}><a href={FORM_SOCIO} className="btn btn-primary">Cargar mis datos</a></div>
+        <div className="center" style={{ marginTop: 18 }}><button type="button" onClick={() => setShowForm(true)} className="btn btn-primary">Quiero inscribirme</button></div>
       </section>
 
       {/* ── 7 · Experiencias dentro del tour ── */}
@@ -352,7 +444,7 @@ export default function PlataformaLanding() {
           <h2>Sumarte es muy simple</h2>
           <p>Completá el formulario con los datos de tu espacio y coordinamos el relevamiento. Del resto nos ocupamos nosotros.</p>
           <div className="hero-cta center">
-            <StarButton href={FORM_SOCIO}>Completar mi inscripción <ArrowRight size={18} /></StarButton>
+            <StarButton onClick={() => setShowForm(true)}>Quiero inscribirme <ArrowRight size={18} /></StarButton>
             <a href={WA} target="_blank" rel="noopener noreferrer" className="btn btn-outline">Consultar por WhatsApp</a>
           </div>
         </div>
@@ -400,7 +492,7 @@ export default function PlataformaLanding() {
           <div className="foot-col">
             <h4>Contacto</h4>
             <a href={WA} target="_blank" rel="noopener noreferrer">WhatsApp</a>
-            <a href={FORM_SOCIO}>Quiero virtualizar mi espacio</a>
+            <button type="button" onClick={() => setShowForm(true)} className="footer-linkbtn">Quiero inscribirme</button>
             <a href="https://mendozabureau.com.ar" target="_blank" rel="noopener noreferrer">mendozabureau.com.ar</a>
           </div>
         </div>
@@ -419,7 +511,9 @@ export default function PlataformaLanding() {
 
       {/* ── Flotantes (aparecen en el segundo scroll) ── */}
       <a href={WA} target="_blank" rel="noopener noreferrer" className={`wa-float ${showFloat ? 'show' : ''}`} aria-label="WhatsApp"><MessageCircle size={24} /></a>
-      <a href={FORM_SOCIO} className={`sticky-cta ${showFloat ? 'show' : ''}`}>Quiero virtualizar mi espacio</a>
+      <button type="button" onClick={() => setShowForm(true)} className={`sticky-cta ${showFloat ? 'show' : ''}`} style={{ border: 'none', cursor: 'pointer', font: 'inherit' }}>Quiero inscribirme</button>
+
+      <ModalInscripcion open={showForm} onClose={() => setShowForm(false)} />
     </div>
   )
 }
@@ -645,6 +739,7 @@ const CSS = `
 .foot-col h4{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--text);margin-bottom:16px;font-weight:700}
 .foot-col{display:flex;flex-direction:column;gap:11px;font-size:14px}
 .foot-col a{color:#a99e97;transition:color .15s}.foot-col a:hover{color:var(--o2)}
+.footer-linkbtn{background:none;border:none;padding:0;margin:0;text-align:left;cursor:pointer;font:inherit;color:#a99e97;transition:color .15s}.footer-linkbtn:hover{color:var(--o2)}
 .foot-logos{max-width:1220px;margin:30px auto 0;padding-top:28px;border-top:1px solid var(--line);
   display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
 .foot-logo-b{height:82px;object-fit:contain}

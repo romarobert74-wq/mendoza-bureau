@@ -91,6 +91,34 @@ export async function eliminarSocio(id: string) {
   await deleteDoc(doc(db, 'socios', id))
 }
 
+// ── Inscripciones (leads de la landing /plataforma) ──────────
+export interface Inscripcion {
+  id: string
+  empresa: string
+  nombre: string
+  whatsapp: string
+  email: string
+  rubro: string
+  mensaje: string
+  estado: string            // nuevo | contactado | aceptado | descartado
+  origen?: string
+  creadoEn?: { toDate?: () => Date } | null
+}
+
+export async function getInscripciones(): Promise<Inscripcion[]> {
+  const q = query(collection(db, 'inscripciones'), orderBy('creadoEn', 'desc'))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() } as Inscripcion))
+}
+
+export async function actualizarInscripcion(id: string, data: Partial<Inscripcion>) {
+  await updateDoc(doc(db, 'inscripciones', id), data)
+}
+
+export async function eliminarInscripcion(id: string) {
+  await deleteDoc(doc(db, 'inscripciones', id))
+}
+
 // ── Configuración tour madre ──────────────────────────────
 
 export async function getConfigTourMadre() {
