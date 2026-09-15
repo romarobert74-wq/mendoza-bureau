@@ -134,7 +134,6 @@ const SERVICIOS: Servicio[] = [
     ejemplos: 'Vistas panorámicas del predio, viñedos o entorno.' },
 ]
 
-const RUBROS = ['Hotel', 'Bodega', 'Restaurante', 'Servicio turístico', 'Organizador / Planner', 'Otro']
 
 const POR_SOCIO = [
   { t: 'Hoteles', d: 'Sumá habitaciones, lobby, salones secundarios, rooftop, piscina o restaurante.' },
@@ -157,15 +156,6 @@ const money = (n: number) => 'USD ' + n.toLocaleString('en-US')
 export default function ServiciosAdicionales() {
   const [cfg, setCfg] = useState<LandingConfig | null>(null)
   const [cant, setCant] = useState<Record<string, number>>({})
-  const [empresa, setEmpresa] = useState('')
-  const [rubro, setRubro] = useState('')
-  const [nombre, setNombre] = useState('')
-  const [tel, setTel] = useState('')
-  const [email, setEmail] = useState('')
-  const [msg, setMsg] = useState('')
-  // Relevamiento principal (fecha + horario)
-  const [fechaRelev, setFechaRelev] = useState('')
-  const [horaRelev, setHoraRelev] = useState('')
 
   useEffect(() => { getLandingServicios().then(setCfg).catch(() => {}) }, [])
 
@@ -188,19 +178,11 @@ export default function ServiciosAdicionales() {
 
   const enviar = () => {
     const L: string[] = []
-    L.push('*Solicitud de servicios adicionales — El Faro 360*', '')
-    if (fechaRelev || horaRelev) L.push(`*📅 Relevamiento solicitado:* ${fechaRelev || '(fecha a coordinar)'}${horaRelev ? ' · ' + horaRelev : ''}`)
-    if (empresa) L.push(`*Empresa:* ${empresa}`)
-    if (rubro) L.push(`*Rubro:* ${rubro}`)
-    if (nombre) L.push(`*Contacto:* ${nombre}`)
-    if (tel) L.push(`*WhatsApp:* ${tel}`)
-    if (email) L.push(`*Email:* ${email}`)
-    L.push('', '*Servicios seleccionados:*')
+    L.push('*Consulta por servicios adicionales — El Faro 360*', '')
+    L.push('*Servicios de interés:*')
     if (items.length === 0) L.push('— (todavía sin selección) Necesito asesoramiento.')
     else items.forEach(s => L.push(showPrices ? `• ${s.nombre} ×${s.q} — ${money(s.precio * s.q)}` : `• ${s.nombre} ×${s.q}`))
-    if (showPrices) L.push('', `*Total estimado: ${money(total)}*`)
-    if (msg) L.push('', `*Mensaje:* ${msg}`)
-    if (showPrices) L.push('', '_Valores de referencia, a confirmar antes de producir._')
+    if (showPrices && items.length > 0) L.push('', `*Total estimado: ${money(total)}*`, '', '_Valores de referencia, a confirmar antes de producir._')
     const url = `https://wa.me/${WA}?text=${encodeURIComponent(L.join('\n'))}`
     window.open(url, '_blank')
   }
@@ -248,34 +230,6 @@ export default function ServiciosAdicionales() {
           )}
         </header>
 
-        {/* ── Paso 1: Relevamiento ── */}
-        <section style={{ ...glass, borderColor: `${ORANGE}55`, boxShadow: `0 0 0 1px ${ORANGE}33, 0 10px 40px rgba(0,0,0,0.3)` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <span style={{ background: ORANGE, color: '#fff', fontWeight: 800, fontSize: 13, width: 26, height: 26, borderRadius: 999, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>1</span>
-            <h2 style={{ fontFamily: FONT_DISPLAY, fontSize: 'clamp(18px,3vw,24px)', fontWeight: 700, margin: 0 }}>Coordiná tu relevamiento</h2>
-          </div>
-          <p style={{ color: '#94a3b8', fontSize: 14, margin: '0 0 16px', lineHeight: 1.6 }}>
-            Elegí el día y horario en que querés que vayamos a hacer tu tour 360°. Después, si querés, sumás servicios extra (paso 2).
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>📅 Fecha preferida</label>
-              <input type="date" value={fechaRelev} onChange={e => setFechaRelev(e.target.value)} style={input} />
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: 12, color: '#94a3b8', marginBottom: 6 }}>🕒 Horario / turno</label>
-              <select value={horaRelev} onChange={e => setHoraRelev(e.target.value)} style={{ ...input, colorScheme: 'dark' }}>
-                <option value="" style={optStyle}>Elegí un turno…</option>
-                {['Mañana (9 a 12 h)', 'Mediodía (12 a 15 h)', 'Tarde (15 a 18 h)', 'A coordinar'].map(o =>
-                  <option key={o} value={o} style={optStyle}>{o}</option>)}
-              </select>
-            </div>
-          </div>
-          <p style={{ color: '#64748b', fontSize: 12, margin: '12px 0 0' }}>
-            El relevamiento base incluye hasta 5 panoramas 360° · lo confirmamos por WhatsApp.
-          </p>
-        </section>
-
         {/* ── Oportunidad ── */}
         <section style={glass}>
           <p style={{ fontSize: 'clamp(18px,3vw,24px)', fontWeight: 600, lineHeight: 1.5, margin: 0, textAlign: 'center' }}>
@@ -285,8 +239,8 @@ export default function ServiciosAdicionales() {
         </section>
 
         {/* ── Servicios (selector) ── */}
-        <h2 id="servicios" style={h2}>2 · Sumá servicios (opcional)</h2>
-        <p style={sub}>Tocá <b>+</b> para agregar. El total se calcula solo, abajo de todo. Si no querés extras, enviá igual con tu fecha de relevamiento.</p>
+        <h2 id="servicios" style={h2}>Servicios adicionales</h2>
+        <p style={sub}>Tocá <b>+</b> para sumar los que te interesen. El total se calcula solo, abajo de todo.</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 16, marginBottom: 40 }}>
           {servicios.map(s => {
             const q = cant[s.id] ?? 0
@@ -351,24 +305,11 @@ export default function ServiciosAdicionales() {
           ))}
         </div>
 
-        {/* ── Formulario + total ── */}
-        <h2 style={h2}>Solicitá tu cotización</h2>
-        <div style={{ ...glass, display: 'grid', gap: 12 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 12 }}>
-            <input placeholder="Empresa / Socio" value={empresa} onChange={e => setEmpresa(e.target.value)} style={input} />
-            <select value={rubro} onChange={e => setRubro(e.target.value)} style={{ ...input, colorScheme: 'dark' }}>
-              <option value="" style={optStyle}>Rubro…</option>
-              {RUBROS.map(r => <option key={r} value={r} style={optStyle}>{r}</option>)}
-            </select>
-            <input placeholder="Nombre y apellido" value={nombre} onChange={e => setNombre(e.target.value)} style={input} />
-            <input placeholder="WhatsApp" value={tel} onChange={e => setTel(e.target.value)} style={input} />
-            <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={input} />
-          </div>
-          <textarea placeholder="¿Qué espacio o experiencia querés mostrar? (opcional)" value={msg} onChange={e => setMsg(e.target.value)} rows={3} style={{ ...input, resize: 'vertical' }} />
-
-          {/* Resumen */}
+        {/* ── Cierre: resumen de selección + consulta por WhatsApp ── */}
+        <div style={{ ...glass, display: 'grid', gap: 14 }}>
           {items.length > 0 && (
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 12, display: 'grid', gap: 6 }}>
+            <div style={{ display: 'grid', gap: 6 }}>
+              <p style={{ margin: '0 0 4px', fontSize: 12, color: '#7c8797', textTransform: 'uppercase', letterSpacing: 1 }}>Tu selección</p>
               {items.map(s => (
                 <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#cbd5e1', gap: 12 }}>
                   <span>{s.nombre} ×{s.q}</span>
@@ -378,8 +319,8 @@ export default function ServiciosAdicionales() {
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: showPrices ? 'space-between' : 'center', gap: 12, flexWrap: 'wrap' }}>
-            {showPrices && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: showPrices && items.length > 0 ? 'space-between' : 'center', gap: 12, flexWrap: 'wrap' }}>
+            {showPrices && items.length > 0 && (
               <div>
                 <p style={{ margin: 0, fontSize: 12, color: '#7c8797', textTransform: 'uppercase', letterSpacing: 1 }}>Total estimado</p>
                 <p style={{ margin: 0, fontSize: 30, fontWeight: 800, color: ORANGE, fontVariantNumeric: 'tabular-nums' }}>{money(total)}</p>
@@ -387,13 +328,13 @@ export default function ServiciosAdicionales() {
             )}
             <button onClick={enviar} style={{ ...btnPrimary, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, border: 'none' }}>
               <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2Zm5.4 13.9c-.2.6-1.2 1.2-1.7 1.2-.4 0-1 .1-3.2-.9-2.7-1.1-4.4-3.9-4.6-4.1-.1-.2-1-1.4-1-2.6 0-1.2.6-1.8.9-2 .2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.5c-.2.2-.3.4-.1.7.2.3.9 1.4 1.9 2.3 1.3 1.1 2.3 1.5 2.6 1.6.3.1.5.1.7-.1l.7-.9c.2-.3.4-.2.7-.1l2 .9c.3.1.5.2.6.3.1.3.1.8-.1 1.4Z" /></svg>
-              {showPrices ? 'Enviar por WhatsApp' : 'Solicitar cotización'}
+              {items.length > 0 ? 'Consultar estos servicios por WhatsApp' : 'Consultar por WhatsApp'}
             </button>
           </div>
           <p style={{ fontSize: 11, color: '#64748b', margin: 0, textAlign: 'center' }}>
             {showPrices
               ? 'Valores de referencia. Se confirman antes de producir. La pauta publicitaria no está incluida.'
-              : 'Te enviamos la cotización a la brevedad. La pauta publicitaria no está incluida.'}
+              : 'Coordinamos la cotización por WhatsApp. La pauta publicitaria no está incluida.'}
           </p>
         </div>
 
@@ -461,10 +402,3 @@ const badge: React.CSSProperties = {
   position: 'absolute', top: 14, right: 14, fontSize: 10, fontWeight: 800, textTransform: 'uppercase',
   letterSpacing: 0.5, color: '#fff', background: ORANGE, borderRadius: 999, padding: '3px 9px',
 }
-const input: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)',
-  borderRadius: 12, padding: '11px 14px', color: '#fff', fontSize: 16, outline: 'none', width: '100%', boxSizing: 'border-box',
-}
-// las opciones del desplegable se renderizan con el fondo del navegador (claro),
-// así que las forzamos a texto oscuro sobre fondo blanco para que se lean
-const optStyle: React.CSSProperties = { color: '#0a0b10', background: '#fff' }
