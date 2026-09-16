@@ -1,0 +1,101 @@
+/* =============================================================================
+ * PUENTE 3DVista — TOUR MADRE  ·  SOLO ESTADÍSTICAS
+ * =============================================================================
+ * Pegá TODO este contenido en:
+ *   3DVista → TOUR → evento "Al comenzar / Begin" → "Ejecutar JavaScript".
+ *
+ * Qué hace: mide INGRESO al tour madre, TIEMPO de permanencia y PANORAMAS vistos.
+ * NO abre ni cierra ventanas: la X del menú y los botones los manejás vos en 3DVista.
+ *
+ * (El menú principal y el bot IA registran su apertura por su cuenta, desde el
+ *  propio webframe; este puente no se encarga de eso.)
+ * ========================================================================== */
+(function () {
+  'use strict';
+
+  var TRACK_URL = 'https://mendoza-bureau.vercel.app/api/track';
+  var SOCIO_ID = 'madre';   // este puente es exclusivo del TOUR MADRE
+
+  function getPlayer() {
+    if (window.tour && tour.player) return tour.player;
+    if (window.player) return window.player;
+    if (window.tour) return window.tour;
+    return null;
+  }
+
+  function todasLasPlaylists() {
+    var pls = [];
+    try { if (window.tour && tour.mainPlayList) pls.push(tour.mainPlayList); } catch (e) {}
+    try {
+      var p = getPlayer();
+      if (p && p.getByClassName) {
+        var arr = p.getByClassName('PlayList') || [];
+        for (var i = 0; i < arr.length; i++) if (pls.indexOf(arr[i]) < 0) pls.push(arr[i]);
+      }
+    } catch (e) {}
+    return pls;
+  }
+
+  function nombreDe(item) {
+    var m; try { m = item.get('media'); } catch (e) { m = null; }
+    var cands = [];
+    try { cands.push(m && m.get('label')); } catch (e) {}
+    try { cands.push(m && m.get('data') && m.get('data').label); } catch (e) {}
+    try { cands.push(m && m.get('id')); } catch (e) {}
+    try { cands.push(item && item.get('id')); } catch (e) {}
+    for (var i = 0; i < cands.length; i++) if (cands[i]) return String(cands[i]);
+    return '';
+  }
+
+  function normalizar(s) {
+    return String(s || '').toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/\s+/g, '-').trim();
+  }
+
+  function enviarEvento(tipo, ms, nombre) {
+    try {
+      var payload = JSON.stringify({ socioId: SOCIO_ID, tipo: tipo, ms: ms, nombre: nombre });
+      if (navigator.sendBeacon) navigator.sendBeacon(TRACK_URL, payload);
+      else fetch(TRACK_URL, { method: 'POST', body: payload, keepalive: true, mode: 'cors' });
+    } catch (e) {}
+  }
+
+  // Permanencia: acumulamos desde la carga y enviamos UNA vez al salir.
+  var _t0 = Date.now();
+  var _tiempoEnviado = false;
+  function enviarTiempo() {
+    if (_tiempoEnviado) return;
+    var ms = Date.now() - _t0;
+    if (ms < 3000) return;           // descarta rebotes < 3 s
+    _tiempoEnviado = true;
+    enviarEvento('webframe_tiempo', ms);
+  }
+
+  // Ingreso al tour madre.
+  setTimeout(function () { enviarEvento('tour'); }, 1500);
+  try {
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') enviarTiempo();
+    });
+    window.addEventListener('pagehide', enviarTiempo);
+    window.addEventListener('beforeunload', enviarTiempo);
+  } catch (e) {}
+
+  // Panoramas vistos: en cada cambio, enviamos su nombre.
+  var _panActual = null;
+  function panoramaActual() {
+    try {
+      var pls = todasLasPlaylists();
+      if (!pls.length) return null;
+      var idx = pls[0].get('selectedIndex');
+      var items = pls[0].get('items') || [];
+      if (idx == null || !items[idx]) return null;
+      return normalizar(nombreDe(items[idx]));
+    } catch (e) { return null; }
+  }
+  setInterval(function () {
+    var p = panoramaActual();
+    if (p && p !== _panActual) { _panActual = p; enviarEvento('panorama', undefined, p); }
+  }, 1500);
+})();
