@@ -521,6 +521,13 @@ function FichaPage() {
   // Analytics: cuenta la visita al tour del socio y mide el tiempo de permanencia
   useWebframeTracking(id)
 
+  // Cierra la ficha (el puente 3DVista oculta el contenedor INFO-SOCIO)
+  const cerrarFicha = () => {
+    const payload = { source: 'bureau-ir-a', tipo: 'mb-cerrar-ficha' }
+    try { window.parent?.postMessage(payload, '*') } catch {}
+    try { if (window.top && window.top !== window.parent) window.top.postMessage(payload, '*') } catch {}
+  }
+
   useEffect(() => {
     document.documentElement.setAttribute('data-tour', 'true')
     document.body.style.background = 'transparent'
@@ -589,7 +596,13 @@ function FichaPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'transparent', color: T.text, fontFamily: 'system-ui, sans-serif', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '18px 14px 28px' }}>
       {/* Panel glass (mismo estilo que la botonera "Ir a") */}
-      <div style={{ width: '100%', maxWidth: '820px', borderRadius: '24px', overflow: 'hidden', background: 'rgba(20,15,17,0.72)', backdropFilter: 'blur(22px)', border: '1px solid rgba(255,255,255,0.10)', boxShadow: '0 24px 60px rgba(0,0,0,0.45)', padding: '0 14px 22px' }}>
+      <div style={{ position: 'relative', width: '100%', maxWidth: '820px', borderRadius: '24px', overflow: 'hidden', background: 'rgba(20,15,17,0.72)', backdropFilter: 'blur(22px)', border: '1px solid rgba(255,255,255,0.10)', boxShadow: '0 24px 60px rgba(0,0,0,0.45)', padding: '0 14px 22px' }}>
+
+        {/* X de cerrar (oculta el contenedor INFO-SOCIO vía el puente) */}
+        <button onClick={cerrarFicha} aria-label="Cerrar"
+          style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 999, cursor: 'pointer', color: '#f5ede7', background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.22)', backdropFilter: 'blur(4px)' }}>
+          <X size={18} />
+        </button>
 
         {/* ── Hero (a sangre dentro del panel) ── */}
         {socio.fotoPortada && (

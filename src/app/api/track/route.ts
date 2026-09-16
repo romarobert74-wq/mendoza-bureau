@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
   try {
     // sendBeacon (mismo origen manda application/json; cross-origin manda texto).
     // Parseamos el body como texto para cubrir ambos casos.
-    let body: { socioId?: string; tipo?: string; ms?: unknown } | null = null
+    let body: { socioId?: string; tipo?: string; ms?: unknown; nombre?: unknown } | null = null
     try {
       const txt = await req.text()
       body = txt ? JSON.parse(txt) : null
@@ -58,24 +58,24 @@ export async function POST(req: NextRequest) {
     if (Number.isFinite(n) && n > 0) ms = Math.min(Math.round(n), MAX_MS)
     const conMs = ms !== undefined
 
+    // Nombre del panorama (solo para tipo 'panorama').
+    const nombre = tipo === 'panorama' ? String(body.nombre || '').trim().slice(0, 120) : ''
+
+    const doc = {
+      socioId,
+      tipo,
+      ...(conMs ? { ms } : {}),
+      ...(nombre ? { nombre } : {}),
+    }
+
     const admin = getAdminDb()
     if (admin) {
-      await admin.collection('analytics').add({
-        socioId,
-        tipo,
-        ...(conMs ? { ms } : {}),
-        timestamp: FieldValue.serverTimestamp(),
-      })
+      await admin.collection('analytics').add({ ...doc, timestamp: FieldValue.serverTimestamp() })
     } else {
       // Fallback (comportamiento anterior con client SDK)
       const app = getApps().find(a => a.name === 'track-api') ?? initializeApp(firebaseConfig, 'track-api')
       const db = getFirestore(app)
-      await addDoc(collection(db, 'analytics'), {
-        socioId,
-        tipo,
-        ...(conMs ? { ms } : {}),
-        timestamp: serverTimestamp(),
-      })
+      await addDoc(collection(db, 'analytics'), { ...doc, timestamp: serverTimestamp() })
     }
 
     return NextResponse.json({ ok: true }, { headers: CORS })

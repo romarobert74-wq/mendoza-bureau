@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   DoorOpen, BedDouble, Waves, Wine, Grape, Utensils, Flower2, Dumbbell,
   PartyPopper, Sofa, Images, Sunset, Umbrella, ShoppingBag, MapPin, Sparkles,
-  MessageCircle, CalendarDays, ChevronRight, ChevronLeft,
+  MessageCircle, CalendarDays, ChevronRight, ChevronLeft, X,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { BotonPano, CategoriaSocio } from '@/types'
@@ -97,6 +97,9 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
     else irA(b.panorama)
   }
 
+  // Cierra la botonera (el puente oculta el contenedor BOTONERA-CENTRAL)
+  const cerrar = () => emitir({ tipo: 'mb-cerrar-ir-a' })
+
   // Si algún botón tiene grupo, los que NO tienen grupo caen en "General"
   // (así nunca quedan ocultos al mezclar botones con y sin grupo).
   const hayGrupos = (botones ?? []).some(b => (b.grupo ?? '').trim())
@@ -128,6 +131,7 @@ export default function IrASocio({ params }: { params: { socioId: string } }) {
     <div style={{ ...S.wrap, ...catVars }}>
       <style>{CSS}</style>
       <div style={S.card} className="card">
+        <button className="cerrar-x" onClick={cerrar} aria-label="Cerrar"><X size={18} /></button>
         {submenu ? (
           <>
             <button className="back" onClick={() => setSubmenu(null)}>
@@ -221,6 +225,10 @@ const S: Record<string, React.CSSProperties> = {
 }
 
 const CSS = `
+  .cerrar-x{ position:absolute; top:12px; right:12px; width:34px; height:34px; display:grid; place-items:center;
+    border-radius:999px; cursor:pointer; color:#f5ede7; background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.16); transition:.15s; z-index:5; }
+  .cerrar-x:hover{ background:var(--cat-bg); border-color:var(--cat-bd); color:var(--cat); }
   .card{ transition:opacity .25s ease, transform .25s ease; }
   .card.saliendo{ opacity:0; transform:translateY(8px) scale(.98); pointer-events:none; }
   .back{ display:inline-flex; align-items:center; gap:5px; margin-bottom:12px; padding:7px 13px;

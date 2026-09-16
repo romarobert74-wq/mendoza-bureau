@@ -73,10 +73,10 @@
     return null;
   }
 
-  function enviarEvento(tipo, ms) {
+  function enviarEvento(tipo, ms, nombre) {
     try {
       var sid = detectarSocioId() || 'madre';
-      var payload = JSON.stringify({ socioId: sid, tipo: tipo, ms: ms });
+      var payload = JSON.stringify({ socioId: sid, tipo: tipo, ms: ms, nombre: nombre });
       if (navigator.sendBeacon) {
         navigator.sendBeacon(TRACK_URL, payload);
       } else {
@@ -106,6 +106,24 @@
     window.addEventListener('pagehide', enviarTiempo);
     window.addEventListener('beforeunload', enviarTiempo);
   } catch (e) {}
+
+  // Panoramas vistos: detectamos el panorama actual y, en cada cambio, mandamos
+  // un evento 'panorama' con su nombre (para saber qué espacios se ven más).
+  var _panActual = null;
+  function panoramaActual() {
+    try {
+      var pls = todasLasPlaylists();
+      if (!pls.length) return null;
+      var idx = pls[0].get('selectedIndex');
+      var items = pls[0].get('items') || [];
+      if (idx == null || !items[idx]) return null;
+      return normalizar(nombreDe(items[idx]));
+    } catch (e) { return null; }
+  }
+  setInterval(function () {
+    var p = panoramaActual();
+    if (p && p !== _panActual) { _panActual = p; enviarEvento('panorama', undefined, p); }
+  }, 1500);
 
   // Devuelve TODAS las playlists del tour (puede haber más de una).
   function todasLasPlaylists() {
@@ -268,6 +286,23 @@
     } catch (e) {}
   }
 
+  // Contenedor de la ficha del socio en 3DVista.
+  var NOMBRES_FICHA = ['INFO-SOCIO', 'FICHA-SOCIO', 'INFO'];
+
+  // Cierra la ficha ocultando su contenedor (+ el webframe por URL, respaldo).
+  function cerrarFicha() {
+    ocultarPorNombre(NOMBRES_FICHA);
+    try {
+      var player = getPlayer();
+      var wfs = (player && player.getByClassName) ? (player.getByClassName('WebFrame') || []) : [];
+      for (var i = 0; i < wfs.length; i++) {
+        var url = '';
+        try { url = wfs[i].get('url') || ''; } catch (e) {}
+        if (url.indexOf('/tour/socio/ficha') >= 0) { try { wfs[i].set('visible', false); } catch (e) {} }
+      }
+    } catch (e) {}
+  }
+
   window.addEventListener('message', function (ev) {
     var d = ev.data;
     if (!d || typeof d !== 'object' || d.source !== 'bureau-ir-a') return;
@@ -290,6 +325,8 @@
       }
     } else if (d.tipo === 'mb-cerrar-ir-a') {
       cerrarBotonera();
+    } else if (d.tipo === 'mb-cerrar-ficha') {
+      cerrarFicha();
     } else if (d.tipo === 'mb-ping') {
       responder(ev.source, { tipo: 'mb-pong' });
     } else if (d.tipo === 'mb-listar') {
