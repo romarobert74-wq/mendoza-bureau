@@ -98,4 +98,31 @@
     var p = panoramaActual();
     if (p && p !== _panActual) { _panActual = p; enviarEvento('panorama', undefined, p); }
   }, 1500);
+
+  // ── Cierre del ONBOARDING (nuestra intro) ─────────────────────────────────
+  // Única ventana que maneja este puente: el botón "Comenzar" del onboarding
+  // manda este mensaje y ocultamos el contenedor/webframe de la intro.
+  // (El menú "Descubrí la zona" y su X los seguís manejando vos en 3DVista.)
+  function ocultarOnboarding() {
+    try {
+      var p = getPlayer();
+      if (!p || !p.getByClassName) return;
+      var clases = ['Container', 'Group', 'WebFrame', 'Image'];
+      var nombres = ['onboarding', 'bienvenida', 'intro'];
+      for (var c = 0; c < clases.length; c++) {
+        var arr = []; try { arr = p.getByClassName(clases[c]) || []; } catch (e) {}
+        for (var i = 0; i < arr.length; i++) {
+          var lab = ''; try { lab = (arr[i].get('data') && arr[i].get('data').label) || arr[i].get('id') || ''; } catch (e) {}
+          var url = ''; try { url = arr[i].get('url') || ''; } catch (e) {}
+          if ((lab && nombres.indexOf(String(lab).toLowerCase()) >= 0) || url.indexOf('onboarding') >= 0) {
+            try { arr[i].set('visible', false); } catch (e) {}
+          }
+        }
+      }
+    } catch (e) {}
+  }
+  window.addEventListener('message', function (ev) {
+    var d = ev.data;
+    if (d && typeof d === 'object' && d.source === 'bureau-ir-a' && d.tipo === 'mb-cerrar-onboarding') ocultarOnboarding();
+  });
 })();

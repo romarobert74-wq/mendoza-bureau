@@ -1,0 +1,136 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bienvenido · Mendoza Bureau 360°</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#0e0a0c;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#f5ede7}
+  #ob-root{position:relative;min-height:100vh;width:100%;overflow:hidden;display:flex;flex-direction:column}
+  .bg{position:absolute;inset:0;background:
+     radial-gradient(1200px 700px at 12% 8%, rgba(241,90,36,.28), transparent 55%),
+     radial-gradient(900px 600px at 92% 96%, rgba(168,85,247,.20), transparent 55%),
+     linear-gradient(135deg,#160d12 0%, #0e0a0c 55%, #0a0709 100%);}
+  .bg-photo{position:absolute;inset:0;background:url('/ejemplos/portada.jpg') center/cover no-repeat;filter:blur(6px) brightness(.35) saturate(1.1);opacity:.28}
+  .grain{position:absolute;inset:0;background:linear-gradient(180deg,transparent,rgba(0,0,0,.5))}
+  .wrap{position:relative;z-index:2;flex:1;display:flex;flex-direction:column;padding:48px 60px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:20px}
+  .logo-mb{height:88px}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#ff9a6a;border:1px solid rgba(255,154,106,.35);background:rgba(241,90,36,.12);padding:7px 14px;border-radius:999px}
+  .cols{flex:1;display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center;margin-top:24px}
+  h1{font-size:clamp(34px,4.4vw,60px);font-weight:900;line-height:1.02;letter-spacing:-.02em;margin:18px 0 14px}
+  h1 .o{background:linear-gradient(90deg,#ff6a3d,#ffb37a);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{font-size:clamp(16px,1.5vw,21px);line-height:1.55;color:#d8ccc4;max-width:640px}
+  .navs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:30px;max-width:660px}
+  .nav{display:flex;gap:13px;align-items:flex-start;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:14px 16px}
+  .nav-ic{flex:none;width:42px;height:42px;display:grid;place-items:center;border-radius:11px;color:#ff9a6a;background:rgba(241,90,36,.14);border:1px solid rgba(241,90,36,.3)}
+  .nav-t{font-weight:800;font-size:15px} .nav-d{font-size:13px;color:#a99e97;margin-top:2px;line-height:1.4}
+  .panel{background:rgba(20,15,17,.72);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:22px;padding:24px 26px;box-shadow:0 24px 70px rgba(0,0,0,.5)}
+  .panel h3{font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#ff9a6a;margin-bottom:4px}
+  .panel p.sub{font-size:13px;color:#a99e97;margin-bottom:18px}
+  .chips{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .chip{display:flex;align-items:center;gap:11px}
+  .chip-ic{flex:none;width:44px;height:44px;display:grid;place-items:center;border-radius:999px;border:2px solid;}
+  .chip-lb{font-size:14.5px;font-weight:600;color:#efe6df}
+  .foot{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 60px 34px}
+  .logo-faro{height:60px;opacity:.95}
+  .cta{font-family:inherit;font-size:18px;font-weight:800;color:#1a0f0a;border:none;cursor:pointer;
+     background:linear-gradient(135deg,#ff6a3d,#ffb055);padding:15px 38px;border-radius:999px;box-shadow:0 12px 34px rgba(241,90,36,.45)}
+  .cta:hover{filter:brightness(1.06)}
+  .loading{display:inline-flex;align-items:center;gap:11px;font-size:17px;font-weight:700;color:#efe6df}
+  .spinner{width:20px;height:20px;border-radius:999px;border:3px solid rgba(255,255,255,.25);border-top-color:#ff6a3d;animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @media (max-width:900px){
+    .wrap{padding:28px 22px} .foot{padding:16px 22px 26px;flex-direction:column;gap:14px}
+    .cols{grid-template-columns:1fr;gap:26px} .navs{grid-template-columns:1fr}
+    .logo-mb{height:64px} h1{font-size:34px}
+  }
+</style></head>
+<body>
+<div id="ob-root">
+  <div class="bg"></div><div class="bg-photo"></div><div class="grain"></div>
+  <div class="wrap">
+    <div class="top">
+      <img class="logo-mb" src="/ejemplos/logo-bureau.png" alt="Mendoza Bureau">
+      <span class="eyebrow">◉ Tour virtual 360°</span>
+    </div>
+    <div class="cols">
+      <div>
+        <h1>Recorré Mendoza <span class="o">en 360°</span></h1>
+        <p class="lead">Descubrí bodegas, hoteles, restaurantes y todos los servicios para tu evento o viaje — sin moverte de donde estás. Una experiencia inmersiva de Mendoza Bureau.</p>
+        <div class="navs"><div class="nav">
+          <span class="nav-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="m15 5-3-3-3 3"/><path d="m9 19 3 3 3-3"/><path d="M2 12h20"/><path d="m5 9-3 3 3 3"/><path d="m19 15 3-3-3-3"/></svg></span>
+          <div><p class="nav-t">Mirá en 360°</p><p class="nav-d">Arrastrá con el mouse o el dedo para girar la vista.</p></div>
+        </div>
+<div class="nav">
+          <span class="nav-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></span>
+          <div><p class="nav-t">Entrá a un lugar</p><p class="nav-d">Tocá los pines de colores para ver la ficha del socio.</p></div>
+        </div>
+<div class="nav">
+          <span class="nav-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg></span>
+          <div><p class="nav-t">Descubrí la zona</p><p class="nav-d">Abrí el menú para filtrar y buscar por categoría.</p></div>
+        </div>
+<div class="nav">
+          <span class="nav-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></span>
+          <div><p class="nav-t">Preguntale a MIA</p><p class="nav-d">El asistente IA te ayuda a encontrar lo que buscás.</p></div>
+        </div></div>
+      </div>
+      <div class="panel">
+        <h3>Referencias</h3>
+        <p class="sub">Cada pin de color es una categoría:</p>
+        <div class="chips"><div class="chip">
+          <span class="chip-ic" style="color:#3b82f6;border-color:#3b82f655;background:#3b82f61f"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg></span>
+          <span class="chip-lb">Hoteles</span>
+        </div>
+<div class="chip">
+          <span class="chip-ic" style="color:#a855f7;border-color:#a855f755;background:#a855f71f"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 5V2l-5.89 5.89"/><circle cx="16.6" cy="15.89" r="3"/><circle cx="8.11" cy="7.4" r="3"/><circle cx="12.35" cy="11.65" r="3"/><circle cx="13.91" cy="5.85" r="3"/><circle cx="18.15" cy="10.09" r="3"/><circle cx="6.56" cy="13.2" r="3"/><circle cx="10.8" cy="17.44" r="3"/><circle cx="5" cy="19" r="3"/></svg></span>
+          <span class="chip-lb">Bodegas</span>
+        </div>
+<div class="chip">
+          <span class="chip-ic" style="color:#f15a24;border-color:#f15a2455;background:#f15a241f"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3"/><path d="M18 15v7"/></svg></span>
+          <span class="chip-lb">Restaurantes</span>
+        </div>
+<div class="chip">
+          <span class="chip-ic" style="color:#22c55e;border-color:#22c55e55;background:#22c55e1f"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg></span>
+          <span class="chip-lb">Alojamiento</span>
+        </div>
+<div class="chip">
+          <span class="chip-ic" style="color:#ec4899;border-color:#ec489955;background:#ec48991f"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.8 11.3 2 22l10.7-3.79"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L12 10"/><path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11c-.11.7-.72 1.22-1.43 1.22H17"/><path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98C9.52 4.9 9 5.52 9 6.23V7"/><path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"/></svg></span>
+          <span class="chip-lb">Salones</span>
+        </div>
+<div class="chip">
+          <span class="chip-ic" style="color:#eab308;border-color:#eab30855;background:#eab3081f"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h20a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1Z"/><path d="M20 16a8 8 0 1 0-16 0"/><path d="M12 4v4"/><path d="M10 4h4"/></svg></span>
+          <span class="chip-lb">Servicios</span>
+        </div>
+<div class="chip">
+          <span class="chip-ic" style="color:#06b6d4;border-color:#06b6d455;background:#06b6d41f"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/></svg></span>
+          <span class="chip-lb">Congresos y Eventos</span>
+        </div>
+<div class="chip">
+          <span class="chip-ic" style="color:#6366f1;border-color:#6366f155;background:#6366f11f"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg></span>
+          <span class="chip-lb">Tecnología y AV</span>
+        </div>
+<div class="chip">
+          <span class="chip-ic" style="color:#ef4444;border-color:#ef444455;background:#ef44441f"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg></span>
+          <span class="chip-lb">Transporte</span>
+        </div>
+<div class="chip">
+          <span class="chip-ic" style="color:#14b8a6;border-color:#14b8a655;background:#14b8a61f"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2"/><path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14"/><path d="M10 20h4"/><circle cx="16" cy="20" r="2"/><circle cx="8" cy="20" r="2"/></svg></span>
+          <span class="chip-lb">Viajes y Turismo</span>
+        </div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot">
+    <img class="logo-faro" src="/ejemplos/logo-faro.png" alt="El Faro 360">
+    <button id="comenzar" class="cta">Comenzar recorrido</button>
+  </div>
+</div>
+<script>
+      var b=document.getElementById('comenzar');
+      if(b) b.onclick=function(){
+        var p={source:'bureau-ir-a',tipo:'mb-cerrar-onboarding'};
+        try{parent.postMessage(p,'*')}catch(e){}
+        try{if(top&&top!==parent)top.postMessage(p,'*')}catch(e){}
+        var r=document.getElementById('ob-root'); if(r) r.style.display='none';
+      };
+    </script>
+</body></html>

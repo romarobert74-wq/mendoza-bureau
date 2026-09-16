@@ -327,6 +327,16 @@
       cerrarBotonera();
     } else if (d.tipo === 'mb-cerrar-ficha') {
       cerrarFicha();
+    } else if (d.tipo === 'mb-cerrar-onboarding') {
+      ocultarPorNombre(['ONBOARDING', 'BIENVENIDA', 'INTRO']);
+      try {
+        var pl = getPlayer();
+        var wf = (pl && pl.getByClassName) ? (pl.getByClassName('WebFrame') || []) : [];
+        for (var z = 0; z < wf.length; z++) {
+          var uu = ''; try { uu = wf[z].get('url') || ''; } catch (e) {}
+          if (uu.indexOf('onboarding') >= 0) { try { wf[z].set('visible', false); } catch (e) {} }
+        }
+      } catch (e) {}
     } else if (d.tipo === 'mb-ping') {
       responder(ev.source, { tipo: 'mb-pong' });
     } else if (d.tipo === 'mb-listar') {
