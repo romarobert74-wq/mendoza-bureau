@@ -521,6 +521,27 @@ function FichaPage() {
   // Analytics: cuenta la visita al tour del socio y mide el tiempo de permanencia
   useWebframeTracking(id)
 
+  // Indicador de scroll: muestra "Deslizá para ver más" mientras haya contenido abajo
+  const [scrollHint, setScrollHint] = useState(false)
+  useEffect(() => {
+    const check = () => {
+      const doc = document.documentElement
+      const puede = doc.scrollHeight - window.innerHeight > 40
+      const cercaFondo = window.innerHeight + window.scrollY >= doc.scrollHeight - 60
+      setScrollHint(puede && !cercaFondo)
+    }
+    check()
+    window.addEventListener('scroll', check, { passive: true })
+    window.addEventListener('resize', check)
+    const t1 = setTimeout(check, 600)
+    const t2 = setTimeout(check, 1600)   // tras cargar imágenes/portada
+    return () => {
+      window.removeEventListener('scroll', check)
+      window.removeEventListener('resize', check)
+      clearTimeout(t1); clearTimeout(t2)
+    }
+  }, [socio, loading])
+
   // Cierra la ficha (el puente 3DVista oculta el contenedor INFO-SOCIO)
   const cerrarFicha = () => {
     const payload = { source: 'bureau-ir-a', tipo: 'mb-cerrar-ficha' }
@@ -595,6 +616,17 @@ function FichaPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'transparent', color: T.text, fontFamily: 'system-ui, sans-serif', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '18px 14px 28px' }}>
+      <style>{`@keyframes mbBounce{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}`}</style>
+      {/* Indicador "hay más contenido abajo" */}
+      <div style={{
+        position: 'fixed', left: '50%', bottom: 16, transform: 'translateX(-50%)', zIndex: 20,
+        display: scrollHint ? 'flex' : 'none', alignItems: 'center', gap: 7,
+        background: 'rgba(241,90,36,0.95)', color: '#fff', fontWeight: 700, fontSize: 13,
+        padding: '8px 15px', borderRadius: 999, boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+        animation: 'mbBounce 1.4s ease-in-out infinite', pointerEvents: 'none',
+      }}>
+        Deslizá para ver más <ChevronDown size={16} />
+      </div>
       {/* Panel glass (mismo estilo que la botonera "Ir a") */}
       <div style={{ position: 'relative', width: '100%', maxWidth: '820px', borderRadius: '24px', overflow: 'hidden', background: 'rgba(20,15,17,0.72)', backdropFilter: 'blur(22px)', border: '1px solid rgba(255,255,255,0.10)', boxShadow: '0 24px 60px rgba(0,0,0,0.45)', padding: '0 14px 22px' }}>
 

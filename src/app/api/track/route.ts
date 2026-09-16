@@ -28,7 +28,7 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-const TIPOS_VALIDOS = ['tour', 'contacto', 'web', 'redes', 'webframe_tiempo', 'panorama']
+const TIPOS_VALIDOS = ['tour', 'contacto', 'web', 'redes', 'webframe_tiempo', 'panorama', 'menu_abierto', 'bot_abierto']
 const MAX_MS = 4 * 60 * 60 * 1000  // techo de 4 h para descartar basura
 
 export async function OPTIONS() {

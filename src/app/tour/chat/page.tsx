@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { Send, Utensils, Hotel, Wrench, Package, Wine, PartyPopper, Presentation, Cpu, Bus, Luggage } from 'lucide-react'
+import { trackEvento } from '@/lib/analytics'
 
 function renderMensaje(texto: string) {
   const partes = texto.split('\n')
@@ -141,6 +142,9 @@ export default function TourChatPage() {
     document.body.style.background = 'transparent'
     document.documentElement.style.background = 'transparent'
   }, [])
+
+  // Métrica: apertura del bot IA (tour madre)
+  useEffect(() => { trackEvento('madre', 'bot_abierto') }, [])
 
   // Load socios + config
   useEffect(() => {

@@ -24,7 +24,7 @@ function fmtTiempo(ms: number): string {
   return `${h}h ${m % 60}m`
 }
 
-const VACIO: AnalyticsSocio = { tour: 0, contacto: 0, web: 0, redes: 0, visitas: 0, tiempoMs: 0 }
+const VACIO: AnalyticsSocio = { tour: 0, contacto: 0, web: 0, redes: 0, visitas: 0, tiempoMs: 0, menu: 0, bot: 0, panoramas: {} }
 
 export default function VerSocioPage() {
   const { id } = useParams<{ id: string }>()
@@ -143,6 +143,28 @@ export default function VerSocioPage() {
         <Ind label="Clicks a redes" value={stats.redes} sub="redes sociales" icon={Share2} accent="#ec4899" />
         <Ind label="Fotos cargadas" value={fotos} sub="galería del socio" icon={ImageIcon} accent="#f15a24" />
       </div>
+
+      {/* Panoramas más vistos */}
+      {Object.keys(stats.panoramas).length > 0 && (
+        <section className="kpi-card mb-8">
+          <h3 className="font-semibold mb-4" style={{ color: 'var(--text)' }}>Panoramas más vistos</h3>
+          <div className="space-y-2">
+            {(() => {
+              const lista = Object.entries(stats.panoramas).sort((a, b) => b[1] - a[1])
+              const max = lista[0][1] || 1
+              return lista.slice(0, 12).map(([nombre, n]) => (
+                <div key={nombre} className="flex items-center gap-3">
+                  <span className="text-sm w-40 shrink-0 truncate" style={{ color: 'var(--text)' }}>{nombre}</span>
+                  <div className="flex-1 h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-input)' }}>
+                    <div style={{ width: `${(n / max) * 100}%`, height: '100%', background: 'var(--orange)', borderRadius: 999 }} />
+                  </div>
+                  <span className="text-sm font-semibold w-10 text-right" style={{ color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>{n}</span>
+                </div>
+              ))
+            })()}
+          </div>
+        </section>
+      )}
 
       {/* Resumen de datos + ficha embebida */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

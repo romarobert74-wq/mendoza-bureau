@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { collection, getDocs, orderBy, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Search, Layers, ArrowDownUp, MessageCircle, Mail, Globe } from 'lucide-react'
+import { Search, Layers, ArrowDownUp, MessageCircle, Mail, Globe, ChevronDown } from 'lucide-react'
+import { trackEvento } from '@/lib/analytics'
 
 // Cuadro estilo dashboard para la pestaña Información
 function DashCard({ children }: { children: React.ReactNode }) {
@@ -161,6 +162,24 @@ export default function TourMenuPage() {
     document.body.style.background = 'transparent'
     document.documentElement.style.background = 'transparent'
   }, [])
+
+  // Métrica: apertura del menú principal (tour madre)
+  useEffect(() => { trackEvento('madre', 'menu_abierto') }, [])
+
+  // Indicador de scroll de la solapa Información
+  const infoRef = useRef<HTMLDivElement>(null)
+  const [infoHint, setInfoHint] = useState(false)
+  const checkInfo = () => {
+    const el = infoRef.current
+    if (!el) { setInfoHint(false); return }
+    setInfoHint(el.scrollHeight - el.clientHeight > 20 && el.scrollTop + el.clientHeight < el.scrollHeight - 24)
+  }
+  useEffect(() => {
+    if (tab !== 'informacion') { setInfoHint(false); return }
+    const t1 = setTimeout(checkInfo, 250); const t2 = setTimeout(checkInfo, 900)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, infoExtra, clima])
 
   useEffect(() => {
     let cancelado = false
@@ -336,6 +355,7 @@ export default function TourMenuPage() {
       className="min-h-screen w-full flex items-start justify-end p-3"
       style={{ background: 'transparent' }}
     >
+      <style>{`@keyframes mbBounceMenu{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}`}</style>
       <div
         className="w-[320px] rounded-2xl flex flex-col"
         style={{
@@ -560,7 +580,7 @@ export default function TourMenuPage() {
             </div>
           </>
         ) : (
-          <div className="px-5 py-4 overflow-y-auto flex-1 text-white space-y-3">
+          <div ref={infoRef} onScroll={checkInfo} className="px-5 py-4 overflow-y-auto flex-1 text-white space-y-3 relative">
             {(() => {
               const eventos = (infoExtra?.eventos && infoExtra.eventos.length > 0) ? infoExtra.eventos : EVENTOS_DEFAULT
               return <>
@@ -675,6 +695,12 @@ export default function TourMenuPage() {
             </button>
             </>
             })()}
+            {/* Indicador: hay más contenido abajo (sticky, se oculta al llegar al final) */}
+            <div style={{ position: 'sticky', bottom: 4, zIndex: 5, display: infoHint ? 'flex' : 'none', justifyContent: 'center', pointerEvents: 'none' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(241,90,36,0.95)', color: '#fff', fontWeight: 700, fontSize: 12, padding: '5px 12px', borderRadius: 999, boxShadow: '0 6px 18px rgba(0,0,0,0.4)', animation: 'mbBounceMenu 1.4s ease-in-out infinite' }}>
+                Deslizá para ver más <ChevronDown size={14} />
+              </span>
+            </div>
           </div>
         )}
       </div>

@@ -67,7 +67,7 @@ export default function SociosPage() {
     if (!eventos) return null
     const dDesde = desde ? new Date(desde + 'T00:00:00') : null
     const dHasta = hasta ? new Date(hasta + 'T23:59:59') : null
-    const vacio = (): AnalyticsSocio => ({ tour: 0, contacto: 0, web: 0, redes: 0, visitas: 0, tiempoMs: 0 })
+    const vacio = (): AnalyticsSocio => ({ tour: 0, contacto: 0, web: 0, redes: 0, visitas: 0, tiempoMs: 0, menu: 0, bot: 0, panoramas: {} })
     const porSocio: Record<string, AnalyticsSocio> = {}
     const total = vacio()
     const porDia: Record<string, number> = {}
@@ -137,7 +137,7 @@ export default function SociosPage() {
 
   // Totales de interacción para la categoría seleccionada (o todas)
   const totalesCategoria = (() => {
-    const acc: AnalyticsSocio = { tour: 0, contacto: 0, web: 0, redes: 0, visitas: 0, tiempoMs: 0 }
+    const acc: AnalyticsSocio = { tour: 0, contacto: 0, web: 0, redes: 0, visitas: 0, tiempoMs: 0, menu: 0, bot: 0, panoramas: {} }
     if (!analytics) return acc
     for (const soc of socios) {
       if (catFiltro !== 'todas' && soc.categoria !== catFiltro) continue

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 
-type TipoEvento = 'tour' | 'contacto' | 'web' | 'redes' | 'webframe_tiempo'
+type TipoEvento = 'tour' | 'contacto' | 'web' | 'redes' | 'webframe_tiempo' | 'panorama' | 'menu_abierto' | 'bot_abierto'
 
 /**
  * Envía un evento de analytics de forma no bloqueante.

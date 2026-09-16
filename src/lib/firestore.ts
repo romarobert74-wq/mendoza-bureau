@@ -345,6 +345,9 @@ export interface AnalyticsSocio {
   redes: number
   visitas: number      // sesiones con tiempo registrado
   tiempoMs: number     // tiempo total en webframe
+  menu: number         // aperturas del menú principal (tour madre)
+  bot: number          // aperturas del bot IA
+  panoramas: Record<string, number>   // conteo de vistas por nombre de panorama
 }
 
 export interface AnalyticsResumen {
@@ -355,6 +358,7 @@ export interface AnalyticsResumen {
 
 const EVENTO_VACIO = (): AnalyticsSocio => ({
   tour: 0, contacto: 0, web: 0, redes: 0, visitas: 0, tiempoMs: 0,
+  menu: 0, bot: 0, panoramas: {},
 })
 
 // Evento crudo de analytics (para poder filtrar por rango de fechas en el cliente)
@@ -377,8 +381,8 @@ export async function getAnalyticsResumen(): Promise<AnalyticsResumen> {
   const porDia: Record<string, number> = {}   // 'YYYY-MM-DD' -> visitas (tour)
 
   snap.docs.forEach(d => {
-    const data = d.data() as { socioId?: string; tipo?: string; ms?: number; timestamp?: { toDate?: () => Date } }
-    const { socioId, tipo, ms } = data
+    const data = d.data() as { socioId?: string; tipo?: string; ms?: number; nombre?: string; timestamp?: { toDate?: () => Date } }
+    const { socioId, tipo, ms, nombre } = data
     if (!socioId) return
     if (!porSocio[socioId]) porSocio[socioId] = EVENTO_VACIO()
     const s = porSocio[socioId]
@@ -386,6 +390,13 @@ export async function getAnalyticsResumen(): Promise<AnalyticsResumen> {
       const dur = typeof ms === 'number' ? ms : 0
       s.tiempoMs += dur; s.visitas += 1
       total.tiempoMs += dur; total.visitas += 1
+    } else if (tipo === 'menu_abierto') {
+      s.menu += 1; total.menu += 1
+    } else if (tipo === 'bot_abierto') {
+      s.bot += 1; total.bot += 1
+    } else if (tipo === 'panorama') {
+      const n = (nombre || '').toString().trim()
+      if (n) { s.panoramas[n] = (s.panoramas[n] ?? 0) + 1; total.panoramas[n] = (total.panoramas[n] ?? 0) + 1 }
     } else if (tipo === 'tour' || tipo === 'contacto' || tipo === 'web' || tipo === 'redes') {
       s[tipo] += 1
       total[tipo] += 1

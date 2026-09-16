@@ -9,7 +9,7 @@ import type { Socio, CategoriaSocio } from '@/types'
 import {
   MapPin, Users, CheckCircle, MousePointerClick, Eye, Clock,
   Wine, UtensilsCrossed, BedDouble, Building2, PartyPopper, Wrench, Package,
-  Presentation, Cpu, Bus, Luggage,
+  Presentation, Cpu, Bus, Luggage, Map as MapIcon, Menu as MenuIcon, Bot, Image as ImageIcon,
 } from 'lucide-react'
 
 const CAT_ICON: Record<CategoriaSocio, React.ElementType> = {
@@ -87,6 +87,12 @@ export default function DashboardPage() {
 
   const t = analytics?.total
 
+  // Métricas del TOUR MADRE (se registran con socioId 'madre')
+  const madre = analytics?.porSocio?.['madre']
+  const topPanoMadre = madre
+    ? Object.entries(madre.panoramas).sort((a, b) => b[1] - a[1])[0]
+    : undefined
+
   return (
     <div className="p-8">
       <p className="section-title mb-1">Panel</p>
@@ -125,6 +131,22 @@ export default function DashboardPage() {
               <Kpi label="Usuarios sistema" value={totalUsuarios} icon={Users} accent="#8a8a91" />
             )}
           </div>
+
+          {/* Tour madre */}
+          <section>
+            <h3 className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: 'var(--text-2)' }}>
+              Tour madre (Descubrí la zona)
+            </h3>
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+              <Kpi label="Ingresos al tour" value={madre?.tour ?? 0} icon={MapIcon} accent="#f15a24" />
+              <Kpi label="Tiempo total" value={fmtTiempo(madre?.tiempoMs ?? 0)} icon={Clock} accent="#a855f7"
+                sub={`${madre?.visitas ?? 0} sesiones`} isText />
+              <Kpi label="Menú abierto" value={madre?.menu ?? 0} icon={MenuIcon} accent="#3b82f6" />
+              <Kpi label="Bot IA abierto" value={madre?.bot ?? 0} icon={Bot} accent="#22c55e" />
+              <Kpi label="Panorama más visto" value={topPanoMadre ? `${topPanoMadre[0]} (${topPanoMadre[1]})` : '—'}
+                icon={ImageIcon} accent="#eab308" isText />
+            </div>
+          </section>
 
           {/* Socios activos por categoría */}
           <section>
