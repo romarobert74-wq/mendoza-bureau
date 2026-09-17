@@ -616,7 +616,14 @@ function FichaPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'transparent', color: T.text, fontFamily: 'system-ui, sans-serif', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '18px 14px 28px' }}>
-      <style>{`@keyframes mbBounce{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}`}</style>
+      <style>{`
+        @keyframes mbBounce{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+        .ficha-x{ position:absolute; top:12px; right:12px; z-index:20; width:36px; height:36px; display:grid;
+          place-items:center; border-radius:999px; cursor:pointer; color:#f5ede7; background:rgba(0,0,0,.5);
+          border:1px solid rgba(255,255,255,.22); backdrop-filter:blur(4px); transition:.15s; }
+        .ficha-x:hover{ background:rgba(241,90,36,.18); border-color:rgba(241,90,36,.6); color:#ff8a4d;
+          box-shadow:0 6px 18px -6px rgba(241,90,36,.8); }
+      `}</style>
       {/* Indicador "hay más contenido abajo" */}
       <div style={{
         position: 'fixed', left: '50%', bottom: 16, transform: 'translateX(-50%)', zIndex: 20,
@@ -631,8 +638,7 @@ function FichaPage() {
       <div style={{ position: 'relative', width: '100%', maxWidth: '820px', borderRadius: '24px', overflow: 'hidden', background: 'rgba(20,15,17,0.72)', backdropFilter: 'blur(22px)', border: '1px solid rgba(255,255,255,0.10)', boxShadow: '0 24px 60px rgba(0,0,0,0.45)', padding: '0 14px 22px' }}>
 
         {/* X de cerrar (oculta el contenedor INFO-SOCIO vía el puente) */}
-        <button onClick={cerrarFicha} aria-label="Cerrar"
-          style={{ position: 'absolute', top: 12, right: 12, zIndex: 10, width: 34, height: 34, display: 'grid', placeItems: 'center', borderRadius: 999, cursor: 'pointer', color: '#f5ede7', background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.22)', backdropFilter: 'blur(4px)' }}>
+        <button onClick={cerrarFicha} aria-label="Cerrar" className="ficha-x">
           <X size={18} />
         </button>
 
