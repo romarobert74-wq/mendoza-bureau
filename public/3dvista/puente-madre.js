@@ -1,13 +1,13 @@
 /* =============================================================================
- * PUENTE 3DVista — TOUR MADRE  ·  SOLO ESTADÍSTICAS
+ * PUENTE 3DVista - TOUR MADRE  -  SOLO ESTADISTICAS
  * =============================================================================
- * Pegá TODO este contenido en:
- *   3DVista → TOUR → evento "Al comenzar / Begin" → "Ejecutar JavaScript".
+ * Pega TODO este contenido en:
+ *   3DVista - TOUR - evento "Al comenzar / Begin" - "Ejecutar JavaScript".
  *
- * Qué hace: mide INGRESO al tour madre, TIEMPO de permanencia y PANORAMAS vistos.
- * NO abre ni cierra ventanas: la X del menú y los botones los manejás vos en 3DVista.
+ * Que hace: mide INGRESO al tour madre, TIEMPO de permanencia y PANORAMAS vistos.
+ * NO abre ni cierra ventanas: la X del menu y los botones los manejas vos en 3DVista.
  *
- * (El menú principal y el bot IA registran su apertura por su cuenta, desde el
+ * (El menu principal y el bot IA registran su apertura por su cuenta, desde el
  *  propio webframe; este puente no se encarga de eso.)
  * ========================================================================== */
 (function () {
@@ -49,7 +49,7 @@
 
   function normalizar(s) {
     return String(s || '').toLowerCase()
-      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]','g'), '')
       .replace(/\s+/g, '-').trim();
   }
 
@@ -99,10 +99,10 @@
     if (p && p !== _panActual) { _panActual = p; enviarEvento('panorama', undefined, p); }
   }, 1500);
 
-  // ── Cierre del ONBOARDING (nuestra intro) ─────────────────────────────────
-  // Única ventana que maneja este puente: el botón "Comenzar" del onboarding
+  // -- Cierre del ONBOARDING (nuestra intro) ---------------------------------
+  // Unica ventana que maneja este puente: el boton "Comenzar" del onboarding
   // manda este mensaje y ocultamos el contenedor/webframe de la intro.
-  // (El menú "Descubrí la zona" y su X los seguís manejando vos en 3DVista.)
+  // (El menu "Descubri la zona" y su X los seguis manejando vos en 3DVista.)
   function ocultarOnboarding() {
     try {
       var p = getPlayer();
