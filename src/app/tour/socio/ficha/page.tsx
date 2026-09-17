@@ -618,11 +618,14 @@ function FichaPage() {
     <div style={{ minHeight: '100vh', background: 'transparent', color: T.text, fontFamily: 'system-ui, sans-serif', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '18px 14px 28px' }}>
       <style>{`
         @keyframes mbBounce{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
-        .ficha-x{ position:absolute; top:12px; right:12px; z-index:20; width:36px; height:36px; display:grid;
-          place-items:center; border-radius:999px; cursor:pointer; color:#f5ede7; background:rgba(0,0,0,.5);
-          border:1px solid rgba(255,255,255,.22); backdrop-filter:blur(4px); transition:.15s; }
-        .ficha-x:hover{ background:rgba(241,90,36,.18); border-color:rgba(241,90,36,.6); color:#ff8a4d;
-          box-shadow:0 6px 18px -6px rgba(241,90,36,.8); }
+        .ficha-x{ position:absolute; top:12px; right:12px; z-index:20; width:38px; height:38px; display:grid;
+          place-items:center; border-radius:999px; cursor:pointer; color:#fff; transition:.15s;
+          background:linear-gradient(135deg,#ff6a3d,#ffa057); border:1px solid rgba(255,255,255,.28);
+          animation:xPulse 2.2s ease-in-out infinite; }
+        .ficha-x:hover{ filter:brightness(1.1); transform:scale(1.08); }
+        @keyframes xPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(255,106,61,.55), 0 4px 14px rgba(241,90,36,.45) }
+          50%{ box-shadow:0 0 0 9px rgba(255,106,61,0), 0 4px 14px rgba(241,90,36,.45) } }
+        @media (prefers-reduced-motion:reduce){ .ficha-x{ animation:none } }
       `}</style>
       {/* Indicador "hay más contenido abajo" */}
       <div style={{

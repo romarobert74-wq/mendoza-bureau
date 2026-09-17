@@ -225,10 +225,14 @@ const S: Record<string, React.CSSProperties> = {
 }
 
 const CSS = `
-  .cerrar-x{ position:absolute; top:12px; right:12px; width:34px; height:34px; display:grid; place-items:center;
-    border-radius:999px; cursor:pointer; color:#f5ede7; background:rgba(255,255,255,.08);
-    border:1px solid rgba(255,255,255,.16); transition:.15s; z-index:5; }
-  .cerrar-x:hover{ background:var(--cat-bg); border-color:var(--cat-bd); color:var(--cat); }
+  .cerrar-x{ position:absolute; top:12px; right:12px; width:38px; height:38px; display:grid; place-items:center;
+    border-radius:999px; cursor:pointer; color:#fff; z-index:5; transition:.15s;
+    background:linear-gradient(135deg,#ff6a3d,#ffa057); border:1px solid rgba(255,255,255,.28);
+    animation:xPulse 2.2s ease-in-out infinite; }
+  .cerrar-x:hover{ filter:brightness(1.1); transform:scale(1.08); }
+  @keyframes xPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(255,106,61,.55), 0 4px 14px rgba(241,90,36,.45) }
+    50%{ box-shadow:0 0 0 9px rgba(255,106,61,0), 0 4px 14px rgba(241,90,36,.45) } }
+  @media (prefers-reduced-motion:reduce){ .cerrar-x{ animation:none } }
   .card{ transition:opacity .25s ease, transform .25s ease; }
   .card.saliendo{ opacity:0; transform:translateY(8px) scale(.98); pointer-events:none; }
   .back{ display:inline-flex; align-items:center; gap:5px; margin-bottom:12px; padding:7px 13px;
