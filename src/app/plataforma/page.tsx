@@ -23,17 +23,19 @@ const SERVICIOS = '/servicios-adicionales'
 // WhatsApp oficial de Mendoza Bureau
 const WA = 'https://wa.me/5492616564336?text=' + encodeURIComponent('Hola Mendoza Bureau, quiero información sobre la plataforma de tours 360° para sumarme.')
 const TOUR_VIAMONTE = 'https://elfaro360.com/tour-virtuales/alojamientos/temporales/viamontelodge/'
+// Tours de ejemplo (plataforma Mendoza Bureau 360)
+const TOUR_HILTON = 'https://mendozabureau360.com/hoteles/hilton/'
 const TOUR_MARGOT = 'https://elfaro360.com/tour-virtuales/bodegas/destacadas/margot/'
-const TOUR_PALOMA = 'https://elfaro360.com/tour-virtuales/gastronomia/cafeterias/paloma/'
+const TOUR_SMART = 'https://mendozabureau360.com/servicios-opc-ope/smart-congresses/'
 const O = '#ff6a3d'
 
 // Fondo del hero (foto propia subida a public/ejemplos/)
 const IMG_HERO = '/ejemplos/portada.jpg'
 const LOGO_BUREAU = '/ejemplos/logo-bureau.png'
 // Portadas de ejemplos: archivos locales en public/ejemplos/ (subir por repo)
-const IMG_VIAMONTE = '/ejemplos/viamonte.jpg'
+const IMG_HILTON = '/ejemplos/hilton.jpg'
 const IMG_MARGOT = '/ejemplos/margot.jpg'
-const IMG_PALOMA = '/ejemplos/paloma.jpg'
+const IMG_SMART = '/ejemplos/smart-congresses.jpg'
 
 const NAV = [
   ['El proyecto', '#proyecto'], ['Beneficios', '#beneficios'], ['Ejemplos', '#ejemplos'],
@@ -291,9 +293,9 @@ export default function PlataformaLanding() {
         </div>
         <div className="ejemplos ejemplos-3">
           {[
-            ['Viamonte Lodge', 'Alojamiento de primer nivel · 360°', TOUR_VIAMONTE, IMG_VIAMONTE],
+            ['Hilton Mendoza', 'Hotelería de primer nivel · 360°', TOUR_HILTON, IMG_HILTON],
+            ['Smart Congresses', 'Congresos y eventos (OPC/OPE) · 360°', TOUR_SMART, IMG_SMART],
             ['Bodega Margot', 'Enoturismo · recorrido inmersivo', TOUR_MARGOT, IMG_MARGOT],
-            ['Café Paloma', 'Gastronomía · experiencia 360°', TOUR_PALOMA, IMG_PALOMA],
           ].map(([nom, desc, url, img]) => (
             <a key={nom} href={url} target="_blank" rel="noopener noreferrer" className="ejemplo">
               <div className="ejemplo-img" style={{ backgroundImage: `url(${img})` }}>
