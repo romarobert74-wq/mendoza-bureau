@@ -6,7 +6,8 @@ import { useAuth } from '@/context/AuthContext'
 import { getInscripciones, actualizarInscripcion, eliminarInscripcion } from '@/lib/firestore'
 import type { Inscripcion } from '@/lib/firestore'
 import toast from 'react-hot-toast'
-import { UserPlus, MessageCircle, Mail, Copy, Trash2, Loader2, Clock } from 'lucide-react'
+import * as XLSX from 'xlsx'
+import { UserPlus, MessageCircle, Mail, Copy, Trash2, Loader2, Clock, FileSpreadsheet } from 'lucide-react'
 
 const ESTADOS: Record<string, { label: string; bg: string; color: string; border: string }> = {
   nuevo:      { label: 'Nuevo',       bg: 'rgba(59,130,246,0.14)', color: '#60a5fa', border: 'rgba(59,130,246,0.3)' },
@@ -43,6 +44,28 @@ export default function InscripcionesPage() {
     if (!confirm(`¿Eliminar la inscripción de ${i.empresa || i.nombre}?`)) return
     try { await eliminarInscripcion(i.id); toast.success('Eliminada'); cargar() }
     catch { toast.error('Error al eliminar') }
+  }
+
+  const exportarExcel = () => {
+    if (!visibles.length) { toast.error('No hay inscripciones para exportar'); return }
+    const filas = visibles.map(i => ({
+      Empresa: i.empresa || '',
+      Nombre: i.nombre || '',
+      Rubro: i.rubro || '',
+      WhatsApp: i.whatsapp || '',
+      Email: i.email || '',
+      Estado: ESTADOS[i.estado || 'nuevo']?.label || i.estado || 'Nuevo',
+      Mensaje: i.mensaje || '',
+      Fecha: fmt(i.creadoEn),
+    }))
+    const ws = XLSX.utils.json_to_sheet(filas)
+    ws['!cols'] = [{ wch: 26 }, { wch: 22 }, { wch: 22 }, { wch: 16 }, { wch: 26 }, { wch: 13 }, { wch: 45 }, { wch: 20 }]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Inscripciones')
+    const hoy = new Date().toISOString().slice(0, 10)
+    const suf = filtro === 'todos' ? '' : `-${filtro}`
+    XLSX.writeFile(wb, `inscripciones-mendoza-bureau${suf}-${hoy}.xlsx`)
+    toast.success(`Exportadas ${filas.length} inscripciones`)
   }
 
   const copiarFormulario = () => {
@@ -87,6 +110,12 @@ export default function InscripcionesPage() {
           </button>
         ))}
         <div className="flex-1" />
+        <button onClick={exportarExcel}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-white"
+          style={{ fontSize: 13, background: 'linear-gradient(135deg,#16a34a,#15803d)', border: '1px solid rgba(34,197,94,0.4)' }}
+          title="Descargar Excel (respeta el filtro seleccionado)">
+          <FileSpreadsheet size={14} /> Exportar a Excel
+        </button>
         <button onClick={copiarFormulario}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold"
           style={{ fontSize: 13, background: 'var(--bg-input)', border: '1px solid var(--border-2)', color: 'var(--text)' }}>
