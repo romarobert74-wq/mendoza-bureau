@@ -5,7 +5,7 @@ import { Fraunces, Manrope } from 'next/font/google'
 import {
   Menu, X, Camera, Compass, MapPin, Sparkles, Video, Plane, Images,
   Film, CheckCircle2, MessageCircle, ArrowRight, Eye, TrendingUp,
-  Award, Layers, Users2, ScanSearch, CalendarClock, Aperture, Wand2, Rocket, Gift,
+  Award, Layers, Users2, ScanSearch, CalendarClock, Aperture, Wand2, Rocket, Gift, SunMoon,
 } from 'lucide-react'
 
 /* ─────────────────────────────────────────────────────────────
@@ -390,7 +390,7 @@ export default function PlataformaLanding() {
           {[
             [Layers, 'Panoramas / packs extra', 'Puntos 360° adicionales a tu tour base (packs de 3, 5 o 10).', 'Más rincones para mostrar (spa, viñedo, salón, suites). Cada punto nuevo es una razón más para que te elijan.', TOUR_VIAMONTE],
             [Video, 'Panorama animado · Experiencia inmersiva', 'En vez de una foto 360° fija, grabamos un video 360° de ~60s en ese punto: el agua se mueve, la gente pasa, el atardecer avanza.', 'Es el efecto “wow” del recorrido: transmite ambiente real y te diferencia de la competencia.', 'https://www.youtube.com/results?search_query=video+360+restaurante+hotel+persona'],
-            [Images, 'Fotografías profesionales HDR', 'Pack de 15 fotos en alta calidad.', 'Se cargan en tu ficha técnica del sistema y te sirven para web, redes y Booking. Un solo shooting, contenido para todos tus canales.', 'https://unsplash.com/s/photos/luxury-restaurant-hotel'],
+            [SunMoon, 'Panoramas Día / Noche', 'El mismo punto capturado de día y de noche, con las luces encendidas.', 'Muestra tu espacio en sus dos mejores momentos: la luz natural del día y la magia de la noche iluminada. Una imagen hermosa que transmite ambiente y hace que se enamoren del lugar.', TOUR_HILTON],
             [Film, 'Reel vertical (30s)', 'Video vertical dinámico, listo para publicar.', 'Formato ideal para Instagram, TikTok y campañas. Atraé desde el celular.', 'https://www.pexels.com/search/videos/restaurant/?orientation=portrait'],
             [Camera, 'Video institucional', 'Video que presenta tu espacio, propuesta o experiencia.', 'Ideal para tu web y presentaciones comerciales: contá tu historia en movimiento.', 'https://www.youtube.com/results?search_query=video+institucional+bodega+hotel+mendoza'],
             [Plane, 'Tomas con drone', 'Tomas aéreas del lugar y su entorno.', 'Muestran ubicación, escala y paisaje — clave para bodegas, hoteles y venues con entorno natural.', 'https://www.pexels.com/search/videos/vineyard%20drone/'],
