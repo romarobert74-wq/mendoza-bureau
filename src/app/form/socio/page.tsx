@@ -19,7 +19,6 @@ import { SalonesEditor } from '@/components/SalonesEditor'
 import { BackLink } from '@/components/BackLink'
 import { CheckCircle, AlertCircle, ChevronRight, Upload, Loader2, X } from 'lucide-react'
 
-const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
 
 // Tipografía igual a la landing principal
 const display = Fraunces({ subsets: ['latin'], weight: ['400', '600', '700', '900'], style: ['normal', 'italic'], variable: '--font-display', display: 'swap' })
@@ -203,7 +202,8 @@ function FormSocio() {
   const [form, setForm] = useState({
     razonSocial: '',
     infoGeneral: '',
-    categoria: 'bodega' as CategoriaSocio,
+    categoria: 'otro' as CategoriaSocio,
+    otroRubro: '',
     direccion: '',
     departamento: '',
     ubicacionUrl: '',
@@ -252,7 +252,8 @@ function FormSocio() {
           setForm({
             razonSocial: socio.razonSocial || '',
             infoGeneral: socio.infoGeneral || '',
-            categoria: (socio.categoria || 'bodega') as CategoriaSocio,
+            categoria: (socio.categoria || 'otro') as CategoriaSocio,
+            otroRubro: socio.otroRubro || '',
             direccion: socio.direccion || '',
             departamento: socio.departamento || '',
             ubicacionUrl: socio.ubicacionUrl || '',
@@ -284,6 +285,7 @@ function FormSocio() {
         razonSocial: form.razonSocial,
         etiqueta: form.razonSocial,
         categoria: form.categoria,
+        otroRubro: form.otroRubro,
         infoGeneral: form.infoGeneral,
         direccion: form.direccion,
         departamento: form.departamento,
@@ -416,12 +418,9 @@ function FormSocio() {
           <Field label="Nombre del negocio *">
             <input value={form.razonSocial} onChange={set('razonSocial')} required style={inp} placeholder="Ej: Bodega Salentein" />
           </Field>
-          <Field label="Rubro *" hint="Elegí el que mejor describa tu negocio — aparecerán campos específicos a continuación">
-            <select value={form.categoria} onChange={set('categoria')} style={{ ...inp, cursor: 'pointer', colorScheme: 'dark' }}>
-              {CATEGORIAS_OPTIONS.map(([val, label]) => (
-                <option key={val} value={val} style={optStyle}>{label}</option>
-              ))}
-            </select>
+          <Field label="Rubro" hint="Escribí a qué se dedica tu negocio. El equipo de Mendoza Bureau definirá la categoría más adelante.">
+            <input value={form.otroRubro} onChange={set('otroRubro')} style={inp}
+              placeholder="Ej: Bodega, Hotel, Transporte, Agencia de viajes..." />
           </Field>
           <Field label="Descripción general *">
             <textarea value={form.infoGeneral} onChange={set('infoGeneral')} required rows={4}

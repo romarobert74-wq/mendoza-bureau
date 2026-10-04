@@ -19,7 +19,7 @@ const firebaseConfig = {
 
 // Campos que el socio puede completar/editar desde el formulario público
 const CAMPOS = new Set([
-  'razonSocial', 'etiqueta', 'categoria', 'infoGeneral', 'direccion', 'departamento',
+  'razonSocial', 'etiqueta', 'categoria', 'otroRubro', 'infoGeneral', 'direccion', 'departamento',
   'ubicacionUrl', 'fotoPortada', 'logoUrl', 'contacto',
   'salones', 'hotelData', 'restauranteData', 'bodegaData', 'alojamientoData', 'servicioData',
 ])

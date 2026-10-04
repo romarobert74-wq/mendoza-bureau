@@ -11,7 +11,7 @@ import { useTheme } from '@/context/ThemeContext'
 import toast from 'react-hot-toast'
 import {
   Save, Plus, X, Moon, Sun, Lock, MapPin, Tags, Loader2, ImageIcon, Upload,
-  Server, CheckSquare, Square, ChevronDown, ChevronUp, ExternalLink,
+  Server, CheckSquare, Square, ChevronDown, ChevronUp, ExternalLink, Pencil, Check,
 } from 'lucide-react'
 
 const uid = () => (crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2))
@@ -33,6 +33,8 @@ export default function ConfiguracionPage() {
   const [subiendoLogoFaroBlanco, setSubiendoLogoFaroBlanco] = useState(false)
   const [nuevoDepto, setNuevoDepto] = useState('')
   const [nuevaCat, setNuevaCat] = useState('')
+  const [editCatId, setEditCatId] = useState<string | null>(null)
+  const [editCatNombre, setEditCatNombre] = useState('')
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
@@ -169,6 +171,19 @@ export default function ConfiguracionPage() {
     }
     setCategoriasExtra(c => [...c, { id: uid(), nombre: n }])
     setNuevaCat('')
+  }
+
+  const iniciarEdicionCat = (id: string, nombre: string) => { setEditCatId(id); setEditCatNombre(nombre) }
+  const cancelarEdicionCat = () => { setEditCatId(null); setEditCatNombre('') }
+  const guardarEdicionCat = () => {
+    const n = editCatNombre.trim()
+    if (!n) { toast.error('El nombre no puede quedar vacío'); return }
+    const existeCore = Object.values(CATEGORIAS).some(c => c.toLowerCase() === n.toLowerCase())
+    if (existeCore || categoriasExtra.some(c => c.id !== editCatId && c.nombre.toLowerCase() === n.toLowerCase())) {
+      toast.error('Esa categoría ya existe'); return
+    }
+    setCategoriasExtra(list => list.map(c => c.id === editCatId ? { ...c, nombre: n } : c))
+    cancelarEdicionCat()
   }
 
   const guardar = async () => {
@@ -318,7 +333,7 @@ export default function ConfiguracionPage() {
             <Tags size={16} style={{ color: 'var(--orange-2)' }} /> Categorías de socios
           </h3>
           <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-            Las categorías base tienen ficha técnica propia y no se pueden eliminar. Podés agregar categorías simples adicionales.
+            Las categorías base tienen ficha técnica propia y no se pueden eliminar. Podés agregar categorías adicionales, modificarlas (✎) o borrarlas (✕).
           </p>
 
           <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>Categorías base (fijas)</p>
@@ -334,14 +349,29 @@ export default function ConfiguracionPage() {
           <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>Categorías adicionales</p>
           <div className="flex flex-wrap gap-2 mb-4">
             {categoriasExtra.map(c => (
-              <span key={c.id} className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-lg text-sm"
-                style={{ background: 'rgba(241,90,36,0.1)', border: '1px solid rgba(241,90,36,0.28)', color: 'var(--orange-2)' }}>
-                {c.nombre}
-                <button onClick={() => setCategoriasExtra(list => list.filter(x => x.id !== c.id))}
-                  className="transition hover:text-red-400" style={{ color: 'var(--orange-2)' }}>
-                  <X size={14} />
-                </button>
-              </span>
+              editCatId === c.id ? (
+                <span key={c.id} className="flex items-center gap-1 pl-2 pr-1.5 py-1 rounded-lg text-sm"
+                  style={{ background: 'rgba(241,90,36,0.14)', border: '1px solid rgba(241,90,36,0.4)' }}>
+                  <input autoFocus value={editCatNombre} onChange={e => setEditCatNombre(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); guardarEdicionCat() } if (e.key === 'Escape') cancelarEdicionCat() }}
+                    className="input" style={{ padding: '2px 8px', fontSize: 13, width: 160 }} />
+                  <button onClick={guardarEdicionCat} className="transition hover:text-green-400" title="Guardar" style={{ color: 'var(--orange-2)' }}><Check size={15} /></button>
+                  <button onClick={cancelarEdicionCat} className="transition hover:text-red-400" title="Cancelar" style={{ color: 'var(--text-faint)' }}><X size={15} /></button>
+                </span>
+              ) : (
+                <span key={c.id} className="flex items-center gap-1.5 pl-3 pr-2 py-1.5 rounded-lg text-sm"
+                  style={{ background: 'rgba(241,90,36,0.1)', border: '1px solid rgba(241,90,36,0.28)', color: 'var(--orange-2)' }}>
+                  {c.nombre}
+                  <button onClick={() => iniciarEdicionCat(c.id, c.nombre)}
+                    className="transition hover:text-white" title="Modificar" style={{ color: 'var(--orange-2)' }}>
+                    <Pencil size={13} />
+                  </button>
+                  <button onClick={() => setCategoriasExtra(list => list.filter(x => x.id !== c.id))}
+                    className="transition hover:text-red-400" title="Borrar" style={{ color: 'var(--orange-2)' }}>
+                    <X size={14} />
+                  </button>
+                </span>
+              )
             ))}
             {categoriasExtra.length === 0 && <span className="text-sm" style={{ color: 'var(--text-faint)' }}>Ninguna adicional.</span>}
           </div>

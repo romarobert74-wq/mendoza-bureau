@@ -542,6 +542,7 @@ export interface Socio {
   razonSocial: string
   etiqueta: string
   categoria: CategoriaSocio
+  otroRubro?: string   // rubro en texto libre que escribe el socio (Bureau define la categoría luego)
   direccion: string
   departamento?: string
   contacto: {

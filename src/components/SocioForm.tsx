@@ -363,6 +363,7 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
   const fotoPortada = useWatch({ control, name: 'fotoPortada' }) ?? ''
   const logoUrl = useWatch({ control, name: 'logoUrl' }) ?? ''
   const categoria = useWatch({ control, name: 'categoria' }) ?? 'bodega'
+  const otroRubro = useWatch({ control, name: 'otroRubro' }) ?? ''
 
   const [salones, setSalones] = useState<SalonIndividual[]>(defaultValues?.salones ?? [])
   // Se mergea con los defaults para que socios viejos tengan los campos nuevos
@@ -455,6 +456,12 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
                 <option key={val} value={val}>{label}</option>
               ))}
             </select>
+            <input type="hidden" {...register('otroRubro')} />
+            {otroRubro && (
+              <p className="text-xs mt-1" style={{ color: 'var(--orange-2)' }}>
+                Rubro que escribió el socio: <strong>{otroRubro}</strong> — asigná la categoría correcta arriba.
+              </p>
+            )}
           </div>
 
           <div>
