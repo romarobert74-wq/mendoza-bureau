@@ -4,13 +4,13 @@ import { useEffect, useRef, useState } from 'react'
 import { getConfigSistema, setConfigSistema, getConfigMigracion, setConfigMigracion } from '@/lib/firestore'
 import type { ItemLista } from '@/lib/firestore'
 import { uploadImage } from '@/lib/storage'
-import { CATEGORIAS, SUBZONAS_MENDOZA } from '@/types'
+import { CATEGORIAS, SUBZONAS_MENDOZA, type CategoriaSocio, type CategoriasBaseOverride } from '@/types'
 import { DocumentacionSection } from '@/components/DocumentacionSection'
 import { LandingServiciosSection } from '@/components/LandingServiciosSection'
 import { useTheme } from '@/context/ThemeContext'
 import toast from 'react-hot-toast'
 import {
-  Save, Plus, X, Moon, Sun, Lock, MapPin, Tags, Loader2, ImageIcon, Upload,
+  Save, Plus, X, Moon, Sun, MapPin, Tags, Loader2, ImageIcon, Upload,
   Server, CheckSquare, Square, ChevronDown, ChevronUp, ExternalLink, Pencil, Check,
 } from 'lucide-react'
 
@@ -35,6 +35,9 @@ export default function ConfiguracionPage() {
   const [nuevaCat, setNuevaCat] = useState('')
   const [editCatId, setEditCatId] = useState<string | null>(null)
   const [editCatNombre, setEditCatNombre] = useState('')
+  const [categoriasBase, setCategoriasBase] = useState<CategoriasBaseOverride>({})
+  const [editBaseKey, setEditBaseKey] = useState<string | null>(null)
+  const [editBaseNombre, setEditBaseNombre] = useState('')
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
@@ -51,6 +54,7 @@ export default function ConfiguracionPage() {
       if (cfg) {
         setDepartamentos(cfg.departamentos.length ? cfg.departamentos : DEPARTAMENTOS_SEED.map(n => ({ id: uid(), nombre: n })))
         setCategoriasExtra(cfg.categoriasExtra)
+        setCategoriasBase(cfg.categoriasBase ?? {})
         setLogoUrl(cfg.logoUrl ?? '')
         setLogoElFaroUrl(cfg.logoElFaroUrl ?? '')
         setLogoBureauBlanco(cfg.logoBureauBlanco ?? '')
@@ -186,10 +190,23 @@ export default function ConfiguracionPage() {
     cancelarEdicionCat()
   }
 
+  // ── Categorías BASE: renombrar / ocultar ("eliminar") / restaurar ──
+  const iniciarEdicionBase = (key: string, nombreActual: string) => { setEditBaseKey(key); setEditBaseNombre(nombreActual) }
+  const cancelarEdicionBase = () => { setEditBaseKey(null); setEditBaseNombre('') }
+  const guardarEdicionBase = () => {
+    const n = editBaseNombre.trim()
+    if (!editBaseKey) return
+    setCategoriasBase(prev => ({ ...prev, [editBaseKey]: { ...prev[editBaseKey], nombre: n } }))
+    cancelarEdicionBase()
+  }
+  const toggleOcultarBase = (key: string, ocultar: boolean) => {
+    setCategoriasBase(prev => ({ ...prev, [key]: { ...prev[key], oculta: ocultar } }))
+  }
+
   const guardar = async () => {
     setGuardando(true)
     try {
-      await setConfigSistema({ departamentos, categoriasExtra, logoUrl, logoElFaroUrl })
+      await setConfigSistema({ departamentos, categoriasExtra, categoriasBase, logoUrl, logoElFaroUrl })
       toast.success('Configuración guardada')
     } catch {
       toast.error('Error al guardar')
@@ -333,17 +350,54 @@ export default function ConfiguracionPage() {
             <Tags size={16} style={{ color: 'var(--orange-2)' }} /> Categorías de socios
           </h3>
           <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
-            Las categorías base tienen ficha técnica propia y no se pueden eliminar. Podés agregar categorías adicionales, modificarlas (✎) o borrarlas (✕).
+            Podés renombrar (✎) u ocultar (✕) cualquier categoría base, y agregar/editar/borrar categorías adicionales. Ocultar una base la saca de las listas de selección; se puede restaurar cuando quieras (la ficha técnica y los tours existentes no se ven afectados).
           </p>
 
-          <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>Categorías base (fijas)</p>
+          <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>Categorías base</p>
           <div className="flex flex-wrap gap-2 mb-5">
-            {Object.values(CATEGORIAS).map(c => (
-              <span key={c} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm"
-                style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-muted)' }}>
-                <Lock size={11} /> {c}
-              </span>
-            ))}
+            {(Object.entries(CATEGORIAS) as [CategoriaSocio, string][]).map(([key, def]) => {
+              const ov = categoriasBase[key] || {}
+              const nombre = (ov.nombre || '').trim() || def
+              const oculta = !!ov.oculta
+              if (editBaseKey === key) {
+                return (
+                  <span key={key} className="flex items-center gap-1 pl-2 pr-1.5 py-1 rounded-lg text-sm"
+                    style={{ background: 'var(--bg-input)', border: '1px solid var(--border-2)' }}>
+                    <input autoFocus value={editBaseNombre} onChange={e => setEditBaseNombre(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); guardarEdicionBase() } if (e.key === 'Escape') cancelarEdicionBase() }}
+                      className="input" style={{ padding: '2px 8px', fontSize: 13, width: 180 }} />
+                    <button onClick={guardarEdicionBase} className="transition hover:text-green-400" title="Guardar" style={{ color: 'var(--orange-2)' }}><Check size={15} /></button>
+                    <button onClick={cancelarEdicionBase} className="transition hover:text-red-400" title="Cancelar" style={{ color: 'var(--text-faint)' }}><X size={15} /></button>
+                  </span>
+                )
+              }
+              return (
+                <span key={key} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm"
+                  style={{
+                    background: oculta ? 'transparent' : 'var(--bg-input)',
+                    border: '1px solid var(--border)',
+                    color: oculta ? 'var(--text-faint)' : 'var(--text-muted)',
+                    textDecoration: oculta ? 'line-through' : 'none',
+                    opacity: oculta ? 0.6 : 1,
+                  }}>
+                  {nombre}
+                  {oculta ? (
+                    <button onClick={() => toggleOcultarBase(key, false)} className="transition hover:text-green-400" title="Restaurar" style={{ color: 'var(--text-faint)' }}>
+                      <Plus size={14} />
+                    </button>
+                  ) : (
+                    <>
+                      <button onClick={() => iniciarEdicionBase(key, nombre)} className="transition hover:text-white" title="Renombrar" style={{ color: 'var(--text-muted)' }}>
+                        <Pencil size={12} />
+                      </button>
+                      <button onClick={() => toggleOcultarBase(key, true)} className="transition hover:text-red-400" title="Ocultar" style={{ color: 'var(--text-muted)' }}>
+                        <X size={13} />
+                      </button>
+                    </>
+                  )}
+                </span>
+              )
+            })}
           </div>
 
           <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'var(--text-faint)' }}>Categorías adicionales</p>

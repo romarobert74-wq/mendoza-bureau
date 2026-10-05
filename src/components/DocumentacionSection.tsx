@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 
 // Dominio base para las URLs de producción del webmaster
-const DOMINIO = 'mendozabureau.com'
+const DOMINIO = 'mendozabureau360.com'
 // Base actual del sistema (Vercel) para los links operativos
 const APP = 'https://mendoza-bureau.vercel.app'
 const FORM_SOCIO = `${APP}/form/socio`

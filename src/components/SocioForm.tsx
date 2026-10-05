@@ -2,15 +2,17 @@
 
 import { useForm, useWatch, useFieldArray } from 'react-hook-form'
 import type { Control, UseFormSetValue, UseFormRegister } from 'react-hook-form'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import type {
   SocioFormData, CategoriaSocio, SalonIndividual,
   HotelData, RestauranteData, BodegaData, AlojamientoData, ServicioData,
+  CategoriasBaseOverride,
 } from '@/types'
 import {
-  CATEGORIAS, ICONOS_BOTONERA,
+  CATEGORIAS, ICONOS_BOTONERA, categoriasBaseEfectivas,
   HOTEL_VACIO, RESTAURANTE_VACIO, BODEGA_VACIA, ALOJAMIENTO_VACIO, SERVICIO_VACIO,
 } from '@/types'
+import { getConfigSistema } from '@/lib/firestore'
 import { useAuth } from '@/context/AuthContext'
 import { SocioFotos } from './SocioFotos'
 import { SalonesEditor } from './SalonesEditor'
@@ -71,7 +73,6 @@ function IconoPicker({ value, onChange }: { value: string; onChange: (k: string)
   )
 }
 
-const CATEGORIAS_OPTIONS = Object.entries(CATEGORIAS) as [CategoriaSocio, string][]
 const lbl = 'block text-xs font-semibold uppercase tracking-wide mb-1.5'
 const lbl_color = { color: '#94a3b8' }
 
@@ -365,6 +366,18 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
   const categoria = useWatch({ control, name: 'categoria' }) ?? 'bodega'
   const otroRubro = useWatch({ control, name: 'otroRubro' }) ?? ''
 
+  // Categorías efectivas (aplica renombre/ocultar de Configuración). Se incluye
+  // siempre la categoría ya asignada al socio aunque esté oculta, para no perderla.
+  const [catOverride, setCatOverride] = useState<CategoriasBaseOverride>({})
+  useEffect(() => { getConfigSistema().then(cfg => { if (cfg?.categoriasBase) setCatOverride(cfg.categoriasBase) }).catch(() => {}) }, [])
+  const catOptions = (() => {
+    const base = categoriasBaseEfectivas(catOverride)
+    if (categoria && !base.some(([k]) => k === categoria)) {
+      base.push([categoria as CategoriaSocio, CATEGORIAS[categoria as CategoriaSocio] ?? categoria])
+    }
+    return base
+  })()
+
   const [salones, setSalones] = useState<SalonIndividual[]>(defaultValues?.salones ?? [])
   // Se mergea con los defaults para que socios viejos tengan los campos nuevos
   const [hotelData, setHotelData] = useState<HotelData>({ ...HOTEL_VACIO(), ...defaultValues?.hotelData })
@@ -452,7 +465,7 @@ export function SocioForm({ defaultValues, onSubmit, submitLabel, socioId }: Pro
           <div>
             <label className={lbl} style={lbl_color}>Categoría</label>
             <select {...register('categoria')} className="input" style={{ background: '#111827' }}>
-              {CATEGORIAS_OPTIONS.map(([val, label]) => (
+              {catOptions.map(([val, label]) => (
                 <option key={val} value={val}>{label}</option>
               ))}
             </select>

@@ -211,6 +211,7 @@ export interface ItemLista { id: string; nombre: string }
 export interface ConfigSistema {
   departamentos: ItemLista[]
   categoriasExtra: ItemLista[]
+  categoriasBase?: import('@/types').CategoriasBaseOverride   // renombre/ocultar de categorías base
   logoUrl?: string
   logoElFaroUrl?: string
   logoBureauBlanco?: string   // versión ícono a color + letras blancas (para fondos oscuros)
@@ -224,6 +225,7 @@ export async function getConfigSistema(): Promise<ConfigSistema | null> {
   return {
     departamentos: (d.departamentos ?? []) as ItemLista[],
     categoriasExtra: (d.categoriasExtra ?? []) as ItemLista[],
+    categoriasBase: (d.categoriasBase ?? {}) as import('@/types').CategoriasBaseOverride,
     logoUrl: (d.logoUrl ?? '') as string,
     logoElFaroUrl: (d.logoElFaroUrl ?? '') as string,
     logoBureauBlanco: (d.logoBureauBlanco ?? '') as string,

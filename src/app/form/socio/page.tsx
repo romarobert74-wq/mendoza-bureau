@@ -11,10 +11,8 @@ import type {
   HotelData, RestauranteData, BodegaData, AlojamientoData, ServicioData,
 } from '@/types'
 import {
-  CATEGORIAS,
   HOTEL_VACIO, RESTAURANTE_VACIO, BODEGA_VACIA, ALOJAMIENTO_VACIO, SERVICIO_VACIO,
 } from '@/types'
-import { CategoryEditor } from '@/components/CategoryEditor'
 import { SalonesEditor } from '@/components/SalonesEditor'
 import { BackLink } from '@/components/BackLink'
 import { CheckCircle, AlertCircle, ChevronRight, Upload, Loader2, X } from 'lucide-react'
@@ -227,19 +225,6 @@ function FormSocio() {
   const [alojamientoData, setAlojamientoData] = useState<AlojamientoData>(ALOJAMIENTO_VACIO())
   const [servicioData, setServicioData] = useState<ServicioData>(SERVICIO_VACIO())
 
-  const handleCategoryChange = (updates: {
-    hotelData?: HotelData
-    restauranteData?: RestauranteData
-    bodegaData?: BodegaData
-    alojamientoData?: AlojamientoData
-    servicioData?: ServicioData
-  }) => {
-    if (updates.hotelData) setHotelData(updates.hotelData)
-    if (updates.restauranteData) setRestauranteData(updates.restauranteData)
-    if (updates.bodegaData) setBodegaData(updates.bodegaData)
-    if (updates.alojamientoData) setAlojamientoData(updates.alojamientoData)
-    if (updates.servicioData) setServicioData(updates.servicioData)
-  }
 
   // ── Modo "completar / editar": carga los datos ya guardados por id ──
   const [cargandoEdit, setCargandoEdit] = useState(!!editId)
@@ -365,8 +350,6 @@ function FormSocio() {
     )
   }
 
-  const categoriaLabel = CATEGORIAS[form.categoria]
-  const hasCategoryFields = ['hotel', 'restaurante', 'bodega', 'alojamiento', 'servicio', 'eventos', 'tecnologia', 'transporte', 'viajes'].includes(form.categoria)
 
   return (
     <div className={`${display.variable} ${sans.variable}`} style={{
@@ -441,26 +424,8 @@ function FormSocio() {
           </Field>
         </AccSection>
 
-        {/* Ficha técnica según categoría */}
-        {hasCategoryFields && (
-          <AccSection
-            emoji="📋"
-            title={`Ficha técnica · ${categoriaLabel}`}
-            sub={`Completá los datos específicos de tu ${categoriaLabel.toLowerCase()}. Aparecerán en el tour virtual y el directorio del Bureau.`}
-            defaultOpen={true}
-          >
-            <CategoryEditor
-              categoria={form.categoria}
-              hotelData={hotelData}
-              restauranteData={restauranteData}
-              bodegaData={bodegaData}
-              alojamientoData={alojamientoData}
-              servicioData={servicioData}
-              departamentos={departamentos}
-              onChange={handleCategoryChange}
-            />
-          </AccSection>
-        )}
+        {/* Ficha técnica según categoría: OCULTA en el formulario del socio.
+            El rubro/categoría lo define Mendoza Bureau desde el panel, no el socio. */}
 
         {/* Salones de eventos */}
         <div style={{ ...cardStyle, padding: '0', overflow: 'hidden' }}>

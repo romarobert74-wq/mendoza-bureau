@@ -596,6 +596,24 @@ export const CATEGORIAS: Record<CategoriaSocio, string> = {
   otro: 'Otro',
 }
 
+// Override editable de categorías base (se guarda en configuracion/sistema).
+// Permite renombrar la etiqueta visible y ocultar ("eliminar") una categoría base
+// sin romper el código: la clave sigue existiendo (fichas/colores/tours la usan),
+// solo cambia su nombre visible o deja de ofrecerse para selección.
+export type CategoriasBaseOverride = Record<string, { nombre?: string; oculta?: boolean }>
+
+// Lista efectiva de categorías base: aplica renombre y excluye las ocultas.
+export function categoriasBaseEfectivas(ov?: CategoriasBaseOverride): [CategoriaSocio, string][] {
+  return (Object.entries(CATEGORIAS) as [CategoriaSocio, string][])
+    .filter(([k]) => !ov?.[k]?.oculta)
+    .map(([k, label]) => [k, (ov?.[k]?.nombre || '').trim() || label])
+}
+
+// Etiqueta efectiva de una categoría (aplica renombre si existe).
+export function labelCategoria(key: CategoriaSocio, ov?: CategoriasBaseOverride): string {
+  return (ov?.[key]?.nombre || '').trim() || CATEGORIAS[key] || key
+}
+
 // Colores distintivos por categoría (usados en grillas y dashboards)
 export const CATEGORIA_COLOR: Record<CategoriaSocio, string> = {
   bodega: '#a855f7',
