@@ -391,6 +391,9 @@ export function ServicioEditor({ data, onChange }: { data: ServicioData; onChang
 
   return (
     <div className="space-y-6">
+      {/* Sección "Rubros del servicio" OCULTA a pedido: el rubro lo define Bureau,
+          no se completa en la ficha técnica. */}
+      {false && (
       <Sec title="Rubros del servicio" sub="Seleccioná uno o más rubros que ofrecés">
         <div className="md:col-span-2">
           <div className="flex flex-wrap gap-2 mb-2">
@@ -411,6 +414,7 @@ export function ServicioEditor({ data, onChange }: { data: ServicioData; onChang
             value={otrasSub.join(', ')} onChange={e => setOtrasSub(e.target.value)} />
         </div>
       </Sec>
+      )}
 
       <Sec title="Descripción del servicio">
         <Txt label="Tipos de servicio ofrecidos" value={data.tiposServicio} onChange={v => s('tiposServicio', v)} placeholder="Transfers, guías turísticos, producción de eventos, catering..." span2 />
