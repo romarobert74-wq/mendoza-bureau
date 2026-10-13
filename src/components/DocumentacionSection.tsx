@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { getSocios } from '@/lib/firestore'
+import { APP_URL } from '@/lib/appUrl'
 import { CATEGORIAS } from '@/types'
 import type { Socio } from '@/types'
 import toast from 'react-hot-toast'
@@ -12,8 +13,8 @@ import {
 
 // Dominio base para las URLs de producción del webmaster
 const DOMINIO = 'mendozabureau360.com'
-// Base actual del sistema (Vercel) para los links operativos
-const APP = 'https://mendoza-bureau.vercel.app'
+// Base pública del sistema (subdominio propio, configurable). Para links operativos.
+const APP = APP_URL
 const FORM_SOCIO = `${APP}/form/socio`
 
 // "Hilton Mendoza Hotel" → "hilton-mendoza-hotel"

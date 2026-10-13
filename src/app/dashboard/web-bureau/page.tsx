@@ -664,7 +664,7 @@ export default function WebBureauAdminPage() {
           <p className="text-[var(--text-muted)] text-sm">
             Editá el contenido de{' '}
             <a href="/web_bureau" target="_blank" className="text-orange-500 hover:underline font-medium">
-              mendoza-bureau.vercel.app/web_bureau ↗
+              la web institucional ↗
             </a>
           </p>
         </div>

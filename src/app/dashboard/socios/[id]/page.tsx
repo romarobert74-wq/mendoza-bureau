@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getSocio, actualizarSocio } from '@/lib/firestore'
 import { SocioForm } from '@/components/SocioForm'
+import { APP_URL } from '@/lib/appUrl'
 import type { Socio, SocioFormData } from '@/types'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
@@ -16,7 +17,7 @@ export default function EditarSocioPage() {
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
 
-  const BASE = 'https://mendoza-bureau.vercel.app'
+  const BASE = APP_URL
   const fichaUrl = `${BASE}/tour/socio/ficha?id=${id}`
 
   const copyUrl = () => {

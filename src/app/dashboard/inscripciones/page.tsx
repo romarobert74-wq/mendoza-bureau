@@ -7,6 +7,7 @@ import { getInscripciones, actualizarInscripcion, eliminarInscripcion } from '@/
 import type { Inscripcion } from '@/lib/firestore'
 import toast from 'react-hot-toast'
 import * as XLSX from 'xlsx'
+import { APP_URL } from '@/lib/appUrl'
 import { UserPlus, MessageCircle, Mail, Copy, Trash2, Loader2, Clock, FileSpreadsheet } from 'lucide-react'
 
 const ESTADOS: Record<string, { label: string; bg: string; color: string; border: string }> = {
@@ -69,7 +70,7 @@ export default function InscripcionesPage() {
   }
 
   const copiarFormulario = () => {
-    const url = `${window.location.origin}/form/socio`
+    const url = `${APP_URL}/form/socio`
     navigator.clipboard.writeText(url).then(() => toast.success('Link del formulario copiado'))
   }
 

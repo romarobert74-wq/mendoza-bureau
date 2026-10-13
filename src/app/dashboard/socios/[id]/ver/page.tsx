@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { getSocio, getAnalyticsResumen, getAnalyticsSocioPeriodo } from '@/lib/firestore'
 import type { AnalyticsSocio } from '@/lib/firestore'
 import { getFotosSocio } from '@/lib/firestore'
+import { APP_URL } from '@/lib/appUrl'
 import { CATEGORIAS } from '@/types'
 import type { Socio } from '@/types'
 import toast from 'react-hot-toast'
@@ -34,7 +35,7 @@ export default function VerSocioPage() {
   const [loading, setLoading] = useState(true)
   const [generando, setGenerando] = useState(false)
 
-  const BASE = 'https://mendoza-bureau.vercel.app'
+  const BASE = APP_URL
   const fichaUrl = `${BASE}/tour/socio/ficha?id=${id}`
 
   const generarReporte = async (periodo: 'mensual' | 'trimestral') => {

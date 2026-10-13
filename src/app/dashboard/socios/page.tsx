@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getSocios, eliminarSocio, getAnalyticsEventos } from '@/lib/firestore'
 import type { AnalyticsResumen, AnalyticsSocio, AnalyticsEvento } from '@/lib/firestore'
 import { useAuth } from '@/context/AuthContext'
+import { APP_URL } from '@/lib/appUrl'
 import { CATEGORIAS, CATEGORIA_COLOR } from '@/types'
 import type { Socio, CategoriaSocio } from '@/types'
 import toast from 'react-hot-toast'
@@ -229,12 +230,12 @@ export default function SociosPage() {
   const [alimentando, setAlimentando] = useState(false)
   const [linkCopiado, setLinkCopiado] = useState(false)
 
-  const FORM_URL = 'https://mendoza-bureau.vercel.app/form/socio'
+  const FORM_URL = `${APP_URL}/form/socio`
   const [copiado3dvista, setCopiado3dvista] = useState<string | null>(null)
 
   // Link de la ficha del socio para pegar en el WebFrame de 3DVista
   const copiarLink3DVista = (socioId: string) => {
-    const base = typeof window !== 'undefined' ? window.location.origin : 'https://mendoza-bureau.vercel.app'
+    const base = APP_URL
     navigator.clipboard.writeText(`${base}/tour/socio/ficha?id=${socioId}`)
     setCopiado3dvista(socioId)
     toast.success('Link de 3DVista copiado')
@@ -251,7 +252,7 @@ export default function SociosPage() {
   // Link para que el socio COMPLETE/EDITE su ficha (formulario pre-cargado por id)
   const [copiadoCompletar, setCopiadoCompletar] = useState<string | null>(null)
   const copiarLinkCompletar = (socioId: string) => {
-    const base = typeof window !== 'undefined' ? window.location.origin : 'https://mendoza-bureau.vercel.app'
+    const base = APP_URL
     navigator.clipboard.writeText(`${base}/form/socio?id=${socioId}`)
     setCopiadoCompletar(socioId)
     toast.success('Link para completar copiado — enviáselo al socio')

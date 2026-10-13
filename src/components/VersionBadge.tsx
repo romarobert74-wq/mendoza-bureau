@@ -27,7 +27,7 @@ export function VersionBadge({ inline = false }: { inline?: boolean }) {
   // ...y red de seguridad por dominio: la URL manda (develop = pruebas).
   const host = typeof window !== 'undefined' ? window.location.hostname : ''
   if (/develop|-git-|dev\./.test(host)) isProd = false
-  else if (host === 'mendoza-bureau.vercel.app') isProd = true
+  else if (host === 'mendoza-bureau.vercel.app' || host === 'app.mendozabureau360.com') isProd = true
 
   const label = isProd ? 'PRODUCCIÓN · FINAL' : 'DESARROLLO · PRUEBAS'
   const color = isProd ? '#16a34a' : '#f15a24'

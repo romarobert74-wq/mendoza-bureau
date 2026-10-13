@@ -13,6 +13,7 @@ import {
   HOTEL_VACIO, RESTAURANTE_VACIO, BODEGA_VACIA, ALOJAMIENTO_VACIO, SERVICIO_VACIO,
 } from '@/types'
 import { getConfigSistema } from '@/lib/firestore'
+import { APP_URL } from '@/lib/appUrl'
 import { useAuth } from '@/context/AuthContext'
 import { SocioFotos } from './SocioFotos'
 import { SalonesEditor } from './SalonesEditor'
@@ -142,7 +143,7 @@ function ImageUpload({ label, hint, value, onChange, storagePath, aspect }: {
 
 // Muestra la URL del webframe "Ir a" con botón para copiarla al portapapeles
 function CopiarLinkWebframe({ socioId }: { socioId: string }) {
-  const url = `https://mendoza-bureau.vercel.app/tour/ir-a/${socioId}`
+  const url = `${APP_URL}/tour/ir-a/${socioId}`
   const [copiado, setCopiado] = useState(false)
   const copiar = async () => {
     try {
