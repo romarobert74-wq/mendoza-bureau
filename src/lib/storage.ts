@@ -10,9 +10,9 @@ interface UploadOpts {
 }
 
 function procesar(file: File | Blob, opts: UploadOpts): Promise<string> {
-  const maxPx = opts.maxPx ?? 1400
+  const maxPx = opts.maxPx ?? 1200
   const preserveAlpha = opts.preserveAlpha ?? false
-  const quality = opts.quality ?? 0.82
+  const quality = opts.quality ?? 0.72
 
   return new Promise((resolve, reject) => {
     const img = new Image()

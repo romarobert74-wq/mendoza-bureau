@@ -34,7 +34,7 @@ export function SocioFotos({ socioId }: { socioId: string }) {
     setUploading(true)
     try {
       await Promise.all(toUpload.map(async (file, i) => {
-        const url = await uploadImage(file, undefined, undefined, { maxPx: 1200, quality: 0.8 })
+        const url = await uploadImage(file, undefined, undefined, { maxPx: 1000, quality: 0.72 })
         await addFotoSocio(socioId, { url, orden: fotos.length + i, nombre: file.name })
       }))
       toast.success(`${toUpload.length} foto${toUpload.length !== 1 ? 's' : ''} subida${toUpload.length !== 1 ? 's' : ''}`)
