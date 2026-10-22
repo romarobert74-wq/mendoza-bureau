@@ -11,7 +11,7 @@ import {
   CATEGORIAS, TIPOS_SALON, TIPOS_CATERING,
   CATEGORIAS_HOTEL, RANGO_PRECIO, SUBZONAS_MENDOZA, TIPOS_ALOJAMIENTO,
 } from '@/types'
-import { Check, ChevronDown, ChevronUp, Star, MapPin, Globe, Phone, Mail, Instagram, ChevronRight, Play, X } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, Star, MapPin, Globe, Phone, Mail, Instagram, ChevronLeft, ChevronRight, Play, X } from 'lucide-react'
 import { useWebframeTracking, trackEvento } from '@/lib/analytics'
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -514,9 +514,21 @@ function FichaPage() {
 
   const [socio, setSocio] = useState<Socio | null>(null)
   const [fotos, setFotos] = useState<FotoSocio[]>([])
-  const [lightbox, setLightbox] = useState<string | null>(null)
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
   const [videoModal, setVideoModal] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Navegación del visor de fotos con el teclado (← → y Esc)
+  useEffect(() => {
+    if (lightboxIdx === null) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxIdx(null)
+      else if (e.key === 'ArrowRight') setLightboxIdx(i => (i === null ? i : (i + 1) % fotos.length))
+      else if (e.key === 'ArrowLeft') setLightboxIdx(i => (i === null ? i : (i - 1 + fotos.length) % fotos.length))
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightboxIdx, fotos.length])
 
   // Analytics: cuenta la visita al tour del socio y mide el tiempo de permanencia
   useWebframeTracking(id)
@@ -746,8 +758,8 @@ function FichaPage() {
         {fotos.length > 0 && (
           <AccordionCard emoji="🖼️" title="Imágenes" badge={`${fotos.length}`} defaultOpen={true}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', paddingTop: '12px' }}>
-              {fotos.map(f => (
-                <button key={f.id} type="button" onClick={() => setLightbox(f.url)}
+              {fotos.map((f, i) => (
+                <button key={f.id} type="button" onClick={() => setLightboxIdx(i)}
                   style={{ padding: 0, border: 'none', cursor: 'pointer', aspectRatio: '1', borderRadius: '10px', overflow: 'hidden', background: T.glass }}>
                   <img src={f.url} alt={f.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </button>
@@ -841,11 +853,43 @@ function FichaPage() {
         </div>
       )}
 
-      {/* Lightbox de imágenes */}
-      {lightbox && (
-        <div onClick={() => setLightbox(null)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '24px', cursor: 'zoom-out' }}>
-          <img src={lightbox} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '12px' }} />
+      {/* Lightbox de imágenes con navegación */}
+      {lightboxIdx !== null && fotos[lightboxIdx] && (
+        <div onClick={() => setLightboxIdx(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '24px' }}>
+
+          {/* Cerrar */}
+          <button onClick={(e) => { e.stopPropagation(); setLightboxIdx(null) }} aria-label="Cerrar"
+            style={{ position: 'absolute', top: 14, right: 14, width: 42, height: 42, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+            <X size={22} />
+          </button>
+
+          {/* Anterior */}
+          {fotos.length > 1 && (
+            <button onClick={(e) => { e.stopPropagation(); setLightboxIdx((lightboxIdx - 1 + fotos.length) % fotos.length) }} aria-label="Anterior"
+              style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 48, height: 48, borderRadius: '50%', background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backdropFilter: 'blur(4px)' }}>
+              <ChevronLeft size={28} />
+            </button>
+          )}
+
+          {/* Imagen */}
+          <img onClick={e => e.stopPropagation()} src={fotos[lightboxIdx].url} alt={fotos[lightboxIdx].nombre || ''}
+            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '12px' }} />
+
+          {/* Siguiente */}
+          {fotos.length > 1 && (
+            <button onClick={(e) => { e.stopPropagation(); setLightboxIdx((lightboxIdx + 1) % fotos.length) }} aria-label="Siguiente"
+              style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', width: 48, height: 48, borderRadius: '50%', background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, backdropFilter: 'blur(4px)' }}>
+              <ChevronRight size={28} />
+            </button>
+          )}
+
+          {/* Contador */}
+          {fotos.length > 1 && (
+            <span style={{ position: 'absolute', bottom: 18, left: '50%', transform: 'translateX(-50%)', color: '#fff', fontSize: 13, fontWeight: 600, background: 'rgba(0,0,0,0.5)', padding: '5px 12px', borderRadius: 999, border: '1px solid rgba(255,255,255,0.2)' }}>
+              {lightboxIdx + 1} / {fotos.length}
+            </span>
+          )}
         </div>
       )}
     </div>
